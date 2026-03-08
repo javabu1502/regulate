@@ -1,0 +1,37 @@
+{
+  "name": "Regulate — Nervous System Support",
+  "short_name": "Regulate",
+  "description": "Gentle tools for panic attacks, anxiety, and nervous system regulation.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0a0f1e",
+  "background_color": "#0b1526",
+  "orientation": "portrait",
+  "categories": ["health", "lifestyle", "medical"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
