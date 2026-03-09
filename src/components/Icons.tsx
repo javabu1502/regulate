@@ -126,17 +126,21 @@ export function SOSIcon({ className = "h-6 w-6" }: { className?: string }) {
 
 export function WaveIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
-    <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      {/* Main vagus nerve — sinuous descending path */}
-      <path d="M12 2C11 5 13 7 11.5 10C10 13 13 15 12 18C11.5 20 12 22 12 22" />
-      {/* Branching fibers */}
-      <path d="M12.5 6C14 6.5 16 7.5 17 8" opacity="0.4" />
-      <path d="M11.5 10C10 10.5 8 11 7 11.5" opacity="0.4" />
-      <path d="M12.5 14C14 14.5 15.5 15.5 16.5 16" opacity="0.3" />
-      {/* Signal dots along the nerve */}
-      <circle cx="12" cy="2" r="0.8" fill="currentColor" stroke="none" opacity="0.6" />
-      <circle cx="11.5" cy="10" r="0.6" fill="currentColor" stroke="none" opacity="0.4" />
-      <circle cx="12" cy="18" r="0.6" fill="currentColor" stroke="none" opacity="0.3" />
+    <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Brainstem — small oval at top */}
+      <ellipse cx="12" cy="2.5" rx="2" ry="1.2" strokeWidth="1" />
+      {/* Left vagus trunk — wandering S-curve */}
+      <path d="M10.5 3.5C9.5 5.5 10.5 7.5 10 10C9.5 12.5 10.5 15 10 17.5C9.7 19 10 21 10 22" strokeWidth="1.3" />
+      {/* Right vagus trunk */}
+      <path d="M13.5 3.5C14.5 5.5 13.5 7.5 14 10C14.5 12.5 13.5 15 14 17.5C14.3 19 14 21 14 22" strokeWidth="1.3" />
+      {/* Branch to heart (left) */}
+      <path d="M10.2 8.5C8.5 9 7 10 6 11" opacity="0.45" strokeWidth="1" />
+      {/* Branch to lungs (right) */}
+      <path d="M13.8 8.5C15.5 9 17 10 18 11" opacity="0.45" strokeWidth="1" />
+      {/* Branch to gut (left) */}
+      <path d="M10.2 15C8.5 15.5 7.5 16.5 7 17.5" opacity="0.3" strokeWidth="1" />
+      {/* Branch to gut (right) */}
+      <path d="M13.8 15C15.5 15.5 16.5 16.5 17 17.5" opacity="0.3" strokeWidth="1" />
     </svg>
   );
 }

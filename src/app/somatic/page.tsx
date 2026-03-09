@@ -223,9 +223,9 @@ function playTone(ctx: AudioContext, pan: number) {
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function regulationLabel(r: Regulation): string {
-  if (r === "down") return "Down-regulate";
-  if (r === "up") return "Up-regulate";
-  return "Both";
+  if (r === "down") return "Calming";
+  if (r === "up") return "Energizing";
+  return "Calming & energizing";
 }
 
 function regulationColor(r: Regulation): string {
@@ -706,7 +706,7 @@ export default function SomaticPage() {
           {/* Regulation type */}
           <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
             <p className="text-sm text-cream-dim">
-              This exercise helps{" "}
+              This exercise is{" "}
               <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${regulationColor(currentExercise.regulation)}`}>
                 {regulationLabel(currentExercise.regulation)}
               </span>

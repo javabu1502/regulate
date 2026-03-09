@@ -63,24 +63,40 @@ function playTapTone(ctx: AudioContext, pan: number) {
   osc.stop(ctx.currentTime + 0.15);
 }
 
-// ─── "Try something else" menu items ─────────────────────────────────
-
 // ─── All available exercises ──────────────────────────────────────────
+// "inline" = runs inside the SOS page, "link" = navigates to a module page
 
-const allExercises = [
-  { id: "breathing", label: "Breathing", desc: "Physiological sigh — calms fast", time: "~2 min" },
-  { id: "extended", label: "Extended exhale", desc: "Slower, longer — deep calm", time: "~3 min" },
-  { id: "tapping", label: "Bilateral tapping", desc: "Left-right rhythm — processes stress", time: "2 min" },
-  { id: "grounding", label: "5-4-3-2-1 Grounding", desc: "Come back to your senses", time: "~3 min" },
-  { id: "gentle-movement", label: "Gentle movement", desc: "Small movements to come back online", time: "1 min" },
+interface Exercise {
+  id: string;
+  label: string;
+  desc: string;
+  time: string;
+  type: "inline" | "link";
+  href?: string;
+}
+
+const allExercises: Exercise[] = [
+  // Inline (built into SOS flow)
+  { id: "breathing", label: "Physiological sigh", desc: "Double inhale, long exhale — fastest nervous system reset", time: "~2 min", type: "inline" },
+  { id: "extended", label: "Extended exhale", desc: "4 seconds in, 8 seconds out — slows everything down", time: "~3 min", type: "inline" },
+  { id: "tapping", label: "Bilateral tapping", desc: "Left-right rhythm with sound — helps process what you're feeling", time: "2 min", type: "inline" },
+  { id: "grounding", label: "5-4-3-2-1 Grounding", desc: "Use your senses to come back to the present moment", time: "~3 min", type: "inline" },
+  { id: "gentle-movement", label: "Gentle movement", desc: "Wiggle, rock, stretch — small movements to come back online", time: "1 min", type: "inline" },
+  // Links (navigate to module pages)
+  { id: "body-scan", label: "Body scan", desc: "Move attention slowly through your body — progressive release", time: "5 min", type: "link", href: "/body-scan" },
+  { id: "somatic", label: "Somatic exercises", desc: "Shaking, humming, vagus nerve work — release what your body is holding", time: "2-5 min", type: "link", href: "/somatic" },
+  { id: "affirmations", label: "Affirmations", desc: "Words to hold you — chosen for how you're feeling", time: "~2 min", type: "link", href: "/affirmations" },
+  { id: "sleep", label: "Sleep sequence", desc: "Breathing + muscle relaxation for restless nights", time: "5 min", type: "link", href: "/sleep" },
 ];
 
 // ─── Recommended exercises per body state ────────────────────────────
+// Clinically aligned: panicking needs fast down-regulation,
+// anxious needs slower calming, shutdown needs up-regulation
 
 const recommendations: Record<string, string[]> = {
   panicking: ["breathing", "tapping", "grounding"],
-  anxious: ["extended", "breathing", "grounding"],
-  shutdown: ["gentle-movement", "tapping", "breathing"],
+  anxious: ["extended", "body-scan", "grounding"],
+  shutdown: ["gentle-movement", "somatic", "tapping"],
 };
 
 function getRecommended(state: string | null) {
@@ -185,6 +201,11 @@ function SOSPageInner() {
   // ─── Start a specific tool ────────────────────────────────────────
 
   function startTool(toolId: string) {
+    const exercise = allExercises.find((e) => e.id === toolId);
+    if (exercise?.type === "link" && exercise.href) {
+      router.push(exercise.href);
+      return;
+    }
     setActiveTool(toolId);
     switch (toolId) {
       case "breathing":

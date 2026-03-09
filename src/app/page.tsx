@@ -157,14 +157,15 @@ export default function Home() {
                 <span className="mt-0.5 block text-xs text-cream-dim/50">{state.sub}</span>
               </button>
             ))}
-          </div>
 
-          <button
-            onClick={() => setView("feed")}
-            className="mt-6 w-full text-center text-sm text-cream-dim/40 transition-colors hover:text-cream-dim"
-          >
-            I&apos;m okay — just here to practice
-          </button>
+            <button
+              onClick={() => setView("feed")}
+              className="w-full rounded-2xl border border-teal/15 bg-teal/5 px-5 py-4 text-left transition-all active:scale-[0.98] hover:border-teal/30"
+            >
+              <span className="block text-base font-medium text-teal-soft">I&apos;m okay right now</span>
+              <span className="mt-0.5 block text-xs text-cream-dim/50">Just here to practice or explore</span>
+            </button>
+          </div>
 
           {/* Crisis line */}
           <div className="mt-10 flex justify-center">
