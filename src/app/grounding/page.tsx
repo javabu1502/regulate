@@ -175,7 +175,7 @@ export default function GroundingPage() {
 
   if (screen === "select") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -227,7 +227,7 @@ export default function GroundingPage() {
 
   if (screen === "intro") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <button
             onClick={() => setScreen("select")}
@@ -297,7 +297,7 @@ export default function GroundingPage() {
 
   if (screen === "session" && groundingType === "sensory") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         {/* Progress bar */}
         <div className="fixed left-0 right-0 top-0 z-20 h-1 bg-slate-blue/30">
           <div

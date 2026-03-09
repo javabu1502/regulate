@@ -14,7 +14,7 @@ export default function ModulePage({
   children,
 }: ModulePageProps) {
   return (
-    <div className="relative flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+    <div className="relative flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
       <main className="relative z-10 w-full max-w-md">
         <BackLink />
 

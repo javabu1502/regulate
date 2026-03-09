@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CandleIcon } from "@/components/Icons";
+import { WaveIcon } from "@/components/Icons";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
@@ -10,6 +10,7 @@ const reasonOptions = [
   "Panic attacks",
   "General anxiety",
   "Stress & overwhelm",
+  "Burnout / Shutdown",
   "Supporting someone else",
   "Just exploring",
 ];
@@ -142,7 +143,7 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
             <div className="animate-float mb-6">
-              <CandleIcon className="h-12 w-12 text-candle" />
+              <WaveIcon className="h-12 w-12 text-teal-soft" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-cream">
               Welcome to Regulate

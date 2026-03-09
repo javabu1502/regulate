@@ -77,6 +77,29 @@ body {
   }
 }
 
+/* Safe area for bottom nav on notched devices */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Button press feedback */
+.press-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.press-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
 /* High contrast */
 @media (prefers-contrast: more) {
   :root {

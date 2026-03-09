@@ -45,7 +45,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
       <div className="w-full max-w-md">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -57,6 +57,8 @@ export default function SettingsPage() {
         </header>
 
         <div className="flex flex-col gap-3">
+          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Practice</p>
+
           {/* Haptic feedback */}
           <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
             <div className="flex items-center justify-between">
@@ -100,7 +102,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="my-1 border-t border-slate-blue/10" />
+          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Your data</p>
 
           {/* Redo onboarding */}
           <button

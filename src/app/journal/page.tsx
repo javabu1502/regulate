@@ -17,6 +17,9 @@ interface JournalEntry {
   techniques: string[];
   reflection: string;
   nsState?: NSState;
+  technique?: string;
+  aftercareResponse?: string;
+  date?: string;
 }
 
 const durationOptions = ["Under 5 min", "5–15 min", "15–30 min", "30+ min"];
@@ -192,7 +195,27 @@ function Sparkline({ data }: { data: number[] }) {
 // ─── Component ──────────────────────────────────────────────────────
 
 type Screen = "list" | "log" | "saved" | "detail";
-type Tab = "entries" | "insights";
+type Tab = "entries" | "insights" | "timeline";
+
+// ─── Timeline helpers ────────────────────────────────────────────────
+
+function getEntryTimestamp(entry: JournalEntry): number {
+  if (entry.timestamp) return entry.timestamp;
+  if (entry.date) return new Date(entry.date).getTime();
+  return 0;
+}
+
+function groupByDate(allEntries: JournalEntry[]): Record<string, JournalEntry[]> {
+  const groups: Record<string, JournalEntry[]> = {};
+  allEntries.forEach((e) => {
+    const ts = getEntryTimestamp(e);
+    if (ts === 0) return;
+    const dateKey = new Date(ts).toISOString().slice(0, 10);
+    if (!groups[dateKey]) groups[dateKey] = [];
+    groups[dateKey].push(e);
+  });
+  return groups;
+}
 
 export default function JournalPage() {
   const [screen, setScreen] = useState<Screen>("list");
@@ -200,6 +223,7 @@ export default function JournalPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [detailEntry, setDetailEntry] = useState<JournalEntry | null>(null);
   const [copied, setCopied] = useState(false);
+  const [patternDismissed, setPatternDismissed] = useState(false);
 
   // Log form state
   const [intensity, setIntensity] = useState(5);
@@ -214,6 +238,20 @@ export default function JournalPage() {
     setEntries(loadEntries());
     setNsState(getCurrentNSState());
   }, []);
+
+  // ─── Pattern detection ──────────────────────────────────────
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const recentCrisisCount = entries.filter((e) => {
+    if (e.timestamp < sevenDaysAgo) return false;
+    const tech = (e.technique || "").toLowerCase();
+    const techniques = e.techniques?.map((t) => t.toLowerCase()) || [];
+    return (
+      tech.includes("sos") ||
+      tech.includes("panic") ||
+      techniques.some((t) => t.includes("sos") || t.includes("panic"))
+    );
+  }).length;
+  const showPatternAlert = recentCrisisCount >= 5 && !patternDismissed;
 
   function resetForm() {
     setIntensity(5);
@@ -304,7 +342,7 @@ export default function JournalPage() {
 
   if (screen === "list") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -319,6 +357,32 @@ export default function JournalPage() {
             </p>
           </header>
 
+          {/* Pattern detection alert */}
+          {showPatternAlert && (
+            <div className="mb-6 border border-candle/20 bg-candle/5 rounded-2xl p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-cream">We&apos;ve noticed something</p>
+                  <p className="mt-1 text-xs text-cream-dim">
+                    You&apos;ve had several difficult moments recently. Talking to a professional can make a real difference. You&apos;re not alone in this.
+                  </p>
+                  <Link href="/crisis" className="mt-2 inline-block text-xs text-teal-soft">
+                    Find support
+                  </Link>
+                </div>
+                <button
+                  onClick={() => setPatternDismissed(true)}
+                  className="ml-3 shrink-0 text-cream-dim/50 hover:text-cream-dim"
+                  aria-label="Dismiss"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Log button */}
           <button
             onClick={() => { resetForm(); setScreen("log"); }}
@@ -327,8 +391,8 @@ export default function JournalPage() {
             I just had a panic attack
           </button>
 
-          {/* Tabs (show Insights tab when 10+ entries) */}
-          {entries.length >= 10 && (
+          {/* Tabs */}
+          {entries.length > 0 && (
             <div className="mb-5 flex justify-center gap-2">
               <button
                 onClick={() => setTab("entries")}
@@ -337,11 +401,19 @@ export default function JournalPage() {
                 Entries
               </button>
               <button
-                onClick={() => setTab("insights")}
-                className={`rounded-full px-4 py-2 text-sm transition-colors ${tab === "insights" ? "bg-candle/15 text-candle" : "text-cream-dim hover:text-cream"}`}
+                onClick={() => setTab("timeline")}
+                className={`rounded-full px-4 py-2 text-sm transition-colors ${tab === "timeline" ? "bg-teal/20 text-teal-soft" : "text-cream-dim hover:text-cream"}`}
               >
-                Insights
+                Timeline
               </button>
+              {entries.length >= 10 && (
+                <button
+                  onClick={() => setTab("insights")}
+                  className={`rounded-full px-4 py-2 text-sm transition-colors ${tab === "insights" ? "bg-candle/15 text-candle" : "text-cream-dim hover:text-cream"}`}
+                >
+                  Insights
+                </button>
+              )}
             </div>
           )}
 
@@ -400,6 +472,83 @@ export default function JournalPage() {
               )}
             </>
           )}
+
+          {/* TIMELINE TAB */}
+          {tab === "timeline" && (() => {
+            const sorted = [...entries].sort((a, b) => getEntryTimestamp(b) - getEntryTimestamp(a));
+            const grouped = groupByDate(sorted);
+            const dateKeys = Object.keys(grouped).sort().reverse();
+
+            const totalSessions = entries.length;
+            const aftercareResponses = entries.filter((e) => e.aftercareResponse);
+            const betterCount = aftercareResponses.filter((e) => e.aftercareResponse === "better").length;
+            const betterPct = aftercareResponses.length > 0 ? Math.round((betterCount / aftercareResponses.length) * 100) : 0;
+
+            const tlTechniqueCounts: Record<string, number> = {};
+            entries.forEach((e) => {
+              if (e.technique) tlTechniqueCounts[e.technique] = (tlTechniqueCounts[e.technique] || 0) + 1;
+              if (e.techniques) e.techniques.forEach((t) => { tlTechniqueCounts[t] = (tlTechniqueCounts[t] || 0) + 1; });
+            });
+            const tlTopTechnique = Object.entries(tlTechniqueCounts).sort((a, b) => b[1] - a[1])[0];
+
+            return (
+              <>
+                {/* Pattern summary */}
+                <div className="mb-6 grid grid-cols-3 gap-2">
+                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                    <p className="text-lg font-medium text-cream">{totalSessions}</p>
+                    <p className="text-xs text-cream-dim/60">Sessions</p>
+                  </div>
+                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                    <p className="text-lg font-medium text-cream">{betterPct}%</p>
+                    <p className="text-xs text-cream-dim/60">Felt better</p>
+                  </div>
+                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                    <p className="truncate text-sm font-medium text-cream">{tlTopTechnique ? tlTopTechnique[0] : "\u2014"}</p>
+                    <p className="text-xs text-cream-dim/60">Most used</p>
+                  </div>
+                </div>
+
+                {/* Grouped timeline */}
+                <div className="flex flex-col gap-4">
+                  {dateKeys.map((dateKey) => (
+                    <div key={dateKey}>
+                      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-cream-dim/40">
+                        {formatDate(new Date(dateKey).getTime() + 86400000)}
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        {grouped[dateKey].map((entry, i) => {
+                          const ts = getEntryTimestamp(entry);
+                          const technique = entry.technique || (entry.techniques ? entry.techniques.join(", ") : "Session");
+                          const response = entry.aftercareResponse;
+                          return (
+                            <div
+                              key={`${dateKey}-${i}`}
+                              className="flex items-center gap-3 rounded-xl border border-teal/10 bg-deep/40 px-4 py-3"
+                            >
+                              <div className={`h-2 w-2 shrink-0 rounded-full ${
+                                response === "better" ? "bg-teal-soft" :
+                                response === "harder" ? "bg-candle" :
+                                response === "same" ? "bg-slate-blue" :
+                                "bg-cream-dim/30"
+                              }`} />
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm text-cream">{technique}</p>
+                                {entry.intensity && (
+                                  <p className="text-xs text-cream-dim/40">Intensity: {entry.intensity}/10</p>
+                                )}
+                              </div>
+                              <span className="shrink-0 text-xs text-cream-dim/30">{formatTime(ts)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
 
           {/* INSIGHTS TAB */}
           {tab === "insights" && insights && (
@@ -518,7 +667,7 @@ export default function JournalPage() {
 
   if (screen === "log") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <BackButton onClick={() => setScreen("list")} label="Journal" />
 
@@ -697,7 +846,7 @@ export default function JournalPage() {
 
   if (screen === "detail" && detailEntry) {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <BackButton onClick={() => setScreen("list")} label="Journal" />
 

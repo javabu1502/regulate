@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import RegisterSW from "@/components/RegisterSW";
 import OnboardingGate from "@/components/OnboardingGate";
+import AppShell from "@/components/AppShell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -44,7 +45,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <RegisterSW />
-        <OnboardingGate><div id="main-content">{children}</div></OnboardingGate>
+        <OnboardingGate><AppShell><div id="main-content">{children}</div></AppShell></OnboardingGate>
       </body>
     </html>
   );

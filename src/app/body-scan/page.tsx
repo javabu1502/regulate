@@ -7,6 +7,8 @@ import { useWakeLock } from "@/hooks/useWakeLock";
 import { BodyScanIcon } from "@/components/Icons";
 import { useBinauralBeats, BinauralToggle, BinauralPill, HeadphonesNotice } from "@/components/BinauralBeats";
 import AftercareFlow from "@/components/AftercareFlow";
+import SessionProgressBar from "@/components/SessionProgressBar";
+import { voiceGuidance } from "@/lib/voice-guidance";
 
 // ─── Body regions ───────────────────────────────────────────────────
 
@@ -103,6 +105,7 @@ export default function BodyScanPage() {
   const [currentRegion, setCurrentRegion] = useState(0);
   const [regionElapsed, setRegionElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useWakeLock(screen === "session" && !isPaused);
@@ -142,6 +145,20 @@ export default function BodyScanPage() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [screen, isPaused, regionDuration, advanceRegion]);
 
+  // ─── Voice guidance ────────────────────────────────────────────
+
+  useEffect(() => {
+    if (screen === "session" && voiceOn) {
+      voiceGuidance.speak(`${region.name}. ${region.instruction}`);
+    }
+  }, [currentRegion, screen]);
+
+  useEffect(() => {
+    if (screen === "complete") {
+      voiceGuidance.stop();
+    }
+  }, [screen]);
+
   function startSession() {
     setCurrentRegion(0);
     setRegionElapsed(0);
@@ -153,7 +170,7 @@ export default function BodyScanPage() {
 
   if (screen === "intro") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -216,9 +233,24 @@ export default function BodyScanPage() {
 
     return (
       <div className="flex min-h-screen flex-col items-center px-5 pb-20 pt-6">
-        {/* Progress bar */}
-        <div className="fixed left-0 right-0 top-0 z-20 h-1 bg-slate-blue/30">
-          <div className="h-full bg-teal-soft/60 transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }} />
+        {/* Session progress bar */}
+        <div className="fixed left-0 right-0 top-2 z-20 px-6">
+          <SessionProgressBar current={currentRegion + 1} total={regions.length} />
+        </div>
+
+        {/* Voice toggle */}
+        <div className="fixed right-4 top-4 z-20">
+          <button
+            onClick={() => {
+              const next = voiceGuidance.toggle();
+              setVoiceOn(next);
+            }}
+            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+              voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+            }`}
+          >
+            Voice
+          </button>
         </div>
 
         {/* Region dots */}

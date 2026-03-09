@@ -97,11 +97,41 @@ export function HeadphonesIcon({ className = "h-6 w-6" }: { className?: string }
   );
 }
 
-export function CandleIcon({ className = "h-6 w-6" }: { className?: string }) {
+export function HomeIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2C12 2 9 6 9 8C9 10 10.5 11 12 11C13.5 11 15 10 15 8C15 6 12 2 12 2Z" />
-      <rect x="10" y="11" width="4" height="10" rx="1" />
+      <path d="M3 10.5L12 3L21 10.5V20C21 20.6 20.6 21 20 21H4C3.4 21 3 20.6 3 20V10.5Z" />
+      <path d="M9 21V14H15V21" />
     </svg>
   );
 }
+
+export function SettingsIcon({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+    </svg>
+  );
+}
+
+export function SOSIcon({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8V12M12 16H12.01" />
+    </svg>
+  );
+}
+
+export function WaveIcon({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12C4 8 6 6 8 8C10 10 10 14 12 12C14 10 14 6 16 8C18 10 20 14 22 12" />
+      <path d="M2 17C4 13 6 11 8 13C10 15 10 19 12 17C14 15 14 11 16 13C18 15 20 19 22 17" opacity="0.3" />
+    </svg>
+  );
+}
+
+/** @deprecated Use WaveIcon instead */
+export const CandleIcon = WaveIcon;

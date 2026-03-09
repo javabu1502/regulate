@@ -8,6 +8,7 @@ import NSStateSelector, { type NSState } from "./NSStateSelector";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { getInstructions } from "@/lib/sos-scenarios";
 import { haptics } from "@/lib/haptics";
+import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 
 // ─── Physiological sigh pattern ─────────────────────────────────────
 
@@ -38,11 +39,11 @@ const EXTENDED_EXHALE_CYCLES = 5;
 // ─── 5-4-3-2-1 Grounding data ──────────────────────────────────────
 
 const groundingSenses = [
-  { count: 5, sense: "See", prompt: "Name 5 things you can see." },
-  { count: 4, sense: "Touch", prompt: "Notice 4 things you can feel." },
+  { count: 5, sense: "See", prompt: "What are 5 things you can see?" },
+  { count: 4, sense: "Touch", prompt: "What are 4 things you can feel?" },
   { count: 3, sense: "Hear", prompt: "What are 3 sounds?" },
-  { count: 2, sense: "Smell", prompt: "Notice 2 smells." },
-  { count: 1, sense: "Taste", prompt: "1 thing you can taste." },
+  { count: 2, sense: "Smell", prompt: "What are 2 things you can smell?" },
+  { count: 1, sense: "Taste", prompt: "What's 1 thing you can taste?" },
 ];
 
 // ─── Web Audio for bilateral tapping ────────────────────────────────
@@ -69,6 +70,8 @@ type Scenario = "home" | "public" | "work" | "night" | null;
 type Approach = "soothe" | "move-through" | null;
 
 type SOSStep =
+  | "instant-help"
+  | "instant-check"
   | "select-state"
   | "select-scenario"
   | "select-approach"
@@ -89,10 +92,29 @@ interface SOSFlowProps {
 }
 
 export default function SOSFlow({ onClose }: SOSFlowProps) {
-  const [step, setStep] = useState<SOSStep>("select-state");
+  const [step, _setStep] = useState<SOSStep>("instant-help");
+  const [stepHistory, setStepHistory] = useState<SOSStep[]>([]);
   const [nsState, setNsState] = useState<NSState | null>(null);
   const [scenario, setScenario] = useState<Scenario>(null);
   const [approach, setApproach] = useState<Approach>(null);
+
+  // Wrap setStep to track history for back navigation
+  const setStep = useCallback((next: SOSStep) => {
+    _setStep((prev) => {
+      setStepHistory((h) => [...h, prev]);
+      return next;
+    });
+  }, []);
+
+  function goBack() {
+    setStepHistory((h) => {
+      if (h.length === 0) return h;
+      const newHistory = [...h];
+      const previous = newHistory.pop()!;
+      _setStep(previous);
+      return newHistory;
+    });
+  }
 
   // Wake lock — active throughout the entire SOS flow
   useWakeLock(true);
@@ -124,6 +146,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
   // Track which path to continue on after check-in
   const [fallbackStep, setFallbackStep] = useState<SOSStep>("breathing");
 
+  // Ambient audio state
+  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
+
   const currentBreathStep = breathingPattern[currentStepIndex] ?? null;
   const currentGrounding = groundingSenses[groundingStep];
 
@@ -134,6 +159,7 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
       if (timedRef.current) clearInterval(timedRef.current);
       if (tapIntervalRef.current) clearInterval(tapIntervalRef.current);
       cancelAnimationFrame(animFrameRef.current);
+      ambientAudio.stop();
     };
   }, []);
 
@@ -217,6 +243,26 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
     setFallbackStep(nextFallback);
     setStep("breathing");
   }
+
+  // ─── Auto-start breathing for instant-help ─────────────────────
+
+  const instantHelpStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (step === "instant-help" && !instantHelpStartedRef.current) {
+      instantHelpStartedRef.current = true;
+      // Initialize breathing state without changing step
+      setBreathingPattern(sighSteps);
+      setBreathingCycles(SOS_SIGH_CYCLES);
+      setCurrentCycle(0);
+      setCurrentStepIndex(0);
+      setSecondsLeft(sighSteps[0].duration);
+      setOrbProgress(0);
+      elapsedRef.current = 0;
+      setFallbackStep("instant-check");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   // ─── HYPERACTIVATED path helpers ────────────────────────────────
 
@@ -332,6 +378,8 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
         if (fallbackStep === "extended-exhale") {
           // Activated path: sigh done → extended exhale
           startBreathing(extendedExhaleSteps, EXTENDED_EXHALE_CYCLES, "check-in");
+        } else if (fallbackStep === "instant-check") {
+          setStep("instant-check");
         } else if (fallbackStep === "check-in") {
           setStep("check-in");
         } else {
@@ -343,7 +391,8 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
   }, [currentStepIndex, currentCycle, breathingPattern, breathingCycles, fallbackStep]);
 
   useEffect(() => {
-    if (step !== "breathing" || !currentBreathStep) return;
+    if (step !== "breathing" && step !== "instant-help") return;
+    if (!currentBreathStep) return;
 
     lastTickRef.current = performance.now();
 
@@ -406,6 +455,102 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
     return `${m}:${sec.toString().padStart(2, "0")}`;
   }
 
+  // ─── INSTANT HELP (first screen — breathing + tips) ───────────
+
+  if (step === "instant-help" && currentBreathStep) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5" role="dialog" aria-modal="true" aria-label="SOS support flow">
+        <button onClick={onClose} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+        <div className="fixed left-0 right-0 top-8 flex justify-center">
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: breathingCycles }).map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i < currentCycle ? "w-4 bg-teal-soft/50" : i === currentCycle ? "w-6 bg-teal-soft" : "w-3 bg-slate-blue/50"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <BreathingOrb progress={orbProgress} phase={currentBreathStep.phase} />
+
+        <div className="mt-12 text-center">
+          <p className="text-3xl font-light tracking-wide text-cream" aria-live="polite">{currentBreathStep.label}</p>
+          <p className="mt-3 font-mono text-5xl font-extralight tabular-nums text-cream/70">{secondsLeft}</p>
+        </div>
+
+        {/* Ambient sound toggle */}
+        <div className="fixed right-4 top-6 flex gap-1.5">
+          {(["rain", "ocean", "off"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(s); setAmbientSound(s); }
+              }}
+              className={`rounded-full px-2.5 py-1 text-[10px] transition-all ${
+                ambientSound === s
+                  ? "bg-teal/20 text-teal-soft"
+                  : "text-cream-dim/30 hover:text-cream-dim/50"
+              }`}
+            >
+              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : "Ocean"}
+            </button>
+          ))}
+        </div>
+
+        {/* Quick tips + crisis lines */}
+        <div className="fixed bottom-20 left-0 right-0 flex flex-col items-center gap-3 px-4">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <span className="rounded-full border border-slate-blue/20 bg-deep/60 px-3 py-1.5 text-[10px] text-cream-dim/60 whitespace-nowrap">Splash cold water on your face</span>
+            <span className="rounded-full border border-slate-blue/20 bg-deep/60 px-3 py-1.5 text-[10px] text-cream-dim/60 whitespace-nowrap">Suck on something sour</span>
+            <span className="rounded-full border border-slate-blue/20 bg-deep/60 px-3 py-1.5 text-[10px] text-cream-dim/60 whitespace-nowrap">Smell something calming</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <a href="tel:988" className="text-[10px] text-cream-dim/30 underline underline-offset-2">988 Suicide &amp; Crisis Lifeline</a>
+            <span className="text-[10px] text-cream-dim/30">Text HOME to 741741</span>
+          </div>
+        </div>
+
+        <button onClick={onClose} className="fixed bottom-10 text-xs text-cream-dim/30 hover:text-cream-dim">
+          Exit
+        </button>
+      </div>
+    );
+  }
+
+  // ─── INSTANT CHECK (after instant-help breathing) ───────────
+
+  if (step === "instant-check") {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight px-5">
+        <div className="w-full max-w-sm text-center">
+          <h2 className="text-xl font-light text-cream">How are you feeling?</h2>
+          <p className="mt-2 text-sm text-cream-dim">No rush. Just notice.</p>
+
+          <div className="mt-8 flex flex-col gap-3">
+            <button
+              onClick={() => setStep("final")}
+              className="w-full rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft transition-all hover:bg-teal/30 active:scale-[0.98]"
+            >
+              Better
+            </button>
+            <button
+              onClick={() => setStep("select-state")}
+              className="w-full rounded-2xl bg-candle/15 py-4 text-base font-medium text-candle transition-all hover:bg-candle/25 active:scale-[0.98]"
+            >
+              I need more help
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── SELECT STATE ─────────────────────────────────────────────
 
   if (step === "select-state") {
@@ -420,7 +565,18 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
             compact
             onSelect={handleStateSelect}
           />
-          <button onClick={onClose} className="mt-6 w-full text-center text-xs text-cream-dim/30 hover:text-cream-dim">
+          <button
+            onClick={() => {
+              setNsState("window");
+              setScenario("home");
+              setApproach("soothe");
+              startBreathing(sighSteps, SOS_SIGH_CYCLES, "check-in");
+            }}
+            className="mt-5 w-full text-center text-sm text-cream-dim/50 hover:text-cream-dim"
+          >
+            Just help me
+          </button>
+          <button onClick={onClose} className="mt-3 w-full text-center text-xs text-cream-dim/30 hover:text-cream-dim">
             Exit
           </button>
         </div>
@@ -440,10 +596,13 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="w-full max-w-sm">
           <div className="mb-6 text-center">
             <h2 className="text-xl font-light text-cream">Where are you right now?</h2>
-            <p className="mt-2 text-sm text-cream-dim">This helps us pick the right tools.</p>
+            <p className="mt-2 text-sm text-cream-dim">So we can find what fits right now.</p>
           </div>
           <div className="flex flex-col gap-2">
             {scenarios.map((sc) => (
@@ -476,6 +635,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
   if (step === "select-approach") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="w-full max-w-sm text-center">
           <h2 className="text-xl font-light text-cream">What do you need?</h2>
           <p className="mt-2 text-sm text-cream-dim">Both are valid. Trust yourself.</p>
@@ -511,6 +673,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
     const instructions = getInstructions(scenario);
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         {/* Timer */}
         <div className="fixed right-4 top-6 font-mono text-sm text-cream-dim/40">
           {timedSecondsLeft > 0 ? formatTimer(timedSecondsLeft) : ""}
@@ -571,6 +736,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
     const instructions = getInstructions(scenario);
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="fixed right-4 top-6 font-mono text-sm text-cream-dim/40">
           {timedSecondsLeft > 0 ? formatTimer(timedSecondsLeft) : ""}
         </div>
@@ -627,6 +795,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
     const instructions = getInstructions(scenario);
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight">
+        <button onClick={goBack} className="fixed left-4 top-6 z-10 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="fixed right-4 top-6 font-mono text-sm text-cream-dim/40">
           {formatTimer(timedSecondsLeft)}
         </div>
@@ -690,6 +861,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
     const instructions = getInstructions(scenario);
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="fixed right-4 top-6 font-mono text-sm text-cream-dim/40">
           {timedSecondsLeft > 0 ? formatTimer(timedSecondsLeft) : ""}
         </div>
@@ -749,6 +923,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
     const isExtended = breathingPattern === extendedExhaleSteps;
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="fixed left-0 right-0 top-8 flex justify-center">
           <div className="flex items-center gap-1.5">
             {Array.from({ length: breathingCycles }).map((_, i) => (
@@ -785,6 +962,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
   if (step === "check-in") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="w-full max-w-sm text-center">
           <h2 className="text-xl font-light text-cream">How are you feeling?</h2>
           <p className="mt-2 text-sm text-cream-dim">Take a moment. There&apos;s no wrong answer.</p>
@@ -820,6 +1000,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
   if (step === "window-landing") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="text-center">
           <div className="animate-pulse-soft mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
             <div className="h-12 w-12 rounded-full bg-teal/15" />
@@ -869,6 +1052,9 @@ export default function SOSFlow({ onClose }: SOSFlowProps) {
 
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
+        <button onClick={goBack} className="fixed left-4 top-6 z-10 p-2 text-cream-dim/40 hover:text-cream-dim" aria-label="Go back">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
         <div className="fixed left-0 right-0 top-0 h-1 bg-slate-blue/30">
           <div className="h-full bg-teal-soft/60 transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>

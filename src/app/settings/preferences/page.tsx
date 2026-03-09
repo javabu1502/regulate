@@ -7,6 +7,7 @@ const reasonOptions = [
   "Panic attacks",
   "General anxiety",
   "Stress & overwhelm",
+  "Burnout / Shutdown",
   "Supporting someone else",
   "Just exploring",
 ];
@@ -84,7 +85,7 @@ export default function PreferencesPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
       <div className="w-full max-w-md">
         <Link href="/settings" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">

@@ -217,7 +217,7 @@ export default function AffirmationsPage() {
   const accentBg = bgAccents[currentIndex % bgAccents.length];
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
       <div className="w-full max-w-md">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -258,10 +258,10 @@ export default function AffirmationsPage() {
         {tab === "browse" && (
           <>
             {/* Category filters */}
-            <div className="mb-5 flex flex-wrap justify-center gap-2">
+            <div className="mb-5 flex overflow-x-auto gap-2 scrollbar-hide">
               <button
                 onClick={() => setActiveCategory("all")}
-                className={`rounded-full px-3 py-1.5 text-xs transition-colors ${activeCategory === "all" ? "bg-teal/20 text-teal-soft" : "bg-slate-blue/30 text-cream-dim hover:text-cream"}`}
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition-colors ${activeCategory === "all" ? "bg-teal/20 text-teal-soft" : "bg-slate-blue/30 text-cream-dim hover:text-cream"}`}
               >
                 All
               </button>
@@ -272,7 +272,7 @@ export default function AffirmationsPage() {
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`rounded-full px-3 py-1.5 text-xs transition-colors ${activeCategory === cat ? "bg-teal/20 text-teal-soft" : "bg-slate-blue/30 text-cream-dim hover:text-cream"}`}
+                    className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition-colors ${activeCategory === cat ? "bg-teal/20 text-teal-soft" : "bg-slate-blue/30 text-cream-dim hover:text-cream"}`}
                   >
                     {categoryLabels[cat]}
                   </button>

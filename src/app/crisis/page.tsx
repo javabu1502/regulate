@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function CrisisPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
       <div className="w-full max-w-md">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -67,6 +67,40 @@ export default function CrisisPage() {
               className="mt-3 inline-block text-sm text-teal-soft"
             >
               1-800-662-4357
+            </a>
+          </div>
+        </div>
+
+        {/* Find a therapist */}
+        <div className="mt-6">
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Find a therapist</p>
+          <div className="flex flex-col gap-3">
+            <a
+              href="https://www.psychologytoday.com/us/therapists"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
+            >
+              <h3 className="text-sm font-medium text-cream">Psychology Today</h3>
+              <p className="mt-1 text-xs text-cream-dim/60">Search therapists by specialty, insurance, and location.</p>
+            </a>
+            <a
+              href="https://www.openpathcollective.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
+            >
+              <h3 className="text-sm font-medium text-cream">Open Path Collective</h3>
+              <p className="mt-1 text-xs text-cream-dim/60">Affordable therapy — sessions from $30 to $80.</p>
+            </a>
+            <a
+              href="https://www.betterhelp.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
+            >
+              <h3 className="text-sm font-medium text-cream">BetterHelp</h3>
+              <p className="mt-1 text-xs text-cream-dim/60">Online therapy from your phone. Financial aid available.</p>
             </a>
           </div>
         </div>

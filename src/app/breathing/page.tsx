@@ -6,9 +6,12 @@ import BreathingOrb from "@/components/BreathingOrb";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { useBinauralBeats, BinauralToggle, BinauralPill, HeadphonesNotice } from "@/components/BinauralBeats";
 import AftercareFlow from "@/components/AftercareFlow";
+import SessionProgressBar from "@/components/SessionProgressBar";
 import { useRouter } from "next/navigation";
 import { loadFavorites, toggleFavorite, isFavorite } from "@/lib/favorites";
 import { haptics } from "@/lib/haptics";
+import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
+import { voiceGuidance } from "@/lib/voice-guidance";
 
 // ─── Pattern definitions ────────────────────────────────────────────
 
@@ -178,6 +181,8 @@ export default function BreathingPage() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [orbProgress, setOrbProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
+  const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
   const animFrameRef = useRef<number>(0);
   const lastTickRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
@@ -218,6 +223,7 @@ export default function BreathingPage() {
       } else {
         // All cycles complete
         haptics.complete();
+        ambientAudio.stop();
         setScreen("complete");
       }
     }
@@ -258,6 +264,20 @@ export default function BreathingPage() {
 
     return () => cancelAnimationFrame(animFrameRef.current);
   }, [screen, currentStep, isPaused, advanceStep]);
+
+  // ─── Voice guidance ────────────────────────────────────────────
+
+  useEffect(() => {
+    if (screen === "session" && currentStep && voiceOn) {
+      voiceGuidance.speak(currentStep.label);
+    }
+  }, [currentStepIndex, currentCycle, screen]);
+
+  useEffect(() => {
+    if (screen === "complete") {
+      voiceGuidance.stop();
+    }
+  }, [screen]);
 
   // ─── Start session ─────────────────────────────────────────────
 
@@ -317,7 +337,7 @@ export default function BreathingPage() {
 
   if (screen === "select") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link
             href="/"
@@ -425,7 +445,7 @@ export default function BreathingPage() {
 
   if (screen === "custom") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <BackButton onClick={resetToSelect} label="Patterns" />
 
@@ -563,7 +583,7 @@ export default function BreathingPage() {
 
   if (screen === "configure" && selectedPattern) {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <BackButton onClick={resetToSelect} label="Patterns" />
 
@@ -652,8 +672,42 @@ export default function BreathingPage() {
   if (screen === "session" && selectedPattern && currentStep) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-5">
-        {/* Cycle indicator — top */}
-        <div className="fixed left-0 right-0 top-8 flex justify-center">
+        {/* Progress bar — top */}
+        <div className="fixed left-0 right-0 top-4 z-20 px-6">
+          <SessionProgressBar current={currentCycle + 1} total={totalCycles} />
+        </div>
+
+        {/* Ambient sound & voice toggles */}
+        <div className="fixed right-4 top-4 z-20 flex gap-1">
+          <button
+            onClick={() => {
+              const next = voiceGuidance.toggle();
+              setVoiceOn(next);
+            }}
+            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+              voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+            }`}
+          >
+            Voice
+          </button>
+          {(["rain", "ocean", "off"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(s); setAmbientSound(s); }
+              }}
+              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+              }`}
+            >
+              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : "Ocean"}
+            </button>
+          ))}
+        </div>
+
+        {/* Cycle indicator */}
+        <div className="fixed left-0 right-0 top-16 flex justify-center">
           <div className="flex items-center gap-1.5">
             {Array.from({ length: totalCycles }).map((_, i) => (
               <div
