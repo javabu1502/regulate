@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import BreathingOrb from "@/components/BreathingOrb";
+import { useWakeLock } from "@/hooks/useWakeLock";
+import { useBinauralBeats, BinauralToggle, BinauralPill, HeadphonesNotice } from "@/components/BinauralBeats";
+import AftercareFlow from "@/components/AftercareFlow";
+import { useRouter } from "next/navigation";
+import { loadFavorites, toggleFavorite, isFavorite } from "@/lib/favorites";
+import { haptics } from "@/lib/haptics";
 
 // ─── Pattern definitions ────────────────────────────────────────────
 
@@ -138,14 +144,33 @@ function PatternIcon({ id }: { id: string }) {
 
 // ─── Screens ────────────────────────────────────────────────────────
 
-type Screen = "select" | "configure" | "session" | "complete";
+type Screen = "select" | "configure" | "session" | "complete" | "aftercare" | "custom";
 
 export default function BreathingPage() {
+  const router = useRouter();
   const [screen, setScreen] = useState<Screen>("select");
   const [selectedPattern, setSelectedPattern] = useState<BreathPattern | null>(
     null
   );
   const [totalCycles, setTotalCycles] = useState(5);
+  const [customPatterns, setCustomPatterns] = useState<BreathPattern[]>([]);
+  const [favs, setFavs] = useState<string[]>([]);
+
+  // Custom pattern builder state
+  const [customInhale, setCustomInhale] = useState(4);
+  const [customHold, setCustomHold] = useState(4);
+  const [customExhale, setCustomExhale] = useState(4);
+  const [customRest, setCustomRest] = useState(0);
+  const [customName, setCustomName] = useState("");
+
+  // Load custom patterns and favorites from localStorage
+  useEffect(() => {
+    setFavs(loadFavorites());
+    try {
+      const stored = localStorage.getItem("regulate-custom-patterns");
+      if (stored) setCustomPatterns(JSON.parse(stored));
+    } catch {}
+  }, []);
 
   // Session state
   const [currentCycle, setCurrentCycle] = useState(0);
@@ -157,6 +182,12 @@ export default function BreathingPage() {
   const lastTickRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
 
+  // Wake lock — active during session
+  useWakeLock(screen === "session" && !isPaused);
+
+  // Binaural beats
+  const binaural = useBinauralBeats();
+
   const currentStep = selectedPattern?.steps[currentStepIndex] ?? null;
 
   // ─── Session timer ──────────────────────────────────────────────
@@ -167,6 +198,9 @@ export default function BreathingPage() {
     const nextStepIndex = currentStepIndex + 1;
     if (nextStepIndex < selectedPattern.steps.length) {
       // Next phase in current cycle
+      const nextPhase = selectedPattern.steps[nextStepIndex].phase;
+      if (nextPhase === "inhale") haptics.breatheIn();
+      else if (nextPhase === "exhale") haptics.breatheOut();
       setCurrentStepIndex(nextStepIndex);
       setSecondsLeft(selectedPattern.steps[nextStepIndex].duration);
       elapsedRef.current = 0;
@@ -174,12 +208,16 @@ export default function BreathingPage() {
       // Cycle complete
       const nextCycle = currentCycle + 1;
       if (nextCycle < totalCycles) {
+        const nextPhase = selectedPattern.steps[0].phase;
+        if (nextPhase === "inhale") haptics.breatheIn();
+        else if (nextPhase === "exhale") haptics.breatheOut();
         setCurrentCycle(nextCycle);
         setCurrentStepIndex(0);
         setSecondsLeft(selectedPattern.steps[0].duration);
         elapsedRef.current = 0;
       } else {
         // All cycles complete
+        haptics.complete();
         setScreen("complete");
       }
     }
@@ -238,6 +276,7 @@ export default function BreathingPage() {
     setScreen("select");
     setSelectedPattern(null);
     setIsPaused(false);
+    binaural.stop();
   }
 
   // ─── Back button (context-aware) ──────────────────────────────
@@ -312,34 +351,209 @@ export default function BreathingPage() {
           </header>
 
           <div className="flex flex-col gap-3">
-            {patterns.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  setSelectedPattern(p);
-                  setScreen("configure");
-                }}
-                className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/80">
-                    <PatternIcon id={p.id} />
+            {[...patterns, ...customPatterns].map((p) => (
+              <div key={p.id} className="relative">
+                <button
+                  onClick={() => {
+                    setSelectedPattern(p);
+                    setScreen("configure");
+                  }}
+                  className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/80">
+                      <PatternIcon id={p.id} />
+                    </div>
+                    <div className="min-w-0 pr-6">
+                      <h3 className="text-base font-medium text-cream">
+                        {p.name}
+                      </h3>
+                      <p className="mt-0.5 text-sm text-cream-dim">
+                        {p.description}
+                      </p>
+                      <span className="mt-1.5 inline-block rounded-full bg-teal/10 px-2.5 py-0.5 text-xs text-teal-soft">
+                        {p.useCase}
+                      </span>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-medium text-cream">
-                      {p.name}
-                    </h3>
-                    <p className="mt-0.5 text-sm text-cream-dim">
-                      {p.description}
-                    </p>
-                    <span className="mt-1.5 inline-block rounded-full bg-teal/10 px-2.5 py-0.5 text-xs text-teal-soft">
-                      {p.useCase}
-                    </span>
-                  </div>
-                </div>
-              </button>
+                </button>
+                {/* Favorite star */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(`breathing:${p.id}`);
+                    setFavs(loadFavorites());
+                  }}
+                  className="absolute right-4 top-4 p-1 transition-colors"
+                  aria-label={favs.includes(`breathing:${p.id}`) ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill={favs.includes(`breathing:${p.id}`) ? "currentColor" : "none"} className={favs.includes(`breathing:${p.id}`) ? "text-amber-400" : "text-cream-dim/40 hover:text-cream-dim"}>
+                    <path d="M8 1.5L9.79 5.13L13.76 5.71L10.88 8.51L11.58 12.46L8 10.57L4.42 12.46L5.12 8.51L2.24 5.71L6.21 5.13L8 1.5Z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
             ))}
+
+            {/* Create custom pattern card */}
+            <button
+              onClick={() => setScreen("custom")}
+              className="group w-full rounded-2xl border border-dashed border-teal/25 bg-deep/40 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/45 hover:shadow-lg hover:shadow-teal/8"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/50">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-teal-soft">
+                    <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-medium text-cream-dim group-hover:text-cream">
+                    Create custom
+                  </h3>
+                  <p className="mt-0.5 text-sm text-cream-dim/60">
+                    Design your own breathing pattern
+                  </p>
+                </div>
+              </div>
+            </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── CUSTOM PATTERN SCREEN ────────────────────────────────────
+
+  if (screen === "custom") {
+    return (
+      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+        <div className="w-full max-w-md">
+          <BackButton onClick={resetToSelect} label="Patterns" />
+
+          <header className="mb-8 mt-6 text-center">
+            <h1 className="text-xl font-semibold tracking-tight text-cream">
+              Create a pattern
+            </h1>
+          </header>
+
+          <div className="flex flex-col gap-5 rounded-2xl border border-teal/15 bg-deep/60 p-6 backdrop-blur-sm">
+            {/* Name input */}
+            <div>
+              <label className="mb-1.5 block text-sm text-cream-dim">Name</label>
+              <input
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="My breathing pattern"
+                className="w-full rounded-xl border border-slate-blue/50 bg-slate-blue/20 px-4 py-2.5 text-sm text-cream placeholder-cream-dim/40 outline-none transition-colors focus:border-teal/40"
+              />
+            </div>
+
+            {/* Inhale slider */}
+            <div>
+              <div className="mb-1.5 flex justify-between text-sm">
+                <span className="text-cream-dim">Inhale</span>
+                <span className="tabular-nums text-cream">{customInhale}s</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={15}
+                value={customInhale}
+                onChange={(e) => setCustomInhale(Number(e.target.value))}
+                className="w-full accent-teal-500"
+              />
+            </div>
+
+            {/* Hold slider */}
+            <div>
+              <div className="mb-1.5 flex justify-between text-sm">
+                <span className="text-cream-dim">Hold</span>
+                <span className="tabular-nums text-cream">{customHold}s</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={15}
+                value={customHold}
+                onChange={(e) => setCustomHold(Number(e.target.value))}
+                className="w-full accent-teal-500"
+              />
+            </div>
+
+            {/* Exhale slider */}
+            <div>
+              <div className="mb-1.5 flex justify-between text-sm">
+                <span className="text-cream-dim">Exhale</span>
+                <span className="tabular-nums text-cream">{customExhale}s</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={15}
+                value={customExhale}
+                onChange={(e) => setCustomExhale(Number(e.target.value))}
+                className="w-full accent-teal-500"
+              />
+            </div>
+
+            {/* Rest slider */}
+            <div>
+              <div className="mb-1.5 flex justify-between text-sm">
+                <span className="text-cream-dim">Rest</span>
+                <span className="tabular-nums text-cream">{customRest}s</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={5}
+                value={customRest}
+                onChange={(e) => setCustomRest(Number(e.target.value))}
+                className="w-full accent-teal-500"
+              />
+            </div>
+          </div>
+
+          {/* Save & use button */}
+          <button
+            onClick={() => {
+              const steps: BreathStep[] = [
+                { phase: "inhale", duration: customInhale, label: "Inhale" },
+              ];
+              if (customHold > 0) {
+                steps.push({ phase: "hold", duration: customHold, label: "Hold" });
+              }
+              steps.push({ phase: "exhale", duration: customExhale, label: "Exhale" });
+              if (customRest > 0) {
+                steps.push({ phase: "rest", duration: customRest, label: "Rest" });
+              }
+
+              const pattern: BreathPattern = {
+                id: `custom-${Date.now()}`,
+                name: customName.trim() || "Custom Pattern",
+                description: `${customInhale}-${customHold}-${customExhale}${customRest > 0 ? `-${customRest}` : ""} rhythm`,
+                useCase: "Custom",
+                steps,
+              };
+
+              const updated = [...customPatterns, pattern];
+              setCustomPatterns(updated);
+              localStorage.setItem("regulate-custom-patterns", JSON.stringify(updated));
+
+              // Reset builder state
+              setCustomName("");
+              setCustomInhale(4);
+              setCustomHold(4);
+              setCustomExhale(4);
+              setCustomRest(0);
+
+              // Start session with this pattern
+              setSelectedPattern(pattern);
+              setScreen("configure");
+            }}
+            className="mt-6 w-full rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft backdrop-blur-sm transition-all duration-300 hover:bg-teal/30 hover:shadow-lg hover:shadow-teal/10 active:scale-[0.98]"
+          >
+            Save &amp; use
+          </button>
         </div>
       </div>
     );
@@ -410,6 +624,15 @@ export default function BreathingPage() {
               )}{" "}
               min
             </p>
+          </div>
+
+          {/* Binaural beats */}
+          <div className="mt-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <BinauralToggle
+              presetId="calm"
+              isPlaying={binaural.isPlaying}
+              onToggle={binaural.toggle}
+            />
           </div>
 
           {/* Start button */}
@@ -519,6 +742,11 @@ export default function BreathingPage() {
             </div>
           </div>
         )}
+
+        {binaural.isPlaying && binaural.activePreset && (
+          <BinauralPill preset={binaural.activePreset} onStop={binaural.stop} />
+        )}
+        {binaural.showHeadphones && <HeadphonesNotice onDismiss={binaural.dismissHeadphones} />}
       </div>
     );
   }
@@ -528,39 +756,10 @@ export default function BreathingPage() {
   if (screen === "complete") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-5">
-        <div className="text-center">
-          <div className="animate-pulse-soft mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
-            <div className="h-12 w-12 rounded-full bg-teal/15" />
-          </div>
-
-          <h2 className="text-2xl font-light tracking-tight text-cream">
-            Well done.
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-            Notice how you feel right now.
-            <br />
-            Let that settle for a moment.
-          </p>
-
-          <div className="mt-3 text-xs text-cream-dim/40">
-            {selectedPattern?.name} · {totalCycles} cycles
-          </div>
-
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <button
-              onClick={resetToSelect}
-              className="rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
-            >
-              Try another pattern
-            </button>
-            <Link
-              href="/"
-              className="text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
-            >
-              Back to home
-            </Link>
-          </div>
-        </div>
+        <AftercareFlow
+          technique={selectedPattern?.name ?? "Guided Breathing"}
+          onDone={() => router.push("/")}
+        />
       </div>
     );
   }

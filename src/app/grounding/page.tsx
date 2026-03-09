@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { GroundingIcon } from "@/components/Icons";
+import AftercareFlow from "@/components/AftercareFlow";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
@@ -74,15 +77,39 @@ const senseSteps: SenseStep[] = [
   },
 ];
 
+const bodySteps = [
+  "Press your feet firmly into the floor. Notice the pressure.",
+  "Squeeze both fists tight for 5 seconds... then release.",
+  "Notice the weight of your body. Where does gravity pull you?",
+  "Place one hand on your chest. Feel it rise and fall.",
+  "You're here. Your body is holding you.",
+];
+
+const objectSteps = [
+  "What color is it?",
+  "What does it feel like? Smooth? Rough? Cold? Warm?",
+  "How heavy is it?",
+  "What does it smell like?",
+  "Describe it to yourself as if you've never seen anything like it.",
+];
+
 // ─── Component ──────────────────────────────────────────────────────
 
-type Screen = "intro" | "sense" | "complete";
+type Screen = "select" | "intro" | "session" | "complete";
+type GroundingType = "sensory" | "body" | "object";
 
 export default function GroundingPage() {
-  const [screen, setScreen] = useState<Screen>("intro");
+  const router = useRouter();
+  const [screen, setScreen] = useState<Screen>("select");
+  const [groundingType, setGroundingType] = useState<GroundingType>("sensory");
+
+  // Sensory grounding state
   const [stepIndex, setStepIndex] = useState(0);
   const [checked, setChecked] = useState<boolean[]>([]);
   const [fadingOut, setFadingOut] = useState(false);
+
+  // Body / Object grounding state
+  const [simpleStepIndex, setSimpleStepIndex] = useState(0);
 
   const currentSense = senseSteps[stepIndex];
   const totalItems = senseSteps.reduce((sum, s) => sum + s.count, 0);
@@ -91,10 +118,23 @@ export default function GroundingPage() {
     .reduce((sum, s) => sum + s.count, 0) + checked.filter(Boolean).length;
   const progressPercent = (completedItems / totalItems) * 100;
 
-  function startGrounding() {
+  function selectType(type: GroundingType) {
+    setGroundingType(type);
+    setSimpleStepIndex(0);
     setStepIndex(0);
-    setChecked(Array(senseSteps[0].count).fill(false));
-    setScreen("sense");
+    setChecked([]);
+    setFadingOut(false);
+    setScreen("intro");
+  }
+
+  function startGrounding() {
+    if (groundingType === "sensory") {
+      setStepIndex(0);
+      setChecked(Array(senseSteps[0].count).fill(false));
+    } else {
+      setSimpleStepIndex(0);
+    }
+    setScreen("session");
   }
 
   function checkItem(index: number) {
@@ -103,13 +143,12 @@ export default function GroundingPage() {
     next[index] = true;
     setChecked(next);
 
-    // If all checked, advance after a brief pause
     if (next.every(Boolean)) {
-      setTimeout(() => advanceStep(), 600);
+      setTimeout(() => advanceSenseStep(), 600);
     }
   }
 
-  function advanceStep() {
+  function advanceSenseStep() {
     setFadingOut(true);
     setTimeout(() => {
       const nextIndex = stepIndex + 1;
@@ -123,9 +162,18 @@ export default function GroundingPage() {
     }, 300);
   }
 
-  // ─── INTRO ────────────────────────────────────────────────────
+  function advanceSimpleStep() {
+    const steps = groundingType === "body" ? bodySteps : objectSteps;
+    if (simpleStepIndex < steps.length - 1) {
+      setSimpleStepIndex((i) => i + 1);
+    } else {
+      setScreen("complete");
+    }
+  }
 
-  if (screen === "intro") {
+  // ─── SELECT ─────────────────────────────────────────────────────
+
+  if (screen === "select") {
     return (
       <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
         <div className="w-full max-w-md">
@@ -136,16 +184,102 @@ export default function GroundingPage() {
             Home
           </Link>
 
-          <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
-            <div className="mb-6 text-5xl">🖐</div>
-            <h1 className="text-2xl font-light tracking-tight text-cream">
-              Let&apos;s bring you back<br />to the present.
+          <header className="mb-8 mt-6 text-center">
+            <div className="mb-3 flex justify-center">
+              <GroundingIcon className="h-10 w-10 text-teal-soft" />
+            </div>
+            <h1 className="text-xl font-semibold tracking-tight text-cream">
+              Grounding
             </h1>
-            <p className="mt-4 text-sm leading-relaxed text-cream-dim">
-              We&apos;ll go through your five senses, one at a time.
-              <br />
-              There&apos;s no rush.
-            </p>
+          </header>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => selectType("sensory")}
+              className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
+            >
+              <h3 className="text-base font-medium text-cream">5-4-3-2-1 Senses</h3>
+              <p className="mt-1 text-sm text-cream-dim">Engage all five senses</p>
+            </button>
+
+            <button
+              onClick={() => selectType("body")}
+              className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
+            >
+              <h3 className="text-base font-medium text-cream">Body Grounding</h3>
+              <p className="mt-1 text-sm text-cream-dim">Feel your body in space</p>
+            </button>
+
+            <button
+              onClick={() => selectType("object")}
+              className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
+            >
+              <h3 className="text-base font-medium text-cream">Object Grounding</h3>
+              <p className="mt-1 text-sm text-cream-dim">Focus on a single object</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── INTRO ────────────────────────────────────────────────────
+
+  if (screen === "intro") {
+    return (
+      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+        <div className="w-full max-w-md">
+          <button
+            onClick={() => setScreen("select")}
+            className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
+              <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back
+          </button>
+
+          <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
+            <div className="mb-6 flex justify-center"><GroundingIcon className="h-10 w-10 text-teal-soft" /></div>
+
+            {groundingType === "sensory" && (
+              <>
+                <h1 className="text-2xl font-light tracking-tight text-cream">
+                  Let&apos;s bring you back<br />to the present.
+                </h1>
+                <p className="mt-4 text-sm leading-relaxed text-cream-dim">
+                  We&apos;ll go through your five senses, one at a time.
+                  <br />
+                  There&apos;s no rush.
+                </p>
+              </>
+            )}
+
+            {groundingType === "body" && (
+              <>
+                <h1 className="text-2xl font-light tracking-tight text-cream">
+                  Feel your body<br />right here, right now.
+                </h1>
+                <p className="mt-4 text-sm leading-relaxed text-cream-dim">
+                  We&apos;ll move through simple body sensations
+                  <br />
+                  to bring you back to the present.
+                </p>
+              </>
+            )}
+
+            {groundingType === "object" && (
+              <>
+                <h1 className="text-2xl font-light tracking-tight text-cream">
+                  Pick up one object near you.
+                  <br />
+                  Hold it.
+                </h1>
+                <p className="mt-4 text-sm leading-relaxed text-cream-dim">
+                  We&apos;ll explore it together, slowly.
+                </p>
+              </>
+            )}
 
             <button
               onClick={startGrounding}
@@ -159,9 +293,9 @@ export default function GroundingPage() {
     );
   }
 
-  // ─── SENSE SCREEN ─────────────────────────────────────────────
+  // ─── SESSION: SENSORY (5-4-3-2-1) ──────────────────────────────
 
-  if (screen === "sense") {
+  if (screen === "session" && groundingType === "sensory") {
     return (
       <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
         {/* Progress bar */}
@@ -216,7 +350,7 @@ export default function GroundingPage() {
 
           {/* Skip / early advance */}
           <button
-            onClick={advanceStep}
+            onClick={advanceSenseStep}
             className="mt-8 text-xs text-cream-dim/40 transition-colors hover:text-cream-dim"
           >
             {checked.every(Boolean) ? "Continue" : "Skip this sense"}
@@ -226,38 +360,60 @@ export default function GroundingPage() {
     );
   }
 
+  // ─── SESSION: BODY / OBJECT ───────────────────────────────────
+
+  if (screen === "session" && (groundingType === "body" || groundingType === "object")) {
+    const steps = groundingType === "body" ? bodySteps : objectSteps;
+
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+        <div className="flex w-full max-w-md flex-col items-center text-center">
+          <p className="text-xl font-light leading-relaxed text-cream">
+            {steps[simpleStepIndex]}
+          </p>
+
+          <button
+            onClick={advanceSimpleStep}
+            className="mt-10 rounded-2xl bg-teal/20 px-8 py-3 text-sm font-medium text-teal-soft transition-all duration-300 hover:bg-teal/30 active:scale-[0.98]"
+          >
+            Next
+          </button>
+
+          {/* Step dots */}
+          <div className="mt-8 flex items-center gap-2">
+            {steps.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i < simpleStepIndex
+                    ? "w-4 bg-teal-soft/50"
+                    : i === simpleStepIndex
+                      ? "w-6 bg-teal-soft"
+                      : "w-3 bg-slate-blue/50"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── COMPLETE ─────────────────────────────────────────────────
 
   if (screen === "complete") {
+    const techniqueNames: Record<GroundingType, string> = {
+      sensory: "5-4-3-2-1 Grounding",
+      body: "Body Grounding",
+      object: "Object Grounding",
+    };
+
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-5">
-        {/* Full progress */}
-        <div className="fixed left-0 right-0 top-0 z-20 h-1 bg-teal-soft/60" />
-
-        <div className="text-center">
-          <div className="animate-pulse-soft mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
-            <div className="h-12 w-12 rounded-full bg-teal/15" />
-          </div>
-
-          <h2 className="text-2xl font-light tracking-tight text-cream">You are here.</h2>
-          <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-            You are safe.
-            <br />
-            You made it back to the present.
-          </p>
-
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <button
-              onClick={() => { setScreen("intro"); setStepIndex(0); }}
-              className="rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
-            >
-              Do it again
-            </button>
-            <Link href="/" className="text-sm text-cream-dim/50 transition-colors hover:text-cream-dim">
-              Back to home
-            </Link>
-          </div>
-        </div>
+        <AftercareFlow
+          technique={techniqueNames[groundingType]}
+          onDone={() => router.push("/")}
+        />
       </div>
     );
   }

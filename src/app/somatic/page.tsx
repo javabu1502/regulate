@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useWakeLock } from "@/hooks/useWakeLock";
+import { useBinauralBeats, BinauralToggle, BinauralPill, HeadphonesNotice } from "@/components/BinauralBeats";
+import { SomaticIcon } from "@/components/Icons";
+import AftercareFlow from "@/components/AftercareFlow";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -33,6 +38,7 @@ function playTone(ctx: AudioContext, pan: number) {
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function SomaticPage() {
+  const router = useRouter();
   const [screen, setScreen] = useState<Screen>("select");
   const [technique, setTechnique] = useState<Technique>("tapping");
   const [speed, setSpeed] = useState<Speed>("medium");
@@ -50,6 +56,9 @@ export default function SomaticPage() {
 
   // Swaying state
   const [swayPosition, setSwayPosition] = useState(0);
+
+  useWakeLock(screen === "session" && !isPaused);
+  const binaural = useBinauralBeats();
 
   const totalSeconds = duration * 60;
 
@@ -163,6 +172,7 @@ export default function SomaticPage() {
     stopSession();
     setScreen("select");
     setIsPaused(false);
+    binaural.stop();
   }
 
   function formatTime(s: number) {
@@ -201,7 +211,7 @@ export default function SomaticPage() {
           </Link>
 
           <header className="mb-8 mt-6 text-center">
-            <div className="mb-3 text-4xl">🌊</div>
+            <div className="mb-3 flex justify-center"><SomaticIcon className="h-8 w-8 text-teal-soft" /></div>
             <h1 className="text-xl font-semibold tracking-tight text-cream">Somatic Movement</h1>
             <p className="mt-2 text-sm leading-relaxed text-cream-dim">
               Move gently to release what your body is holding.
@@ -342,6 +352,11 @@ export default function SomaticPage() {
             )}
           </div>
 
+          {/* Binaural beats */}
+          <div className="mt-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <BinauralToggle presetId="calm" isPlaying={binaural.isPlaying} onToggle={binaural.toggle} />
+          </div>
+
           <button
             onClick={startSession}
             className="mt-6 w-full rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft backdrop-blur-sm transition-all duration-300 hover:bg-teal/30 hover:shadow-lg hover:shadow-teal/10 active:scale-[0.98]"
@@ -451,6 +466,9 @@ export default function SomaticPage() {
             </div>
           </div>
         )}
+
+        {binaural.isPlaying && binaural.activePreset && <BinauralPill preset={binaural.activePreset} onStop={binaural.stop} />}
+        {binaural.showHeadphones && <HeadphonesNotice onDismiss={binaural.dismissHeadphones} />}
       </div>
     );
   }
@@ -526,6 +544,9 @@ export default function SomaticPage() {
             </div>
           </div>
         )}
+
+        {binaural.isPlaying && binaural.activePreset && <BinauralPill preset={binaural.activePreset} onStop={binaural.stop} />}
+        {binaural.showHeadphones && <HeadphonesNotice onDismiss={binaural.dismissHeadphones} />}
       </div>
     );
   }
@@ -535,34 +556,10 @@ export default function SomaticPage() {
   if (screen === "complete") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-5">
-        <div className="text-center">
-          <div className="animate-pulse-soft mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
-            <div className="h-12 w-12 rounded-full bg-teal/15" />
-          </div>
-
-          <h2 className="text-2xl font-light tracking-tight text-cream">Well done.</h2>
-          <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-            Notice what&apos;s shifted in your body.
-            <br />
-            Let that settle.
-          </p>
-
-          <div className="mt-3 text-xs text-cream-dim/40">
-            {technique === "tapping" ? "Bilateral Tapping" : "Gentle Swaying"} · {duration} min
-          </div>
-
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <button
-              onClick={resetToSelect}
-              className="rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
-            >
-              Try another technique
-            </button>
-            <Link href="/" className="text-sm text-cream-dim/50 transition-colors hover:text-cream-dim">
-              Back to home
-            </Link>
-          </div>
-        </div>
+        <AftercareFlow
+          technique={technique === "tapping" ? "Bilateral Tapping" : "Gentle Swaying"}
+          onDone={() => router.push("/")}
+        />
       </div>
     );
   }

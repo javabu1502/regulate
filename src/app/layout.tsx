@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import RegisterSW from "@/components/RegisterSW";
+import OnboardingGate from "@/components/OnboardingGate";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,8 +40,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className={`${geistSans.variable} antialiased`}>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-teal/20 focus:px-4 focus:py-2 focus:text-sm focus:text-teal-soft">
+          Skip to content
+        </a>
         <RegisterSW />
-        {children}
+        <OnboardingGate><div id="main-content">{children}</div></OnboardingGate>
       </body>
     </html>
   );

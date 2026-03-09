@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useWakeLock } from "@/hooks/useWakeLock";
+import { BodyScanIcon } from "@/components/Icons";
+import { useBinauralBeats, BinauralToggle, BinauralPill, HeadphonesNotice } from "@/components/BinauralBeats";
+import AftercareFlow from "@/components/AftercareFlow";
 
 // ─── Body regions ───────────────────────────────────────────────────
 
@@ -92,12 +97,16 @@ function BodyOutline({ activeRegion }: { activeRegion: string }) {
 type Screen = "intro" | "session" | "complete";
 
 export default function BodyScanPage() {
+  const router = useRouter();
   const [screen, setScreen] = useState<Screen>("intro");
   const [totalMinutes, setTotalMinutes] = useState(10);
   const [currentRegion, setCurrentRegion] = useState(0);
   const [regionElapsed, setRegionElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useWakeLock(screen === "session" && !isPaused);
+  const binaural = useBinauralBeats();
 
   const regionDuration = Math.floor((totalMinutes * 60) / regions.length);
   const region = regions[currentRegion];
@@ -152,7 +161,7 @@ export default function BodyScanPage() {
           </Link>
 
           <header className="mb-8 mt-6 text-center">
-            <div className="mb-3 text-4xl">🫀</div>
+            <div className="mb-3 flex justify-center"><BodyScanIcon className="h-8 w-8 text-candle-soft" /></div>
             <h1 className="text-xl font-semibold tracking-tight text-cream">Body Scan</h1>
             <p className="mt-2 text-sm leading-relaxed text-cream-dim">
               Move your attention slowly through your body.<br />
@@ -181,6 +190,11 @@ export default function BodyScanPage() {
             <p className="mt-3 text-center text-xs text-cream-dim/50">
               ~{Math.round((totalMinutes * 60) / regions.length)}s per region
             </p>
+          </div>
+
+          {/* Binaural beats */}
+          <div className="mt-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <BinauralToggle presetId="balance" isPlaying={binaural.isPlaying} onToggle={binaural.toggle} />
           </div>
 
           <button
@@ -232,12 +246,12 @@ export default function BodyScanPage() {
             <p className="mt-4 font-mono text-sm text-cream-dim/40">{regionRemaining}s</p>
           </div>
 
-          {/* Tap to advance */}
+          {/* Advance region — large, bottom-reachable */}
           <button
             onClick={advanceRegion}
-            className="mt-6 text-xs text-cream-dim/40 transition-colors hover:text-cream-dim"
+            className="mt-6 w-full max-w-[200px] rounded-2xl border border-teal/20 bg-deep/60 py-4 text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream active:scale-[0.98]"
           >
-            Ready to move on
+            Next region
           </button>
         </div>
 
@@ -264,6 +278,11 @@ export default function BodyScanPage() {
             </div>
           </div>
         )}
+
+        {binaural.isPlaying && binaural.activePreset && (
+          <BinauralPill preset={binaural.activePreset} onStop={binaural.stop} />
+        )}
+        {binaural.showHeadphones && <HeadphonesNotice onDismiss={binaural.dismissHeadphones} />}
       </div>
     );
   }
@@ -271,25 +290,13 @@ export default function BodyScanPage() {
   // ─── COMPLETE ─────────────────────────────────────────────────
 
   if (screen === "complete") {
+    binaural.stop();
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-5">
-        <div className="fixed left-0 right-0 top-0 z-20 h-1 bg-teal-soft/60" />
-        <div className="text-center">
-          <div className="animate-pulse-soft mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
-            <div className="h-12 w-12 rounded-full bg-teal/15" />
-          </div>
-          <h2 className="text-2xl font-light tracking-tight text-cream">You&apos;ve arrived in your body.</h2>
-          <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-            Sit with this feeling for a moment.
-          </p>
-          <div className="mt-3 text-xs text-cream-dim/40">{totalMinutes} minute scan</div>
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <button onClick={() => setScreen("intro")} className="rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft hover:bg-teal/25">
-              Scan again
-            </button>
-            <Link href="/" className="text-sm text-cream-dim/50 transition-colors hover:text-cream-dim">Back to home</Link>
-          </div>
-        </div>
+        <AftercareFlow
+          technique="Body Scan"
+          onDone={() => router.push("/")}
+        />
       </div>
     );
   }

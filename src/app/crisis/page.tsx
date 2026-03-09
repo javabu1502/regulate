@@ -1,0 +1,82 @@
+"use client";
+
+import Link from "next/link";
+
+export default function CrisisPage() {
+  return (
+    <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+      <div className="w-full max-w-md">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Home
+        </Link>
+
+        <header className="mb-8 mt-6 text-center">
+          <h1 className="text-xl font-semibold tracking-tight text-cream">Crisis Resources</h1>
+          <p className="mt-2 text-sm leading-relaxed text-cream-dim">
+            If you or someone you know is in crisis, these services are available 24/7.
+          </p>
+        </header>
+
+        <div className="flex flex-col gap-3">
+          <div className="rounded-2xl border border-candle/15 bg-candle/5 p-5">
+            <h3 className="text-sm font-medium text-cream">988 Suicide & Crisis Lifeline</h3>
+            <p className="mt-1 text-xs text-cream-dim/60">Free, confidential support for people in distress.</p>
+            <div className="mt-3 flex gap-2">
+              <a
+                href="tel:988"
+                className="flex-1 rounded-xl bg-candle/15 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"
+              >
+                Call 988
+              </a>
+              <a
+                href="sms:988"
+                className="flex-1 rounded-xl border border-candle/20 py-3 text-center text-sm text-candle-soft transition-colors hover:bg-candle/10"
+              >
+                Text 988
+              </a>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+            <h3 className="text-sm font-medium text-cream">Crisis Text Line</h3>
+            <p className="mt-1 text-xs text-cream-dim/60">Text-based crisis counseling, anytime.</p>
+            <p className="mt-3 text-sm text-teal-soft">Text HOME to 741741</p>
+          </div>
+
+          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+            <h3 className="text-sm font-medium text-cream">International Association for Suicide Prevention</h3>
+            <p className="mt-1 text-xs text-cream-dim/60">Find a crisis center in your country.</p>
+            <a
+              href="https://www.iasp.info/resources/Crisis_Centres/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block text-sm text-teal-soft underline underline-offset-2"
+            >
+              Find your local crisis line
+            </a>
+          </div>
+
+          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+            <h3 className="text-sm font-medium text-cream">SAMHSA National Helpline</h3>
+            <p className="mt-1 text-xs text-cream-dim/60">Free referral and information service for mental health and substance use.</p>
+            <a
+              href="tel:18006624357"
+              className="mt-3 inline-block text-sm text-teal-soft"
+            >
+              1-800-662-4357
+            </a>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-xl bg-teal/5 p-4 text-center">
+          <p className="text-xs leading-relaxed text-cream-dim/50">
+            You are not alone. Reaching out takes strength.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

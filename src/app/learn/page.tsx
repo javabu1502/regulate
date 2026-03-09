@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { LearnIcon } from "@/components/Icons";
 
 // ─── Content sections ───────────────────────────────────────────────
 
@@ -15,7 +16,7 @@ interface Section {
 const sections: Section[] = [
   {
     id: "panic",
-    title: "What is a panic attack?",
+    title: "What's happening to me?",
     icon: (
       <svg className="h-6 w-6 text-candle" viewBox="0 0 24 24" fill="none">
         <path d="M12 4L14 9H10L12 4Z" fill="currentColor" />
@@ -35,13 +36,13 @@ const sections: Section[] = [
           <li>Shortness of breath or chest tightness</li>
           <li>Dizziness or lightheadedness</li>
           <li>Tingling or numbness in hands and feet</li>
-          <li>Feeling detached from reality (derealization)</li>
+          <li>Feeling detached from reality</li>
           <li>Nausea or stomach distress</li>
           <li>Hot or cold flashes</li>
         </ul>
         <p>
           Panic attacks typically peak within <span className="text-cream">10 minutes</span> and rarely last longer
-          than 20–30 minutes. They are not dangerous, even though they feel terrifying.
+          than 20-30 minutes. They are not dangerous, even though they feel terrifying.
         </p>
         <div className="rounded-xl bg-teal/8 p-4">
           <p className="text-cream">
@@ -54,7 +55,7 @@ const sections: Section[] = [
   },
   {
     id: "nervous-system",
-    title: "Your nervous system",
+    title: "Why your body does this",
     icon: (
       <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none">
         <path d="M12 2V22M8 6L12 2L16 6M8 10H16M6 14H18M8 18H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -67,12 +68,12 @@ const sections: Section[] = [
         </p>
         <div className="grid gap-3">
           <div className="rounded-xl border border-candle/15 bg-candle/5 p-4">
-            <p className="mb-1 font-medium text-candle">Sympathetic — &quot;Gas pedal&quot;</p>
+            <p className="mb-1 font-medium text-candle">Sympathetic — the &quot;gas pedal&quot;</p>
             <p>Activates your fight-or-flight response. Increases heart rate, dilates pupils, floods your body with adrenaline. Designed to help you survive danger.</p>
           </div>
           <div className="rounded-xl border border-teal/15 bg-teal/5 p-4">
-            <p className="mb-1 font-medium text-teal-soft">Parasympathetic — &quot;Brake&quot;</p>
-            <p>Activates rest-and-digest. Slows heart rate, deepens breathing, promotes calm and recovery. This is the state we&apos;re trying to access.</p>
+            <p className="mb-1 font-medium text-teal-soft">Parasympathetic — the &quot;brake&quot;</p>
+            <p>Slows heart rate, deepens breathing, promotes calm and recovery. This is the state the tools in this app help you access.</p>
           </div>
         </div>
         <p className="font-medium text-cream">Fight, flight, freeze, and fawn:</p>
@@ -90,7 +91,7 @@ const sections: Section[] = [
   },
   {
     id: "techniques",
-    title: "Why these techniques work",
+    title: "How these tools help",
     icon: (
       <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
@@ -102,31 +103,31 @@ const sections: Section[] = [
         <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Breathing exercises</p>
           <p>
-            Slow, extended exhales stimulate the <span className="text-teal-soft">vagus nerve</span> — the longest nerve in your body, running from brain to gut. This directly activates your parasympathetic &quot;brake&quot; system, slowing your heart rate and signaling safety.
+            Slow, extended exhales stimulate the vagus nerve (the longest nerve in your body, running from brain to gut). This directly slows your heart rate and signals safety to your nervous system.
           </p>
         </div>
         <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">5-4-3-2-1 Grounding</p>
           <p>
-            Engages your <span className="text-teal-soft">prefrontal cortex</span> — the thinking, planning part of your brain. During panic, the amygdala hijacks your brain. By deliberately noticing sensory details, you pull your brain back into the present and re-engage rational thought.
+            Engages the thinking part of your brain. During panic, your threat-detection center takes over. By deliberately noticing sensory details, you pull your brain back into the present.
           </p>
         </div>
         <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Body scan</p>
           <p>
-            Teaches <span className="text-teal-soft">interoception</span> — awareness of your body&apos;s internal state. Many people with anxiety are disconnected from their body. Progressive relaxation helps you notice where you&apos;re holding tension and consciously release it.
+            Builds awareness of your body&apos;s internal state. Many people with anxiety are disconnected from their body. Progressive relaxation helps you notice where you&apos;re holding tension and consciously release it.
           </p>
         </div>
         <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Bilateral stimulation</p>
           <p>
-            Alternating left-right stimulation (like the butterfly hug) is connected to <span className="text-teal-soft">EMDR therapy</span> research. It appears to help the brain process distressing experiences by engaging both hemispheres, reducing the emotional charge of difficult memories and sensations.
+            Alternating left-right stimulation (like the butterfly hug) is connected to EMDR therapy research. It appears to help the brain process distressing experiences by engaging both hemispheres.
           </p>
         </div>
         <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Physiological sigh</p>
           <p>
-            Discovered by Stanford researchers — a <span className="text-teal-soft">double inhale followed by an extended exhale</span> is the fastest known way to calm your nervous system in real time. Your lungs have tiny air sacs (alveoli) that can collapse during stress. The double inhale pops them open, and the long exhale maximally activates the vagus nerve.
+            A double inhale followed by an extended exhale. Stanford researchers found this is the fastest known way to calm your nervous system in real time.
           </p>
         </div>
       </div>
@@ -134,7 +135,7 @@ const sections: Section[] = [
   },
   {
     id: "window",
-    title: "The window of tolerance",
+    title: "Your comfort zone (and how to widen it)",
     icon: (
       <svg className="h-6 w-6 text-candle-soft" viewBox="0 0 24 24" fill="none">
         <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
@@ -168,7 +169,7 @@ const sections: Section[] = [
         </div>
 
         <p>
-          Trauma, chronic stress, and anxiety can <span className="text-cream">narrow your window</span> — meaning it takes less to push you out of it. The good news: every tool in this app is designed to help you <span className="text-cream">widen your window</span> over time.
+          Trauma, chronic stress, and anxiety can <span className="text-cream">narrow your window</span> — meaning it takes less to push you out of it. Every tool in this app is designed to help you <span className="text-cream">widen your window</span> over time.
         </p>
         <div className="rounded-xl bg-teal/8 p-4">
           <p className="text-cream">
@@ -180,7 +181,7 @@ const sections: Section[] = [
   },
   {
     id: "helpers",
-    title: "What to tell someone helping you",
+    title: "How to help someone you love",
     icon: (
       <svg className="h-6 w-6 text-candle" viewBox="0 0 24 24" fill="none">
         <path d="M17 8C17 5.24 14.76 3 12 3C9.24 3 7 5.24 7 8C7 12 12 15 12 15C12 15 17 12 17 8Z" stroke="currentColor" strokeWidth="1.5" />
@@ -225,14 +226,71 @@ const sections: Section[] = [
   },
 ];
 
+const INTRO_KEY = "regulate-learn-intro-seen";
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function LearnPage() {
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const [showIntro, setShowIntro] = useState(false);
+  const [introChecked, setIntroChecked] = useState(false);
+
+  useEffect(() => {
+    const seen = localStorage.getItem(INTRO_KEY);
+    if (!seen) {
+      setShowIntro(true);
+    }
+    setIntroChecked(true);
+  }, []);
+
+  function dismissIntro() {
+    localStorage.setItem(INTRO_KEY, "1");
+    setShowIntro(false);
+  }
 
   function toggle(id: string) {
     setOpenSection(openSection === id ? null : id);
   }
+
+  if (!introChecked) return null;
+
+  // ─── INTRO SCREEN ──────────────────────────────────────────────
+
+  if (showIntro) {
+    return (
+      <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
+        <div className="w-full max-w-md">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            Home
+          </Link>
+
+          <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
+            <div className="mb-6 flex justify-center">
+              <LearnIcon className="h-10 w-10 text-teal-soft" />
+            </div>
+            <h1 className="text-2xl font-light tracking-tight text-cream">
+              You don&apos;t need to read this right now.
+            </h1>
+            <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-cream-dim">
+              But when you&apos;re ready, understanding what&apos;s happening in your body can be part of healing.
+            </p>
+            <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-cream-dim/50">
+              These aren&apos;t just concepts — they&apos;re maps that help you find your way back to yourself.
+            </p>
+            <button
+              onClick={dismissIntro}
+              className="mt-10 w-full max-w-[200px] rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft transition-all hover:bg-teal/30 active:scale-[0.98]"
+            >
+              Show me
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── MAIN CONTENT ──────────────────────────────────────────────
 
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-8">
@@ -243,7 +301,7 @@ export default function LearnPage() {
         </Link>
 
         <header className="mb-8 mt-6 text-center">
-          <div className="mb-3 text-4xl">🧠</div>
+          <div className="mb-3 flex justify-center"><LearnIcon className="h-8 w-8 text-teal-soft" /></div>
           <h1 className="text-xl font-semibold tracking-tight text-cream">Learn</h1>
           <p className="mt-2 text-sm leading-relaxed text-cream-dim">
             Understanding what&apos;s happening in your body is part of healing.

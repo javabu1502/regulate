@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { AffirmationsIcon } from "@/components/Icons";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
-type Category = "panic" | "self-worth" | "safety" | "grounding" | "strength";
+type Category = "panic" | "self-worth" | "safety" | "grounding" | "strength" | "healing" | "boundaries" | "self-compassion" | "personal";
 
 interface Affirmation {
   text: string;
@@ -18,9 +19,13 @@ const categoryLabels: Record<Category, string> = {
   safety: "Safety",
   grounding: "Grounding",
   strength: "Strength",
+  healing: "Healing",
+  boundaries: "Boundaries",
+  "self-compassion": "Self-Compassion",
+  personal: "Personal",
 };
 
-const allAffirmations: Affirmation[] = [
+const builtInAffirmations: Affirmation[] = [
   // Panic
   { text: "You are not in danger. This will pass.", category: "panic" },
   { text: "Your body is trying to protect you. It's okay to feel this.", category: "panic" },
@@ -58,9 +63,28 @@ const allAffirmations: Affirmation[] = [
   { text: "The fact that you're here, trying, is proof of your strength.", category: "strength" },
   { text: "Courage isn't the absence of fear. It's showing up anyway.", category: "strength" },
   { text: "You are not starting over. You are starting from experience.", category: "strength" },
+  // Healing
+  { text: "Healing is not about going back to who you were. It's about becoming who you're meant to be.", category: "healing" },
+  { text: "Your wounds are not your identity. They are part of your story.", category: "healing" },
+  { text: "You don't have to heal all at once. One breath at a time.", category: "healing" },
+  { text: "Recovery isn't linear. Bad days don't erase your progress.", category: "healing" },
+  { text: "Your body remembers what your mind has tried to forget. Be patient with it.", category: "healing" },
+  // Boundaries
+  { text: "You are allowed to say no without explaining yourself.", category: "boundaries" },
+  { text: "Protecting your energy is not selfish. It's survival.", category: "boundaries" },
+  { text: "You don't owe anyone access to your peace.", category: "boundaries" },
+  { text: "It's okay to outgrow people, places, and patterns.", category: "boundaries" },
+  { text: "Setting boundaries is an act of self-love.", category: "boundaries" },
+  // Self-Compassion
+  { text: "Talk to yourself the way you'd talk to someone you love.", category: "self-compassion" },
+  { text: "You are doing the best you can with what you have right now.", category: "self-compassion" },
+  { text: "It's okay to not be okay. You don't have to perform wellness.", category: "self-compassion" },
+  { text: "You deserve the same kindness you give to others.", category: "self-compassion" },
+  { text: "Your feelings are valid, even the messy ones.", category: "self-compassion" },
 ];
 
 const STORAGE_KEY = "regulate-favorites";
+const PERSONAL_STORAGE_KEY = "regulate-personal-affirmations";
 
 function loadFavorites(): string[] {
   if (typeof window === "undefined") return [];
@@ -71,6 +95,17 @@ function loadFavorites(): string[] {
 
 function saveFavorites(favs: string[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
+}
+
+function loadPersonalAffirmations(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem(PERSONAL_STORAGE_KEY) || "[]");
+  } catch { return []; }
+}
+
+function savePersonalAffirmations(items: string[]) {
+  localStorage.setItem(PERSONAL_STORAGE_KEY, JSON.stringify(items));
 }
 
 // ─── Accent colors per index ────────────────────────────────────────
@@ -84,7 +119,7 @@ const bgAccents = [
 
 // ─── Component ──────────────────────────────────────────────────────
 
-type Tab = "browse" | "favorites";
+type Tab = "browse" | "favorites" | "personal";
 
 export default function AffirmationsPage() {
   const [tab, setTab] = useState<Tab>("browse");
@@ -93,10 +128,19 @@ export default function AffirmationsPage() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [fading, setFading] = useState(false);
   const [favIndex, setFavIndex] = useState(0);
+  const [personalAffirmations, setPersonalAffirmations] = useState<string[]>([]);
+  const [newPersonal, setNewPersonal] = useState("");
 
   useEffect(() => {
     setFavorites(loadFavorites());
+    setPersonalAffirmations(loadPersonalAffirmations());
   }, []);
+
+  // Combine built-in + personal affirmations
+  const allAffirmations: Affirmation[] = [
+    ...builtInAffirmations,
+    ...personalAffirmations.map((text) => ({ text, category: "personal" as Category })),
+  ];
 
   const filtered =
     activeCategory === "all"
@@ -116,7 +160,7 @@ export default function AffirmationsPage() {
     setTimeout(() => {
       if (tab === "browse") {
         setCurrentIndex((prev) => (prev + 1) % filtered.length);
-      } else {
+      } else if (tab === "favorites") {
         setFavIndex((prev) => (prev + 1) % favAffirmations.length);
       }
       setFading(false);
@@ -142,6 +186,28 @@ export default function AffirmationsPage() {
     }
   }
 
+  function addPersonalAffirmation() {
+    const trimmed = newPersonal.trim();
+    if (!trimmed) return;
+    if (personalAffirmations.includes(trimmed)) return;
+    const next = [...personalAffirmations, trimmed];
+    setPersonalAffirmations(next);
+    savePersonalAffirmations(next);
+    setNewPersonal("");
+  }
+
+  function removePersonalAffirmation(text: string) {
+    const next = personalAffirmations.filter((a) => a !== text);
+    setPersonalAffirmations(next);
+    savePersonalAffirmations(next);
+    // Also remove from favorites if it was favorited
+    if (favorites.includes(text)) {
+      const nextFavs = favorites.filter((f) => f !== text);
+      setFavorites(nextFavs);
+      saveFavorites(nextFavs);
+    }
+  }
+
   // Reset index when filter changes
   useEffect(() => {
     setCurrentIndex(0);
@@ -159,7 +225,7 @@ export default function AffirmationsPage() {
         </Link>
 
         <header className="mb-6 mt-6 text-center">
-          <div className="mb-3 text-4xl">💛</div>
+          <div className="mb-3 flex justify-center"><AffirmationsIcon className="h-8 w-8 text-candle-soft" /></div>
           <h1 className="text-xl font-semibold tracking-tight text-cream">Affirmations</h1>
           <p className="mt-2 text-sm leading-relaxed text-cream-dim">
             Words to hold you when things feel heavy.
@@ -180,6 +246,12 @@ export default function AffirmationsPage() {
           >
             Favorites{favorites.length > 0 && ` (${favorites.length})`}
           </button>
+          <button
+            onClick={() => setTab("personal")}
+            className={`rounded-full px-4 py-2 text-sm transition-colors ${tab === "personal" ? "bg-teal/20 text-teal-soft" : "text-cream-dim hover:text-cream"}`}
+          >
+            Personal
+          </button>
         </div>
 
         {/* BROWSE TAB */}
@@ -193,59 +265,74 @@ export default function AffirmationsPage() {
               >
                 All
               </button>
-              {(Object.keys(categoryLabels) as Category[]).map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`rounded-full px-3 py-1.5 text-xs transition-colors ${activeCategory === cat ? "bg-teal/20 text-teal-soft" : "bg-slate-blue/30 text-cream-dim hover:text-cream"}`}
-                >
-                  {categoryLabels[cat]}
-                </button>
-              ))}
+              {(Object.keys(categoryLabels) as Category[]).map((cat) => {
+                // Only show "Personal" category pill if there are personal affirmations
+                if (cat === "personal" && personalAffirmations.length === 0) return null;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`rounded-full px-3 py-1.5 text-xs transition-colors ${activeCategory === cat ? "bg-teal/20 text-teal-soft" : "bg-slate-blue/30 text-cream-dim hover:text-cream"}`}
+                  >
+                    {categoryLabels[cat]}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Card */}
-            <button
-              onClick={advance}
-              className={`w-full rounded-2xl border border-teal/15 bg-gradient-to-b ${accentBg} p-8 text-center backdrop-blur-sm transition-all duration-300 active:scale-[0.98]`}
-            >
-              <p
-                className={`text-xl font-light leading-relaxed text-cream transition-opacity duration-250 ${fading ? "opacity-0" : "opacity-100"}`}
-              >
-                &ldquo;{currentAffirmation?.text}&rdquo;
-              </p>
-              <span className="mt-4 inline-block rounded-full bg-slate-blue/40 px-2.5 py-0.5 text-xs text-cream-dim">
-                {categoryLabels[currentAffirmation?.category]}
-              </span>
-            </button>
+            {filtered.length > 0 ? (
+              <>
+                <button
+                  onClick={advance}
+                  className={`w-full rounded-2xl border border-teal/15 bg-gradient-to-b ${accentBg} p-8 text-center backdrop-blur-sm transition-all duration-300 active:scale-[0.98]`}
+                >
+                  <p
+                    className={`text-xl font-light leading-relaxed text-cream transition-opacity duration-250 ${fading ? "opacity-0" : "opacity-100"}`}
+                  >
+                    &ldquo;{currentAffirmation?.text}&rdquo;
+                  </p>
+                  <span className="mt-4 inline-block rounded-full bg-slate-blue/40 px-2.5 py-0.5 text-xs text-cream-dim">
+                    {categoryLabels[currentAffirmation?.category]}
+                  </span>
+                </button>
 
-            {/* Actions */}
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <button
-                onClick={toggleFavorite}
-                className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all duration-200 ${
-                  isFaved
-                    ? "border-candle/40 bg-candle/15 text-candle"
-                    : "border-slate-blue/40 bg-deep/60 text-cream-dim hover:border-candle/30 hover:text-candle-soft"
-                }`}
-                aria-label={isFaved ? "Remove from favorites" : "Add to favorites"}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill={isFaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
-                  <path d="M10 17.5L2 10C0.5 8.5 0.5 5.5 2 4C3.5 2.5 6 2.5 7.5 4L10 6.5L12.5 4C14 2.5 16.5 2.5 18 4C19.5 5.5 19.5 8.5 18 10L10 17.5Z" />
-                </svg>
-              </button>
-              <button
-                onClick={advance}
-                className="flex h-12 items-center gap-2 rounded-full border border-teal/20 bg-deep/60 px-5 text-sm text-cream-dim transition-colors hover:text-cream"
-              >
-                Next
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </button>
-            </div>
+                {/* Actions */}
+                <div className="mt-4 flex items-center justify-center gap-4">
+                  <button
+                    onClick={toggleFavorite}
+                    className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all duration-200 ${
+                      isFaved
+                        ? "border-candle/40 bg-candle/15 text-candle"
+                        : "border-slate-blue/40 bg-deep/60 text-cream-dim hover:border-candle/30 hover:text-candle-soft"
+                    }`}
+                    aria-label={isFaved ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill={isFaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+                      <path d="M10 17.5L2 10C0.5 8.5 0.5 5.5 2 4C3.5 2.5 6 2.5 7.5 4L10 6.5L12.5 4C14 2.5 16.5 2.5 18 4C19.5 5.5 19.5 8.5 18 10L10 17.5Z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={advance}
+                    className="flex h-12 items-center gap-2 rounded-full border border-teal/20 bg-deep/60 px-5 text-sm text-cream-dim transition-colors hover:text-cream"
+                  >
+                    Next
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                </div>
 
-            <p className="mt-4 text-center text-xs text-cream-dim/40">
-              {currentIndex % filtered.length + 1} of {filtered.length}
-            </p>
+                <p className="mt-4 text-center text-xs text-cream-dim/40">
+                  {currentIndex % filtered.length + 1} of {filtered.length}
+                </p>
+              </>
+            ) : (
+              <div className="mt-12 text-center">
+                <p className="text-sm text-cream-dim">No affirmations in this category yet.</p>
+                <p className="mt-1 text-xs text-cream-dim/50">
+                  Add personal affirmations in the Personal tab.
+                </p>
+              </div>
+            )}
           </>
         )}
 
@@ -290,6 +377,61 @@ export default function AffirmationsPage() {
                   {favIndex % favAffirmations.length + 1} of {favAffirmations.length} saved
                 </p>
               </>
+            )}
+          </>
+        )}
+
+        {/* PERSONAL TAB */}
+        {tab === "personal" && (
+          <>
+            {/* Add new personal affirmation */}
+            <div className="mb-6 flex gap-2">
+              <input
+                type="text"
+                value={newPersonal}
+                onChange={(e) => setNewPersonal(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") addPersonalAffirmation(); }}
+                placeholder="Write your own affirmation..."
+                className="flex-1 rounded-xl border border-slate-blue/40 bg-deep/60 px-4 py-3 text-sm text-cream placeholder:text-cream-dim/40 focus:border-teal/40 focus:outline-none"
+              />
+              <button
+                onClick={addPersonalAffirmation}
+                className="rounded-xl bg-teal/20 px-4 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* List of personal affirmations */}
+            {personalAffirmations.length === 0 ? (
+              <div className="mt-8 text-center">
+                <p className="text-sm text-cream-dim">No personal affirmations yet.</p>
+                <p className="mt-1 text-xs text-cream-dim/50">
+                  Write words that speak to you above.
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {personalAffirmations.map((text, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 rounded-xl border border-slate-blue/20 bg-deep/40 px-4 py-3"
+                  >
+                    <p className="flex-1 text-sm leading-relaxed text-cream/90">
+                      &ldquo;{text}&rdquo;
+                    </p>
+                    <button
+                      onClick={() => removePersonalAffirmation(text)}
+                      className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-cream-dim/40 transition-colors hover:bg-slate-blue/30 hover:text-cream-dim"
+                      aria-label="Delete personal affirmation"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M2 2L10 10M10 2L2 10" />
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
           </>
         )}
