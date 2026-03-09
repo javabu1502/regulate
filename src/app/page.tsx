@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ModuleCard from "@/components/ModuleCard";
 import MyPersonSection from "@/components/MyPerson";
@@ -14,6 +15,37 @@ import {
   LearnIcon,
   WaveIcon,
 } from "@/components/Icons";
+
+// ─── Body state options ─────────────────────────────────────────────
+
+const bodyStates = [
+  {
+    id: "panicking",
+    label: "Racing or panicking",
+    sub: "Heart pounding, can't breathe, spiraling",
+    route: "/sos?state=panicking",
+    color: "border-candle/30 bg-candle/8 hover:border-candle/50",
+    textColor: "text-candle",
+  },
+  {
+    id: "anxious",
+    label: "Tense or anxious",
+    sub: "On edge, restless, can't settle",
+    route: "/sos?state=anxious",
+    color: "border-teal/25 bg-teal/8 hover:border-teal/40",
+    textColor: "text-teal-soft",
+  },
+  {
+    id: "shutdown",
+    label: "Shut down or numb",
+    sub: "Frozen, disconnected, can't feel much",
+    route: "/sos?state=shutdown",
+    color: "border-slate-blue/40 bg-slate-blue/15 hover:border-slate-blue/60",
+    textColor: "text-cream-dim",
+  },
+];
+
+// ─── Practice modules ───────────────────────────────────────────────
 
 const modules = [
   {
@@ -65,22 +97,15 @@ const secondaryLinks = [
   { href: "/learn", title: "Learn", icon: <LearnIcon className="h-4 w-4" /> },
 ];
 
-function getGreeting(hour: number): string {
-  if (hour < 5) return "It's late. Be gentle with yourself.";
-  if (hour < 12) return "Good morning. How is your body feeling?";
-  if (hour < 17) return "Take a moment. You deserve a pause.";
-  if (hour < 21) return "Winding down. You made it through today.";
-  return "The day is ending. Let your body rest.";
-}
+// ─── Component ──────────────────────────────────────────────────────
 
 export default function Home() {
+  const router = useRouter();
+  const [view, setView] = useState<"check-in" | "feed">("check-in");
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [installDismissed, setInstallDismissed] = useState(true);
-  const [greeting, setGreeting] = useState("Nervous system support for hard moments.");
 
   useEffect(() => {
-    setGreeting(getGreeting(new Date().getHours()));
-
     try {
       const dismissed = localStorage.getItem("regulate-install-dismissed");
       setInstallDismissed(dismissed === "true");
@@ -108,29 +133,84 @@ export default function Home() {
     dismissInstall();
   }, [installPrompt, dismissInstall]);
 
+  // ─── CHECK-IN VIEW (default — the triage) ────────────────────────
+
+  if (view === "check-in") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center px-5 pb-24">
+        <main className="w-full max-w-sm">
+          <div className="mb-10 text-center">
+            <WaveIcon className="mx-auto mb-4 h-8 w-8 text-teal-soft/60" />
+            <h1 className="text-xl font-light tracking-tight text-cream">
+              How is your body right now?
+            </h1>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {bodyStates.map((state) => (
+              <button
+                key={state.id}
+                onClick={() => router.push(state.route)}
+                className={`w-full rounded-2xl border px-5 py-4 text-left transition-all active:scale-[0.98] ${state.color}`}
+              >
+                <span className={`block text-base font-medium ${state.textColor}`}>{state.label}</span>
+                <span className="mt-0.5 block text-xs text-cream-dim/50">{state.sub}</span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setView("feed")}
+            className="mt-6 w-full text-center text-sm text-cream-dim/40 transition-colors hover:text-cream-dim"
+          >
+            I&apos;m okay — just here to practice
+          </button>
+
+          {/* Crisis line */}
+          <div className="mt-10 flex justify-center">
+            <a href="tel:988" className="text-[11px] text-cream-dim/25 underline underline-offset-2 hover:text-cream-dim/50">
+              988 Suicide &amp; Crisis Lifeline
+            </a>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ─── FEED VIEW (practice tools) ──────────────────────────────────
+
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-14">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <main className="w-full max-w-md">
-        {/* Header — clean and quiet */}
-        <header className="mb-10 text-center">
-          <WaveIcon className="mx-auto mb-4 h-8 w-8 text-teal-soft/70" />
-          <h1 className="text-2xl font-light tracking-tight text-cream">
-            Regulate
-          </h1>
-          <p className="mt-2 text-sm text-cream-dim/60">
-            {greeting}
+        {/* Header */}
+        <header className="mb-6 text-center">
+          <WaveIcon className="mx-auto mb-3 h-7 w-7 text-teal-soft/60" />
+          <h1 className="text-xl font-light tracking-tight text-cream">Regulate</h1>
+          <p className="mt-1.5 text-xs text-cream-dim/50">
+            Tools for your nervous system.
           </p>
         </header>
 
-        {/* Tools — the main event */}
-        <div className="flex flex-col gap-2.5">
+        {/* Quick check-in link at top */}
+        <button
+          onClick={() => setView("check-in")}
+          className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-candle/20 bg-candle/5 px-4 py-3.5 text-sm text-candle transition-all hover:border-candle/35 active:scale-[0.98]"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 12H7L9 6L12 18L15 9L17 12H22" />
+          </svg>
+          I need support right now
+        </button>
+
+        {/* Tools */}
+        <div className="flex flex-col gap-2">
           {modules.map((mod) => (
             <ModuleCard key={mod.href} {...mod} />
           ))}
         </div>
 
         {/* Secondary links */}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-3 flex gap-2">
           {secondaryLinks.map((link) => (
             <Link
               key={link.href}
@@ -144,12 +224,12 @@ export default function Home() {
         </div>
 
         {/* My person */}
-        <div className="mt-6">
+        <div className="mt-5">
           <MyPersonSection />
         </div>
 
         {/* Trust statement */}
-        <p className="mt-8 text-center text-[11px] leading-relaxed text-cream-dim/30">
+        <p className="mt-6 text-center text-[11px] leading-relaxed text-cream-dim/30">
           Regulate supports your nervous system between therapy sessions. It is not a replacement for professional mental health care. If you are in crisis, please contact the{" "}
           <a href="tel:988" className="text-cream-dim/50 underline underline-offset-2">988 Lifeline</a>.
         </p>

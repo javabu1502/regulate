@@ -127,8 +127,16 @@ export function SOSIcon({ className = "h-6 w-6" }: { className?: string }) {
 export function WaveIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 12C4 8 6 6 8 8C10 10 10 14 12 12C14 10 14 6 16 8C18 10 20 14 22 12" />
-      <path d="M2 17C4 13 6 11 8 13C10 15 10 19 12 17C14 15 14 11 16 13C18 15 20 19 22 17" opacity="0.3" />
+      {/* Main vagus nerve — sinuous descending path */}
+      <path d="M12 2C11 5 13 7 11.5 10C10 13 13 15 12 18C11.5 20 12 22 12 22" />
+      {/* Branching fibers */}
+      <path d="M12.5 6C14 6.5 16 7.5 17 8" opacity="0.4" />
+      <path d="M11.5 10C10 10.5 8 11 7 11.5" opacity="0.4" />
+      <path d="M12.5 14C14 14.5 15.5 15.5 16.5 16" opacity="0.3" />
+      {/* Signal dots along the nerve */}
+      <circle cx="12" cy="2" r="0.8" fill="currentColor" stroke="none" opacity="0.6" />
+      <circle cx="11.5" cy="10" r="0.6" fill="currentColor" stroke="none" opacity="0.4" />
+      <circle cx="12" cy="18" r="0.6" fill="currentColor" stroke="none" opacity="0.3" />
     </svg>
   );
 }

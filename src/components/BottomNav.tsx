@@ -10,11 +10,11 @@ const tabs = [
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
-export default function BottomNav({ onSOS }: { onSOS: () => void }) {
+export default function BottomNav() {
   const pathname = usePathname();
 
-  // Hide nav on onboarding and during active sessions
-  const hidden = pathname.startsWith("/onboarding");
+  // Hide nav on onboarding and during SOS
+  const hidden = pathname.startsWith("/onboarding") || pathname.startsWith("/sos");
   if (hidden) return null;
 
   return (
@@ -25,16 +25,15 @@ export default function BottomNav({ onSOS }: { onSOS: () => void }) {
 
         {/* SOS Button - center */}
         <div className="flex flex-1 items-center justify-center py-1.5">
-          <button
-            onClick={onSOS}
+          <Link
+            href="/sos"
             className="flex h-12 w-12 items-center justify-center rounded-full bg-candle/15 border border-candle/30 text-candle transition-all active:scale-95 hover:bg-candle/25"
-            aria-label="I need support right now"
+            aria-label="I need help right now"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 8V12M12 16H12.01" />
+              <path d="M4 12H8L10 7L12 17L14 10L16 12H20" />
             </svg>
-          </button>
+          </Link>
         </div>
 
         {/* Journal */}
