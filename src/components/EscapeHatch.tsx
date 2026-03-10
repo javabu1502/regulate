@@ -5,7 +5,7 @@ export default function EscapeHatch() {
     <Link
       href="/crisis"
       aria-label="Crisis resources"
-      className="fixed bottom-3 right-3 z-50 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs text-cream-dim/25 transition-colors duration-300 hover:text-cream-dim/50"
+      className="fixed bottom-3 right-3 z-50 flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs text-cream-dim/50 transition-colors duration-300 hover:text-cream-dim/70 focus:outline-none focus:ring-2 focus:ring-teal/50"
     >
       <svg
         width="12"

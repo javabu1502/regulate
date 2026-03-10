@@ -131,7 +131,7 @@ function OnboardingPageInner() {
     <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-12">
       {/* Skip link */}
       <div className="fixed right-5 top-5 z-10">
-        <button onClick={skip} className="text-xs text-cream-dim/30 transition-colors hover:text-cream-dim">
+        <button onClick={skip} className="min-h-[44px] text-xs text-cream-dim/50 transition-colors hover:text-cream-dim">
           Skip
         </button>
       </div>

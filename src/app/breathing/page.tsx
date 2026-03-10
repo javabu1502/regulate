@@ -394,8 +394,9 @@ export default function BreathingPage() {
           <button
             onClick={() => setGentleStart((g) => !g)}
             className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              gentleStart ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+              gentleStart ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
             }`}
+            aria-pressed={gentleStart}
           >
             Gentle start
           </button>
@@ -406,9 +407,10 @@ export default function BreathingPage() {
           <button
             onClick={() => setEyesFree((v) => !v)}
             className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              eyesFree ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+              eyesFree ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
             }`}
             aria-label="Toggle eyes-free mode"
+            aria-pressed={eyesFree}
           >
             Eyes-free
           </button>
@@ -418,7 +420,7 @@ export default function BreathingPage() {
               setVoiceOn(next);
             }}
             className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+              voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
             }`}
           >
             Voice
@@ -431,7 +433,7 @@ export default function BreathingPage() {
                 else { ambientAudio.start(s); setAmbientSound(s); }
               }}
               className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
               }`}
             >
               {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
@@ -465,10 +467,11 @@ export default function BreathingPage() {
             <p
               className="text-3xl font-light tracking-wide text-cream transition-opacity duration-500"
               key={`${currentCycle}-${currentStepIndex}`}
+              aria-live="polite"
             >
               {currentStep.label}
             </p>
-            <p className="mt-3 font-mono text-5xl font-extralight tabular-nums text-cream/70">
+            <p className="mt-3 font-mono text-5xl font-extralight tabular-nums text-cream/70" role="timer" aria-label={`${secondsLeft} seconds remaining`}>
               {secondsLeft}
             </p>
           </div>
@@ -478,15 +481,15 @@ export default function BreathingPage() {
         <div className="fixed bottom-10 z-30 flex items-center gap-6">
           <button
             onClick={() => setIsPaused((p) => !p)}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:border-teal/40 hover:text-cream"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:border-teal/40 hover:text-cream focus:outline-none focus:ring-2 focus:ring-teal/50"
             aria-label={isPaused ? "Resume" : "Pause"}
           >
             {isPaused ? (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                 <path d="M5 3L15 9L5 15V3Z" fill="currentColor" />
               </svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                 <rect x="4" y="3" width="3.5" height="12" rx="1" fill="currentColor" />
                 <rect x="10.5" y="3" width="3.5" height="12" rx="1" fill="currentColor" />
               </svg>

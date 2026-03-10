@@ -15,7 +15,7 @@ export default function ModuleCard({
   icon,
 }: ModuleCardProps) {
   return (
-    <Link href={href} className="group block">
+    <Link href={href} className="group block rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/50">
       <div className="flex items-center gap-3.5 rounded-xl border border-slate-blue/15 bg-deep/40 px-4 py-3.5 transition-all duration-300 hover:border-teal/25 active:scale-[0.99]">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
           {icon}
