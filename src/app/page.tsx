@@ -21,6 +21,7 @@ import {
   type TopTechnique,
 } from "@/lib/recommendations";
 import PremiumGate from "@/components/PremiumGate";
+import { isPremium } from "@/lib/premium";
 import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
 
 // ─── Body state options ─────────────────────────────────────────────
@@ -1073,282 +1074,6 @@ export default function Home() {
           I need support right now
         </button>
 
-        {/* ── First-week program card (prominent for new/active users) ── */}
-        {programState && programState.status === "not-started" && (
-          <Link
-            href="/programs/first-week"
-            className="mb-5 block rounded-2xl border border-teal/20 bg-teal/8 p-4 transition-colors hover:border-teal/30"
-          >
-            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
-              Guided program
-            </p>
-            <p className="mt-1 text-sm font-medium text-cream">
-              Start your first week
-            </p>
-            <p className="mt-1 text-xs text-cream-dim/50">
-              7 days of guided practice &mdash; one technique a day. No
-              pressure.
-            </p>
-            <span className="mt-3 inline-block text-xs font-medium text-teal-soft">
-              Begin &rarr;
-            </span>
-          </Link>
-        )}
-        {programState && programState.status === "in-progress" && (
-          <Link
-            href="/programs/first-week"
-            className="mb-5 block rounded-2xl border border-teal/20 bg-teal/5 p-4 transition-colors hover:border-teal/30"
-          >
-            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
-              Your first week
-            </p>
-            <p className="mt-1 text-sm font-medium text-cream">
-              Day {programState.currentDay}: {programState.dayTitle} &mdash;
-              Continue
-            </p>
-            <div className="mt-2.5 flex items-center justify-between">
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-                  <div
-                    key={d}
-                    className={`h-1 w-4 rounded-full ${d <= programState.completedCount ? "bg-teal/60" : "bg-slate-blue/20"}`}
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-medium text-teal-soft">
-                Continue &rarr;
-              </span>
-            </div>
-          </Link>
-        )}
-
-        {/* ── Daily suggested practice ── */}
-        <div className="mb-5 rounded-2xl border-2 border-teal/25 bg-teal/5 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-teal-soft/60">
-            Today&apos;s practice
-          </p>
-          <p className="mt-1.5 text-sm font-medium text-cream">
-            {todaysPractice.name}
-          </p>
-          <p className="mt-0.5 text-xs text-cream-dim/50">
-            {todaysPractice.desc}
-          </p>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-[11px] text-cream-dim/40">
-              {todaysPractice.time}
-            </span>
-            <Link
-              href={todaysPractice.href}
-              className="rounded-xl bg-teal/20 px-5 py-2 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30 active:scale-[0.97]"
-            >
-              Start
-            </Link>
-          </div>
-        </div>
-
-        {/* ── Dashboard stats (if data exists) ── */}
-        {dashData && (
-          <div className="mb-5 rounded-2xl border border-teal/15 bg-deep/60 p-4">
-            <div className="grid grid-cols-3 gap-3">
-              {dashData.calmDays >= 0 && (
-                <div className="text-center">
-                  <p className="text-lg font-medium text-teal-soft">
-                    {dashData.calmDays}
-                  </p>
-                  <p className="text-[10px] text-cream-dim/50">calm days</p>
-                </div>
-              )}
-              {dashData.totalSessions > 0 && (
-                <div className="text-center">
-                  <p className="text-lg font-medium text-cream">
-                    {dashData.totalSessions}
-                  </p>
-                  <p className="text-[10px] text-cream-dim/50">sessions</p>
-                </div>
-              )}
-              {dashData.trend && (
-                <div className="text-center">
-                  <p
-                    className={`text-lg font-medium ${dashData.trend === "improving" ? "text-teal-soft" : dashData.trend === "worsening" ? "text-candle" : "text-cream-dim"}`}
-                  >
-                    {dashData.trend === "improving"
-                      ? "\u2193"
-                      : dashData.trend === "worsening"
-                        ? "\u2191"
-                        : "\u2192"}
-                  </p>
-                  <p className="text-[10px] text-cream-dim/50">
-                    {dashData.trend}
-                  </p>
-                </div>
-              )}
-            </div>
-            {dashData.lastHelped && (
-              <p className="mt-3 text-center text-xs text-cream-dim/40">
-                Last time,{" "}
-                <span className="text-teal-soft/70">
-                  {dashData.lastHelped}
-                </span>{" "}
-                helped
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ── "Build your window" progression ── */}
-        {toolsExplored && (
-          <div className="mb-5 rounded-2xl border border-teal/10 bg-deep/40 p-4">
-            <p className="text-[10px] uppercase tracking-widest text-teal-soft/40">
-              Build your window
-            </p>
-            {toolsExplored.count >= toolsExplored.total ? (
-              <p className="mt-2 text-sm text-cream">
-                You&apos;ve explored every tool. You know your body&apos;s
-                language.
-              </p>
-            ) : (
-              <>
-                <p className="mt-2 text-sm text-cream">
-                  You&apos;ve explored {toolsExplored.count} of{" "}
-                  {toolsExplored.total} somatic tools
-                </p>
-                <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-blue/15">
-                  <div
-                    className="h-full rounded-full bg-teal/40 transition-all duration-500"
-                    style={{
-                      width: `${(toolsExplored.count / toolsExplored.total) * 100}%`,
-                    }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* ── Try something new (discovery) ── */}
-        {discovery && (
-          <div className="mb-5 rounded-2xl border border-candle/15 bg-candle/5 p-4">
-            <div className="flex items-start justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-widest text-candle/50">
-                  Try something new
-                </p>
-                <p className="mt-1 text-sm font-medium text-cream">
-                  {discovery.name}
-                </p>
-                <p className="mt-0.5 text-xs text-cream-dim/50">
-                  {discovery.desc}
-                </p>
-              </div>
-              <button
-                onClick={dismissDiscovery}
-                className="ml-3 shrink-0 p-1 text-cream-dim/30 hover:text-cream-dim/60"
-                aria-label="Dismiss"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-            <Link
-              href={discovery.href}
-              className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-candle/15 py-2.5 text-sm text-candle transition-colors hover:bg-candle/25"
-            >
-              Try it &mdash; {discovery.time}
-            </Link>
-          </div>
-        )}
-
-        {/* ── Time to reflect ── */}
-        {showReflection && (
-          <div className="mb-5">
-            <PremiumGate feature="Weekly reflection prompts to deepen your self-awareness practice.">
-              <div className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-4">
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] uppercase tracking-widest text-purple-300/60">
-                      Time to reflect
-                    </p>
-                    <p className="mt-1.5 text-sm text-cream">
-                      You&apos;ve been building a real practice. A few
-                      minutes of reflection can deepen what you&apos;re
-                      learning about yourself.
-                    </p>
-                  </div>
-                  <button
-                    onClick={dismissReflection}
-                    className="ml-3 shrink-0 p-1 text-cream-dim/30 hover:text-cream-dim/60"
-                    aria-label="Dismiss"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                    >
-                      <path
-                        d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div className="mt-3 flex items-center gap-3">
-                  <Link
-                    href="/journal?reflect=1"
-                    onClick={dismissReflection}
-                    className="flex-1 rounded-xl bg-purple-400/15 py-2.5 text-center text-sm text-purple-200 transition-colors hover:bg-purple-400/25"
-                  >
-                    Open journal
-                  </Link>
-                  <button
-                    onClick={dismissReflection}
-                    className="text-xs text-cream-dim/30 hover:text-cream-dim/50"
-                  >
-                    Not now
-                  </button>
-                </div>
-              </div>
-            </PremiumGate>
-          </div>
-        )}
-
-        {/* ── What works for you - insight card ── */}
-        {topTechniques && topTechniques.length > 0 && (
-          <div className="mb-5">
-            <PremiumGate feature="See which exercises help you most, based on your own practice history.">
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-4">
-                <p className="text-[10px] uppercase tracking-widest text-teal-soft/50">
-                  What works for you
-                </p>
-                <div className="mt-3 flex flex-col gap-2">
-                  {topTechniques.map((t) => (
-                    <div
-                      key={t.id}
-                      className="flex items-center justify-between"
-                    >
-                      <span className="text-sm text-cream">{t.label}</span>
-                      <span className="text-xs text-teal-soft/70">
-                        {Math.round(t.successRate * 100)}% helped
-                        <span className="ml-1 text-cream-dim/30">
-                          ({t.totalSessions}x)
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </PremiumGate>
-          </div>
-        )}
-
         {/* ── Module cards grid ── */}
         <div className="flex flex-col gap-2">
           {modules.map((mod) => (
@@ -1377,6 +1102,257 @@ export default function Home() {
         >
           Understanding your nervous system &rarr;
         </Link>
+
+        {/* ── Premium: Your Practice (program, daily practice, stats, insights) ── */}
+        {isPremium() && (
+          <div className="mt-6">
+            <p className="mb-3 text-[10px] font-medium uppercase tracking-widest text-teal-soft/40">
+              Your practice
+            </p>
+
+            {/* Program card */}
+            {programState && programState.status === "not-started" && (
+              <Link
+                href="/programs/first-week"
+                className="mb-3 block rounded-2xl border border-teal/20 bg-teal/8 p-4 transition-colors hover:border-teal/30"
+              >
+                <p className="text-sm font-medium text-cream">
+                  Start your first week
+                </p>
+                <p className="mt-1 text-xs text-cream-dim/50">
+                  7 days of guided practice - one technique a day.
+                </p>
+                <span className="mt-2 inline-block text-xs font-medium text-teal-soft">
+                  Begin &rarr;
+                </span>
+              </Link>
+            )}
+            {programState && programState.status === "in-progress" && (
+              <Link
+                href="/programs/first-week"
+                className="mb-3 block rounded-2xl border border-teal/20 bg-teal/5 p-4 transition-colors hover:border-teal/30"
+              >
+                <p className="text-sm font-medium text-cream">
+                  Day {programState.currentDay}: {programState.dayTitle}
+                </p>
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                      <div
+                        key={d}
+                        className={`h-1 w-4 rounded-full ${d <= programState.completedCount ? "bg-teal/60" : "bg-slate-blue/20"}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-medium text-teal-soft">
+                    Continue &rarr;
+                  </span>
+                </div>
+              </Link>
+            )}
+
+            {/* Today's practice */}
+            <div className="mb-3 rounded-2xl border border-teal/15 bg-teal/5 p-4">
+              <p className="text-[10px] uppercase tracking-widest text-teal-soft/50">
+                Today&apos;s practice
+              </p>
+              <p className="mt-1.5 text-sm font-medium text-cream">
+                {todaysPractice.name}
+              </p>
+              <p className="mt-0.5 text-xs text-cream-dim/50">
+                {todaysPractice.desc}
+              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-[11px] text-cream-dim/40">
+                  {todaysPractice.time}
+                </span>
+                <Link
+                  href={todaysPractice.href}
+                  className="rounded-xl bg-teal/20 px-5 py-2 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30 active:scale-[0.97]"
+                >
+                  Start
+                </Link>
+              </div>
+            </div>
+
+            {/* Dashboard stats */}
+            {dashData && (
+              <div className="mb-3 rounded-2xl border border-teal/15 bg-deep/60 p-4">
+                <div className="grid grid-cols-3 gap-3">
+                  {dashData.calmDays >= 0 && (
+                    <div className="text-center">
+                      <p className="text-lg font-medium text-teal-soft">
+                        {dashData.calmDays}
+                      </p>
+                      <p className="text-[10px] text-cream-dim/50">calm days</p>
+                    </div>
+                  )}
+                  {dashData.totalSessions > 0 && (
+                    <div className="text-center">
+                      <p className="text-lg font-medium text-cream">
+                        {dashData.totalSessions}
+                      </p>
+                      <p className="text-[10px] text-cream-dim/50">sessions</p>
+                    </div>
+                  )}
+                  {dashData.trend && (
+                    <div className="text-center">
+                      <p
+                        className={`text-lg font-medium ${dashData.trend === "improving" ? "text-teal-soft" : dashData.trend === "worsening" ? "text-candle" : "text-cream-dim"}`}
+                      >
+                        {dashData.trend === "improving"
+                          ? "\u2193"
+                          : dashData.trend === "worsening"
+                            ? "\u2191"
+                            : "\u2192"}
+                      </p>
+                      <p className="text-[10px] text-cream-dim/50">
+                        {dashData.trend}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {dashData.lastHelped && (
+                  <p className="mt-3 text-center text-xs text-cream-dim/40">
+                    Last time,{" "}
+                    <span className="text-teal-soft/70">
+                      {dashData.lastHelped}
+                    </span>{" "}
+                    helped
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* What works for you */}
+            {topTechniques && topTechniques.length > 0 && (
+              <div className="mb-3 rounded-2xl border border-teal/15 bg-deep/60 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-teal-soft/50">
+                  What works for you
+                </p>
+                <div className="mt-3 flex flex-col gap-2">
+                  {topTechniques.map((t) => (
+                    <div
+                      key={t.id}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="text-sm text-cream">{t.label}</span>
+                      <span className="text-xs text-teal-soft/70">
+                        {Math.round(t.successRate * 100)}% helped
+                        <span className="ml-1 text-cream-dim/30">
+                          ({t.totalSessions}x)
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Build your window */}
+            {toolsExplored && (
+              <div className="mb-3 rounded-2xl border border-teal/10 bg-deep/40 p-4">
+                <p className="text-[10px] uppercase tracking-widest text-teal-soft/40">
+                  Build your window
+                </p>
+                {toolsExplored.count >= toolsExplored.total ? (
+                  <p className="mt-2 text-sm text-cream">
+                    You&apos;ve explored every tool.
+                  </p>
+                ) : (
+                  <>
+                    <p className="mt-2 text-sm text-cream">
+                      {toolsExplored.count} of {toolsExplored.total} somatic tools explored
+                    </p>
+                    <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-blue/15">
+                      <div
+                        className="h-full rounded-full bg-teal/40 transition-all duration-500"
+                        style={{
+                          width: `${(toolsExplored.count / toolsExplored.total) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Reflection prompt */}
+            {showReflection && (
+              <div className="mb-3 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-4">
+                <div className="flex items-start justify-between">
+                  <p className="text-sm text-cream">
+                    A few minutes of reflection can deepen what you&apos;re learning.
+                  </p>
+                  <button
+                    onClick={dismissReflection}
+                    className="ml-3 shrink-0 p-1 text-cream-dim/30 hover:text-cream-dim/60"
+                    aria-label="Dismiss"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <Link
+                    href="/journal?reflect=1"
+                    onClick={dismissReflection}
+                    className="flex-1 rounded-xl bg-purple-400/15 py-2.5 text-center text-sm text-purple-200 transition-colors hover:bg-purple-400/25"
+                  >
+                    Open journal
+                  </Link>
+                  <button onClick={dismissReflection} className="text-xs text-cream-dim/30 hover:text-cream-dim/50">
+                    Not now
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Try something new */}
+            {discovery && (
+              <div className="mb-3 rounded-2xl border border-candle/15 bg-candle/5 p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-widest text-candle/50">
+                      Try something new
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-cream">
+                      {discovery.name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-cream-dim/50">
+                      {discovery.desc}
+                    </p>
+                  </div>
+                  <button
+                    onClick={dismissDiscovery}
+                    className="ml-3 shrink-0 p-1 text-cream-dim/30 hover:text-cream-dim/60"
+                    aria-label="Dismiss"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+                <Link
+                  href={discovery.href}
+                  className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-candle/15 py-2.5 text-sm text-candle transition-colors hover:bg-candle/25"
+                >
+                  Try it - {discovery.time}
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Premium upsell for free users */}
+        {!isPremium() && (
+          <div className="mt-6">
+            <PremiumGate feature="Guided programs, daily practice suggestions, session history, insights, and more.">
+              <div />
+            </PremiumGate>
+          </div>
+        )}
 
         {/* My person */}
         <div className="mt-5">
