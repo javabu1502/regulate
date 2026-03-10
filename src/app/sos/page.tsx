@@ -119,15 +119,15 @@ interface Exercise {
 
 const allExercises: Exercise[] = [
   // Inline (built into SOS flow)
-  { id: "breathing", label: "Physiological sigh", icon: "\u{1F32C}\uFE0F", desc: "Double inhale, long exhale \u2014 fastest nervous system reset", time: "~1 min", type: "inline" },
-  { id: "extended", label: "Extended exhale", icon: "\u{1FAC1}", desc: "4 seconds in, 8 seconds out \u2014 slows everything down", time: "~1 min", type: "inline" },
-  { id: "tapping", label: "Bilateral tapping", icon: "\u{1F932}", desc: "Left-right rhythm with sound \u2014 helps process what you're feeling", time: "2 min", type: "inline" },
+  { id: "breathing", label: "Physiological sigh", icon: "\u{1F32C}\uFE0F", desc: "Double inhale, long exhale - fastest nervous system reset", time: "~1 min", type: "inline" },
+  { id: "extended", label: "Extended exhale", icon: "\u{1FAC1}", desc: "4 seconds in, 8 seconds out - slows everything down", time: "~1 min", type: "inline" },
+  { id: "tapping", label: "Bilateral tapping", icon: "\u{1F932}", desc: "Left-right rhythm with sound - helps process what you're feeling", time: "2 min", type: "inline" },
   { id: "grounding", label: "5-4-3-2-1 Grounding", icon: "\u{1F441}\uFE0F", desc: "Use your senses to come back to the present moment", time: "~3 min", type: "inline" },
-  { id: "gentle-movement", label: "Gentle movement", icon: "\u{1F30A}", desc: "Wiggle, rock, stretch \u2014 small movements to come back online", time: "1 min", type: "inline" },
+  { id: "gentle-movement", label: "Gentle movement", icon: "\u{1F30A}", desc: "Wiggle, rock, stretch - small movements to come back online", time: "1 min", type: "inline" },
   // Links (navigate to module pages)
-  { id: "body-scan", label: "Body scan", icon: "\u{1F9D8}", desc: "Move attention slowly through your body \u2014 progressive release", time: "5 min", type: "link", href: "/body-scan" },
-  { id: "somatic", label: "Somatic exercises", icon: "\u{1FAE8}", desc: "Shaking, humming, vagus nerve work \u2014 release what your body is holding", time: "2-5 min", type: "link", href: "/somatic" },
-  { id: "affirmations", label: "Affirmations", icon: "\u{1F4AC}", desc: "Words to hold you \u2014 chosen for how you're feeling", time: "~2 min", type: "link", href: "/affirmations" },
+  { id: "body-scan", label: "Body scan", icon: "\u{1F9D8}", desc: "Move attention slowly through your body - progressive release", time: "5 min", type: "link", href: "/body-scan" },
+  { id: "somatic", label: "Somatic exercises", icon: "\u{1FAE8}", desc: "Shaking, humming, vagus nerve work - release what your body is holding", time: "2-5 min", type: "link", href: "/somatic" },
+  { id: "affirmations", label: "Affirmations", icon: "\u{1F4AC}", desc: "Words to hold you - chosen for how you're feeling", time: "~2 min", type: "link", href: "/affirmations" },
   { id: "sleep", label: "Sleep sequence", icon: "\u{1F319}", desc: "Breathing + muscle relaxation for restless nights", time: "3-5 min", type: "link", href: "/sleep" },
 ];
 
@@ -144,9 +144,63 @@ function getRemaining(state: string | null): Exercise[] {
   return allExercises.filter((e) => !ids.includes(e.id));
 }
 
+// ─── Per-state explanations for why each exercise helps ──────────────
+
+type BodyStateKey = "panicking" | "anxious" | "shutdown";
+
+const exerciseWhyMap: Record<BodyStateKey, Record<string, string>> = {
+  panicking: {
+    breathing: "The double inhale triggers your vagus nerve, which tells your nervous system to slow down. It's the fastest known way to reduce a panic response.",
+    extended: "Long exhales activate your parasympathetic nervous system, the brake pedal for panic. Your heart rate drops within seconds.",
+    tapping: "Alternating left-right stimulation helps your brain process the overwhelm. It gives your nervous system something rhythmic to lock onto instead of spiraling.",
+    grounding: "Your senses pull you out of your head and into the present moment. Panic lives in the future - your senses live right now.",
+    "gentle-movement": "Small movements tell your body it's safe. When you're frozen in panic, even a wiggle can break the freeze response.",
+    "body-scan": "Slowly moving attention through your body shifts you from fight-or-flight into awareness. It gives your mind something concrete to focus on.",
+    somatic: "Shaking, humming, and vagus nerve exercises discharge the physical energy that panic creates. Your body needs to move it through.",
+    affirmations: "Simple, grounding words can interrupt the panic thought loop. They're an anchor when everything feels chaotic.",
+    sleep: "Progressive relaxation paired with breathing helps your whole body let go of tension, even when your mind is racing.",
+  },
+  anxious: {
+    breathing: "The double inhale resets your breathing pattern. Anxiety often causes shallow breathing, which makes anxiety worse - this breaks that cycle.",
+    extended: "Breathing out longer than you breathe in directly activates your calming nervous system. It's like pressing a reset button for anxiety.",
+    tapping: "Bilateral stimulation helps your brain process anxious thoughts instead of looping on them. It's used in EMDR therapy for this reason.",
+    grounding: "Anxiety pulls you into worried thoughts about the future. Your five senses bring you back to what's actually happening right now.",
+    "gentle-movement": "Gentle rocking and swaying activate your vestibular system, which has a direct calming effect on anxiety.",
+    "body-scan": "Anxiety often hides in your body as tension you don't notice. Scanning helps you find it and let it soften.",
+    somatic: "Your body holds anxiety as muscle tension, shallow breathing, and restlessness. Somatic exercises give it a way out.",
+    affirmations: "Anxious thoughts repeat. Affirmations give your mind a different loop - one that's chosen, not reactive.",
+    sleep: "Anxiety and sleep problems feed each other. This sequence helps break the cycle with body-first relaxation.",
+  },
+  shutdown: {
+    breathing: "When you're shut down, breathing can feel hard. The double inhale gently brings more oxygen in without forcing it.",
+    extended: "Long, slow exhales help you come back online gradually. They signal safety to a nervous system that's gone into protection mode.",
+    tapping: "The rhythmic alternating sensation gives your body gentle input - enough to start waking up without overwhelming you.",
+    grounding: "When you feel numb or disconnected, your senses are a bridge back. Each thing you notice reconnects you a little more.",
+    "gentle-movement": "Small movements tell your body it's OK to come back. Wiggling, rocking, and stretching gently restart your system.",
+    "body-scan": "Scanning your body helps you reconnect with physical sensations when everything feels far away or muted.",
+    somatic: "Gentle shaking, humming, and movement help your nervous system shift from shutdown back toward feeling present.",
+    affirmations: "Simple, warm words can reach you when shutdown makes everything feel distant. They're a gentle invitation back.",
+    sleep: "If shutdown is pulling you toward collapse, this sequence works with that energy - helping you rest intentionally rather than shutting down.",
+  },
+};
+
+function getExerciseWhy(state: string, exerciseId: string): string {
+  const key = (state || "panicking") as BodyStateKey;
+  return exerciseWhyMap[key]?.[exerciseId] || "";
+}
+
+// ─── Body state check options ────────────────────────────────────────
+
+const bodyStateOptions: { id: BodyStateKey; label: string; sub: string }[] = [
+  { id: "panicking", label: "Panicking or overwhelmed", sub: "Racing heart, can't breathe, everything is too much" },
+  { id: "anxious", label: "Anxious or on edge", sub: "Tense, worried, restless, can't settle" },
+  { id: "shutdown", label: "Shut down or numb", sub: "Disconnected, frozen, can't feel much" },
+];
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 type SOSStep =
+  | "body-check"
   | "auto-start"
   | "context"
   | "recommend"
@@ -176,11 +230,14 @@ export default function SOSPage() {
 function SOSPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const bodyState = searchParams.get("state"); // "panicking" | "anxious" | "shutdown"
+  const bodyStateParam = searchParams.get("state"); // "panicking" | "anxious" | "shutdown"
   useWakeLock(true);
 
-  // Core state - auto-start immediately when body state is provided, skip context
-  const [step, setStep] = useState<SOSStep>(() => bodyState ? "auto-start" : "recommend");
+  // Local body state - set by URL param or user selection in body-check step
+  const [selectedBodyState, setSelectedBodyState] = useState<string | null>(bodyStateParam);
+
+  // Core state - if body state provided via URL, auto-start; otherwise ask
+  const [step, setStep] = useState<SOSStep>(() => bodyStateParam ? "auto-start" : "body-check");
   const [activeTool, setActiveTool] = useState("breathing");
 
   // Location context - defaults to "anywhere" (no filter)
@@ -252,7 +309,7 @@ function SOSPageInner() {
   useEffect(() => {
     if (step !== "auto-start" || autoStarted.current) return;
     autoStarted.current = true;
-    const recommended = filterByContext(getRecommended(bodyState), locationContext);
+    const recommended = filterByContext(getRecommended(selectedBodyState), locationContext);
     if (recommended.length > 0) {
       startTool(recommended[0].id);
     } else {
@@ -290,7 +347,7 @@ function SOSPageInner() {
 
   function selectContext(ctx: LocationContext) {
     setLocationContext(ctx);
-    if (bodyState) {
+    if (selectedBodyState) {
       // Go to auto-start (will pick the best context-appropriate exercise)
       autoStarted.current = false;
       setStep("auto-start");
@@ -608,13 +665,54 @@ function SOSPageInner() {
     );
   }
 
+  // ─── BODY CHECK (how is your body?) ──────────────────────────────────
+
+  if (step === "body-check") {
+    return (
+      <div key="body-check" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
+        <BackButton onClick={goHome} />
+
+        <div className="w-full max-w-sm">
+          <PresenceCue active />
+          <h2 className="mt-4 text-center text-xl font-light text-cream">How is your body right now?</h2>
+          <p className="mt-2 text-center text-xs text-cream-dim/50">
+            This helps us pick the right tool for you.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3">
+            {bodyStateOptions.map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => {
+                  setSelectedBodyState(opt.id);
+                  setStep("recommend");
+                }}
+                className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 px-5 py-5 text-left transition-all hover:border-teal/30 active:scale-[0.98]"
+              >
+                <span className="block text-base font-medium text-cream">{opt.label}</span>
+                <span className="mt-1 block text-xs text-cream-dim/50">{opt.sub}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Crisis line */}
+          <div className="mt-10 flex justify-center">
+            <a href="tel:988" className="text-[10px] text-cream-dim/50 underline underline-offset-2 hover:text-cream-dim/70">
+              988 Suicide &amp; Crisis Lifeline
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── CONTEXT (where are you?) ──────────────────────────────────────
 
   if (step === "context") {
     const stateColor =
-      bodyState === "panicking" ? "border-coral/20" :
-      bodyState === "shutdown" ? "border-indigo/20" :
-      bodyState === "anxious" ? "border-candle/20" :
+      selectedBodyState === "panicking" ? "border-coral/20" :
+      selectedBodyState === "shutdown" ? "border-indigo/20" :
+      selectedBodyState === "anxious" ? "border-candle/20" :
       "border-teal/20";
 
     return (
@@ -667,63 +765,81 @@ function SOSPageInner() {
     return <div className="fixed inset-0 bg-midnight" />;
   }
 
-  // ─── RECOMMEND (shows top picks based on body state) ───────────────
+  // ─── RECOMMEND (top pick + why + alternatives) ──────────────────────
 
   if (step === "recommend") {
-    const recommended = filterByContext(getRecommended(bodyState), locationContext);
+    const recommended = filterByContext(getRecommended(selectedBodyState), locationContext);
+    const remaining = filterByContext(getRemaining(selectedBodyState), locationContext);
+    const alternatives = remaining.slice(0, 3);
+    const topPick = recommended[0] || null;
+    const otherPicks = recommended.slice(1);
+
     const stateLabel =
-      bodyState === "panicking" ? "Let\u2019s slow things down" :
-      bodyState === "shutdown" ? "Let\u2019s bring you back gently" :
-      "Here are some things that can help";
+      selectedBodyState === "panicking" ? "Let\u2019s slow things down" :
+      selectedBodyState === "shutdown" ? "Let\u2019s bring you back gently" :
+      selectedBodyState === "anxious" ? "Let\u2019s settle your system" :
+      "Here\u2019s what can help";
 
     return (
       <div key="recommend" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
-        <BackButton onClick={goHome} />
+        <BackButton onClick={() => setStep("body-check")} />
 
         <div className="w-full max-w-sm">
-          {lastHelped && (
-            <button
-              onClick={() => startTool(lastHelped.id)}
-              className="mb-6 w-full rounded-2xl border border-teal/20 bg-teal/8 px-5 py-5 text-left transition-all hover:border-teal/35 active:scale-[0.98]"
-            >
-              <p className="text-base font-medium text-teal-soft">{lastHelped.label}</p>
-              <p className="mt-0.5 text-xs text-cream-dim/40">Tap to start</p>
-            </button>
-          )}
-
           <h2 className="text-center text-xl font-light text-cream">{stateLabel}</h2>
-          <p className="mt-2 text-center text-xs text-cream-dim/50">Pick one. We&apos;ll start right away.</p>
           <div className="mt-1.5">
             <ContextBadge />
           </div>
 
-          <div className="mt-6 flex flex-col gap-3">
-            {recommended.map((ex) => (
-              <button
-                key={ex.id}
-                onClick={() => startTool(ex.id)}
-                className="w-full rounded-2xl border border-teal/20 bg-teal/5 px-5 py-5 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg" role="img" aria-hidden="true">{ex.icon}</span>
-                  <span className="flex-1 text-base font-medium text-cream">{ex.label}</span>
-                  <span className="text-xs text-cream-dim/40">{ex.time}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {recommended.length === 0 && (
-            <div className="mt-8 text-center">
-              <p className="text-sm text-cream-dim/50">
-                No exercises match this setting.
+          {/* Top recommendation with "why" */}
+          {topPick && (
+            <div className="mt-8">
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-teal-soft/60">
+                We recommend
               </p>
               <button
-                onClick={() => setStep("context")}
-                className="mt-3 text-sm text-teal-soft/70 underline underline-offset-2 hover:text-teal-soft"
+                onClick={() => startTool(topPick.id)}
+                className="w-full rounded-2xl border border-teal/25 bg-teal/8 px-5 py-5 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
               >
-                Change location
+                <div className="flex items-center gap-3">
+                  <span className="text-xl" role="img" aria-hidden="true">{topPick.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-base font-medium text-cream">{topPick.label}</span>
+                    <span className="block text-xs text-cream-dim/40 mt-0.5">{topPick.time}</span>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-cream-dim/60">
+                  {getExerciseWhy(selectedBodyState || "panicking", topPick.id)}
+                </p>
               </button>
+            </div>
+          )}
+
+          {/* Other recommended + alternatives */}
+          {(otherPicks.length > 0 || alternatives.length > 0) && (
+            <div className="mt-6">
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-cream-dim/40">
+                Or try one of these
+              </p>
+              <div className="flex flex-col gap-2">
+                {[...otherPicks, ...alternatives].slice(0, 3).map((ex) => (
+                  <button
+                    key={ex.id}
+                    onClick={() => startTool(ex.id)}
+                    className="w-full rounded-xl border border-slate-blue/15 bg-deep/30 px-4 py-4 text-left transition-all hover:border-teal/25 active:scale-[0.98]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-base" role="img" aria-hidden="true">{ex.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-sm font-medium text-cream">{ex.label}</span>
+                        <span className="block text-[11px] text-cream-dim/40 mt-0.5">{ex.time}</span>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[11px] leading-relaxed text-cream-dim/45">
+                      {getExerciseWhy(selectedBodyState || "panicking", ex.id)}
+                    </p>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -731,7 +847,7 @@ function SOSPageInner() {
             onClick={() => setStep("all-tools")}
             className="mt-5 flex min-h-[44px] items-center justify-center gap-1 w-full text-xs text-cream-dim/50 transition-colors hover:text-cream-dim/70"
           >
-            More
+            See all exercises
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
 
@@ -749,7 +865,7 @@ function SOSPageInner() {
   // ─── ALL TOOLS (expanded list) ────────────────────────────────────
 
   if (step === "all-tools") {
-    const recommended = filterByContext(getRecommended(bodyState), locationContext);
+    const recommended = filterByContext(getRecommended(selectedBodyState), locationContext);
     const recommendedIds = new Set(recommended.map((e) => e.id));
     const remaining = filterByContext(
       allExercises.filter((e) => !recommendedIds.has(e.id)),
@@ -1182,7 +1298,7 @@ function SOSPageInner() {
                     localStorage.setItem("regulate-check-back", JSON.stringify({
                       ts: Date.now(),
                       tool: activeTool,
-                      state: bodyState,
+                      state: selectedBodyState,
                     }));
 
                     // Try to schedule a push notification as enhancement
