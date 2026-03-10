@@ -500,14 +500,13 @@ function SOSPageInner() {
   }
 
   function recordHelped() {
+    if (!isPremium()) return;
     const label = allExercises.find((t) => t.id === activeTool)?.label || "Breathing";
     try {
       localStorage.setItem("regulate-last-helped", JSON.stringify({ id: activeTool, label, ts: new Date().toISOString() }));
-      if (isPremium()) {
-        const history = JSON.parse(localStorage.getItem("regulate-sos-history") || "[]");
-        history.push({ tool: activeTool, label, ts: new Date().toISOString(), helped: true });
-        localStorage.setItem("regulate-sos-history", JSON.stringify(history.slice(-50)));
-      }
+      const history = JSON.parse(localStorage.getItem("regulate-sos-history") || "[]");
+      history.push({ tool: activeTool, label, ts: new Date().toISOString(), helped: true });
+      localStorage.setItem("regulate-sos-history", JSON.stringify(history.slice(-50)));
     } catch { /* */ }
   }
 
