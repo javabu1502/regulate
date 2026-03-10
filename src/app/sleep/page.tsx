@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BreathingOrb from "@/components/BreathingOrb";
 import AftercareFlow from "@/components/AftercareFlow";
+import MicroExplanation from "@/components/MicroExplanation";
 import { useWakeLock } from "@/hooks/useWakeLock";
+import EscapeHatch from "@/components/EscapeHatch";
 
-// ─── Data ───────────────────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────────────
 
 type Phase = "inhale" | "hold" | "exhale";
+type Mode = "select" | "cant-sleep" | "woke-up" | "racing";
 
 interface BreathStep {
   phase: Phase;
@@ -17,15 +20,17 @@ interface BreathStep {
   label: string;
 }
 
-const breathSteps: BreathStep[] = [
+// ─── Mode 1: Can't fall asleep ──────────────────────────────────────
+
+const cantSleepBreathSteps: BreathStep[] = [
   { phase: "inhale", duration: 4, label: "Inhale" },
   { phase: "hold", duration: 7, label: "Hold" },
   { phase: "exhale", duration: 8, label: "Exhale" },
 ];
 
-const totalCycles = 5;
+const cantSleepCycles = 5;
 
-const relaxationSteps = [
+const cantSleepRelaxSteps = [
   "Curl your toes tight... then release",
   "Squeeze your fists... then let go",
   "Tense your shoulders up to your ears... release",
@@ -33,15 +38,58 @@ const relaxationSteps = [
   "Take a deep breath... let everything go",
 ];
 
-// ─── Component ──────────────────────────────────────────────────────
+// ─── Mode 2: Woke up anxious ───────────────────────────────────────
 
-type Screen = "intro" | "breathing" | "relaxation" | "complete";
+const groundingSteps = [
+  "Name 3 things you can see from your bed",
+  "Feel the sheets, the pillow, the mattress",
+  "Listen for 3 sounds, no matter how quiet",
+];
+
+const affirmationSteps = [
+  "I am safe in this bed. Nothing needs my attention right now.",
+  "My body knows how to sleep. I can let it lead.",
+  "This moment is quiet. I can rest here.",
+];
+
+// ─── Mode 3: Racing thoughts ───────────────────────────────────────
+
+const racingBreathSteps: BreathStep[] = [
+  { phase: "inhale", duration: 4, label: "Breathe in" },
+  { phase: "exhale", duration: 8, label: "Slow exhale" },
+];
+
+const racingCycles = 5;
+
+const bodyScanSteps = [
+  "Soften your forehead. Let your jaw go slack.",
+  "Feel your chest rise and fall. Let your shoulders melt.",
+  "Let your belly be soft. No holding.",
+  "Feel where your feet meet the sheets. You are here.",
+];
+
+const sleepExplanations: Record<string, string> = {
+  "cant-sleep": "Extended exhale breathing plus muscle relaxation lower your cortisol and prepare your body for sleep.",
+  "woke-up": "Grounding reorients you to the present, while affirmations counter the negative thought spiral.",
+  "racing": "Longer exhales slow your heart rate while body awareness redirects attention away from racing thoughts.",
+};
+
+// ─── Screens per mode ──────────────────────────────────────────────
+
+type CantSleepScreen = "breathing" | "relaxation" | "complete";
+type WokeUpScreen = "grounding" | "affirmations" | "complete";
+type RacingScreen = "breathing" | "bodyscan" | "complete";
+type Screen = "select" | CantSleepScreen | WokeUpScreen | RacingScreen;
+
+// ─── Component ──────────────────────────────────────────────────────
 
 export default function SleepPage() {
   const router = useRouter();
-  const [screen, setScreen] = useState<Screen>("intro");
+  const [mode, setMode] = useState<Mode>("select");
+  const [screen, setScreen] = useState<Screen>("select");
+  const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
 
-  // Breathing state
+  // Breathing state (shared by cant-sleep and racing modes)
   const [currentCycle, setCurrentCycle] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -50,18 +98,22 @@ export default function SleepPage() {
   const lastTickRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
 
-  // Relaxation state
-  const [relaxIndex, setRelaxIndex] = useState(0);
-  const relaxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Timed step state (relaxation, grounding, affirmations, body scan)
+  const [stepIndex, setStepIndex] = useState(0);
+  const stepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Wake lock — active during breathing and relaxation
-  useWakeLock(screen === "breathing" || screen === "relaxation");
+  // Wake lock — active during any active phase
+  useWakeLock(screen !== "select" && screen !== "complete");
 
+  // Resolve active breath config based on mode
+  const breathSteps =
+    mode === "racing" ? racingBreathSteps : cantSleepBreathSteps;
+  const totalCycles = mode === "racing" ? racingCycles : cantSleepCycles;
   const currentStep = breathSteps[currentStepIndex] ?? null;
 
   // ─── Breathing timer ──────────────────────────────────────────
 
-  const advanceStep = useCallback(() => {
+  const advanceBreathStep = useCallback(() => {
     const nextStepIndex = currentStepIndex + 1;
     if (nextStepIndex < breathSteps.length) {
       setCurrentStepIndex(nextStepIndex);
@@ -75,10 +127,16 @@ export default function SleepPage() {
         setSecondsLeft(breathSteps[0].duration);
         elapsedRef.current = 0;
       } else {
-        setScreen("relaxation");
+        // Breathing done — advance to next phase based on mode
+        setStepIndex(0);
+        if (mode === "cant-sleep") {
+          setScreen("relaxation");
+        } else if (mode === "racing") {
+          setScreen("bodyscan");
+        }
       }
     }
-  }, [currentStepIndex, currentCycle]);
+  }, [currentStepIndex, currentCycle, breathSteps, totalCycles, mode]);
 
   useEffect(() => {
     if (screen !== "breathing" || !currentStep) return;
@@ -103,7 +161,7 @@ export default function SleepPage() {
       }
 
       if (remaining <= 0) {
-        advanceStep();
+        advanceBreathStep();
       } else {
         animFrameRef.current = requestAnimationFrame(tick);
       }
@@ -112,52 +170,132 @@ export default function SleepPage() {
     animFrameRef.current = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [screen, currentStep, advanceStep]);
+  }, [screen, currentStep, advanceBreathStep]);
 
-  // ─── Relaxation auto-advance timer ────────────────────────────
+  // ─── Timed step auto-advance (relaxation, grounding, affirmations, body scan)
+
+  function getTimedSteps(): string[] {
+    if (screen === "relaxation") return cantSleepRelaxSteps;
+    if (screen === "grounding") return groundingSteps;
+    if (screen === "affirmations") return affirmationSteps;
+    if (screen === "bodyscan") return bodyScanSteps;
+    return [];
+  }
+
+  function getStepDuration(): number {
+    if (screen === "relaxation") return 8000;
+    if (screen === "grounding") return 20000;
+    if (screen === "affirmations") return 15000;
+    if (screen === "bodyscan") return 20000;
+    return 8000;
+  }
+
+  function getNextScreen(): Screen {
+    if (mode === "cant-sleep" && screen === "relaxation") return "complete";
+    if (mode === "woke-up" && screen === "grounding") return "affirmations";
+    if (mode === "woke-up" && screen === "affirmations") return "complete";
+    if (mode === "racing" && screen === "bodyscan") return "complete";
+    return "complete";
+  }
+
+  const timedScreens: Screen[] = [
+    "relaxation",
+    "grounding",
+    "affirmations",
+    "bodyscan",
+  ];
+  const isTimedScreen = timedScreens.includes(screen);
 
   useEffect(() => {
-    if (screen !== "relaxation") return;
+    if (!isTimedScreen) return;
 
-    relaxTimerRef.current = setTimeout(() => {
-      if (relaxIndex < relaxationSteps.length - 1) {
-        setRelaxIndex((i) => i + 1);
+    const steps = getTimedSteps();
+    const duration = getStepDuration();
+
+    stepTimerRef.current = setTimeout(() => {
+      if (stepIndex < steps.length - 1) {
+        setStepIndex((i) => i + 1);
       } else {
-        setScreen("complete");
+        const next = getNextScreen();
+        if (next !== screen) {
+          setStepIndex(0);
+        }
+        setScreen(next);
       }
-    }, 8000);
+    }, duration);
 
     return () => {
-      if (relaxTimerRef.current) clearTimeout(relaxTimerRef.current);
+      if (stepTimerRef.current) clearTimeout(stepTimerRef.current);
     };
-  }, [screen, relaxIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, stepIndex, mode]);
 
   // ─── Handlers ─────────────────────────────────────────────────
 
-  function startSequence() {
+  function resetBreathingState() {
     setCurrentCycle(0);
     setCurrentStepIndex(0);
-    setSecondsLeft(breathSteps[0].duration);
     setOrbProgress(0);
     elapsedRef.current = 0;
-    setRelaxIndex(0);
-    setScreen("breathing");
+    setStepIndex(0);
   }
 
-  function advanceRelaxation() {
-    if (relaxTimerRef.current) clearTimeout(relaxTimerRef.current);
-    if (relaxIndex < relaxationSteps.length - 1) {
-      setRelaxIndex((i) => i + 1);
-    } else {
-      setScreen("complete");
+  function selectMode(selected: Mode) {
+    setMode(selected);
+    resetBreathingState();
+
+    if (selected === "cant-sleep") {
+      setSecondsLeft(cantSleepBreathSteps[0].duration);
+      setScreen("breathing");
+    } else if (selected === "woke-up") {
+      setScreen("grounding");
+    } else if (selected === "racing") {
+      setSecondsLeft(racingBreathSteps[0].duration);
+      setScreen("breathing");
     }
   }
 
-  // ─── INTRO ────────────────────────────────────────────────────
+  function advanceTimedStep() {
+    if (stepTimerRef.current) clearTimeout(stepTimerRef.current);
 
-  if (screen === "intro") {
+    const steps = getTimedSteps();
+    if (stepIndex < steps.length - 1) {
+      setStepIndex((i) => i + 1);
+    } else {
+      const next = getNextScreen();
+      if (next !== screen) {
+        setStepIndex(0);
+      }
+      setScreen(next);
+    }
+  }
+
+  // ─── SELECT MODE ───────────────────────────────────────────────
+
+  if (screen === "select") {
+    const modes = [
+      {
+        id: "cant-sleep" as Mode,
+        title: "Can\u2019t fall asleep",
+        desc: "Breathing + muscle relaxation",
+        time: "~5 min",
+      },
+      {
+        id: "woke-up" as Mode,
+        title: "Woke up anxious",
+        desc: "Grounding + affirmations",
+        time: "~3 min",
+      },
+      {
+        id: "racing" as Mode,
+        title: "Racing thoughts",
+        desc: "Extended exhale + body scan",
+        time: "~4 min",
+      },
+    ];
+
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link
             href="/"
@@ -174,15 +312,34 @@ export default function SleepPage() {
               Can&apos;t sleep?
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-cream-dim/50">
-              Let&apos;s slow everything down.
+              Choose what fits right now.
             </p>
 
-            <button
-              onClick={startSequence}
-              className="mt-10 w-full max-w-[200px] rounded-2xl bg-teal/15 py-4 text-base font-medium text-teal-soft/70 transition-all duration-300 hover:bg-teal/20 active:scale-[0.98]"
-            >
-              Begin
-            </button>
+            <div className="mt-10 flex w-full flex-col gap-3">
+              {modes.map((m) => (
+                <div
+                  key={m.id}
+                  className="relative w-full rounded-2xl bg-teal/10 px-5 py-5 text-left transition-all duration-300 hover:bg-teal/15 active:scale-[0.98]"
+                >
+                  <button
+                    onClick={() => selectMode(m.id)}
+                    className="w-full text-left pr-6"
+                  >
+                    <p className="text-base font-medium text-teal-soft/70">
+                      {m.title}
+                    </p>
+                    <p className="mt-1 text-sm text-cream-dim/40">
+                      {m.desc} &middot; {m.time}
+                    </p>
+                  </button>
+                  <MicroExplanation
+                    text={sleepExplanations[m.id]}
+                    isOpen={expandedExplanation === m.id}
+                    onToggle={() => setExpandedExplanation(expandedExplanation === m.id ? null : m.id)}
+                  />
+                </div>
+              ))}
+            </div>
 
             <p className="mt-8 text-xs text-cream-dim/30">
               Turn on binaural beats for deeper relaxation
@@ -193,11 +350,11 @@ export default function SleepPage() {
     );
   }
 
-  // ─── BREATHING ────────────────────────────────────────────────
+  // ─── BREATHING (cant-sleep + racing) ────────────────────────────
 
   if (screen === "breathing" && currentStep) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="breathing" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         {/* Cycle indicator */}
         <div className="fixed left-0 right-0 top-8 flex justify-center">
           <div className="flex items-center gap-1.5">
@@ -232,22 +389,38 @@ export default function SleepPage() {
             </p>
           </div>
         </div>
+
+        <EscapeHatch />
       </div>
     );
   }
 
-  // ─── RELAXATION ───────────────────────────────────────────────
+  // ─── TIMED STEP SCREENS (relaxation, grounding, affirmations, body scan)
 
-  if (screen === "relaxation") {
+  if (isTimedScreen) {
+    const steps = getTimedSteps();
+    const phaseLabel =
+      screen === "relaxation"
+        ? "Progressive relaxation"
+        : screen === "grounding"
+          ? "Grounding"
+          : screen === "affirmations"
+            ? "Affirmation"
+            : "Body scan";
+
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key={screen} className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <div className="flex w-full max-w-md flex-col items-center text-center">
+          <p className="mb-6 text-xs uppercase tracking-widest text-cream-dim/30">
+            {phaseLabel}
+          </p>
+
           <p className="text-xl font-light leading-relaxed text-cream/60">
-            {relaxationSteps[relaxIndex]}
+            {steps[stepIndex]}
           </p>
 
           <button
-            onClick={advanceRelaxation}
+            onClick={advanceTimedStep}
             className="mt-10 rounded-2xl bg-teal/10 px-8 py-3 text-sm font-medium text-teal-soft/50 transition-all duration-300 hover:bg-teal/15 active:scale-[0.98]"
           >
             Ready
@@ -255,13 +428,13 @@ export default function SleepPage() {
 
           {/* Step dots */}
           <div className="mt-8 flex items-center gap-2">
-            {relaxationSteps.map((_, i) => (
+            {steps.map((_, i) => (
               <div
                 key={i}
                 className={`h-1 rounded-full transition-all duration-500 ${
-                  i < relaxIndex
+                  i < stepIndex
                     ? "w-3 bg-teal-soft/30"
-                    : i === relaxIndex
+                    : i === stepIndex
                       ? "w-5 bg-teal-soft/50"
                       : "w-2 bg-slate-blue/30"
                 }`}
@@ -269,6 +442,8 @@ export default function SleepPage() {
             ))}
           </div>
         </div>
+
+        <EscapeHatch />
       </div>
     );
   }
@@ -276,11 +451,19 @@ export default function SleepPage() {
   // ─── COMPLETE ─────────────────────────────────────────────────
 
   if (screen === "complete") {
+    const techniqueLabel =
+      mode === "cant-sleep"
+        ? "Sleep Sequence"
+        : mode === "woke-up"
+          ? "Night Comfort"
+          : "Thought Release";
+
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
-          technique="Sleep Sequence"
+          technique={techniqueLabel}
           onDone={() => router.push("/")}
+          learnLink="/learn#breathing"
         />
       </div>
     );

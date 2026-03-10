@@ -31,4 +31,16 @@ export const haptics = {
   groundingCheck: () => vibrate([10, 50, 10]),
   complete: () => vibrate([10, 30, 10, 30, 10, 50]),
   light: () => vibrate(10),
+  subtle: () => vibrate(8),
+  transition: () => vibrate([15, 30, 15]),
+
+  // Eyes-free breathing guides
+  /** Rhythmic quick pulses to guide inhale pace */
+  inhaleGuide: () => vibrate([15, 40, 15, 40, 15]),
+  /** Single gentle tap for hold phase */
+  holdGuide: () => vibrate(20),
+  /** Longer, slower vibration pulse for exhale pace */
+  exhaleGuide: () => vibrate([40, 60, 40]),
+  /** Distinct double-tap for phase transitions */
+  phaseChange: () => vibrate([25, 80, 25]),
 };

@@ -11,8 +11,8 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    // Don't gate the onboarding page itself
-    if (pathname === "/onboarding") {
+    // Don't gate the onboarding, referral, clinician, or program pages
+    if (pathname === "/onboarding" || pathname === "/refer" || pathname === "/clinicians" || pathname?.startsWith("/programs")) {
       setChecked(true);
       return;
     }
@@ -25,7 +25,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
     }
   }, [pathname, router]);
 
-  if (!checked && pathname !== "/onboarding") {
+  if (!checked && pathname !== "/onboarding" && pathname !== "/refer" && pathname !== "/clinicians" && !pathname?.startsWith("/programs")) {
     // Show nothing while checking — prevents flash
     return <div className="min-h-screen bg-midnight" />;
   }

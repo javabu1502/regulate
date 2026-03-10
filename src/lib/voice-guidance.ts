@@ -1,7 +1,8 @@
 "use client";
 
 // ─── Voice Guidance via Web Speech API ──────────────────────────────
-// Speaks instructions aloud during exercises. No audio files needed.
+// Speaks instructions aloud during exercises.
+// Optimized for the softest, most natural female voice available.
 
 const STORAGE_KEY = "regulate-voice-enabled";
 
@@ -9,6 +10,7 @@ class VoiceGuidance {
   private synth: SpeechSynthesis | null = null;
   private enabled: boolean = false;
   private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private cachedVoice: SpeechSynthesisVoice | null = null;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -17,7 +19,51 @@ class VoiceGuidance {
         const stored = localStorage.getItem(STORAGE_KEY);
         this.enabled = stored === "1";
       } catch { /* */ }
+
+      // Pre-cache best voice once voices load
+      this.synth.addEventListener("voiceschanged", () => {
+        this.cachedVoice = this.findBestVoice();
+      });
+      // Also try immediately (voices may already be loaded)
+      this.cachedVoice = this.findBestVoice();
     }
+  }
+
+  private findBestVoice(): SpeechSynthesisVoice | null {
+    if (!this.synth) return null;
+    const voices = this.synth.getVoices();
+    if (voices.length === 0) return null;
+
+    // Ranked preference: soft female voices first
+    // Samantha (macOS) is the best browser TTS voice for calm/soothing
+    // Zarvox/Alex/etc are robotic and should be avoided
+    const preferredNames = [
+      "Samantha",        // macOS — warm, natural female
+      "Moira",           // macOS — soft Irish female
+      "Tessa",           // macOS — gentle South African female
+      "Fiona",           // macOS — warm Scottish female
+      "Google US English", // Chrome — decent female
+      "Karen",           // macOS — Australian female
+      "Victoria",        // macOS — US female
+      "Allison",         // macOS — US female
+    ];
+
+    for (const name of preferredNames) {
+      const voice = voices.find(
+        (v) => v.name.includes(name) && v.lang.startsWith("en")
+      );
+      if (voice) return voice;
+    }
+
+    // Fallback: find any English female voice (avoid names like Alex, Daniel, Fred, etc.)
+    const maleNames = ["Alex", "Daniel", "Fred", "Ralph", "Albert", "Bruce", "Junior", "Zarvox", "Trinoids", "Whisper", "Bad News", "Good News", "Bahh", "Bells", "Boing", "Bubbles", "Cellos", "Deranged", "Pipe Organ"];
+    const englishFemale = voices.find(
+      (v) => v.lang.startsWith("en") && !maleNames.some((m) => v.name.includes(m))
+    );
+    if (englishFemale) return englishFemale;
+
+    // Last resort: any English voice
+    return voices.find((v) => v.lang.startsWith("en")) || null;
   }
 
   isEnabled(): boolean {
@@ -45,16 +91,17 @@ class VoiceGuidance {
     this.synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = options?.rate ?? 0.85; // Slightly slower than normal
-    utterance.pitch = options?.pitch ?? 0.95; // Slightly lower pitch for calm
-    utterance.volume = options?.volume ?? 0.8;
+    utterance.rate = options?.rate ?? 0.75;  // Slow and gentle
+    utterance.pitch = options?.pitch ?? 1.0; // Natural pitch (Samantha sounds best at 1.0)
+    utterance.volume = options?.volume ?? 0.7; // Soft, not overpowering
 
-    // Try to find a calm-sounding voice
-    const voices = this.synth.getVoices();
-    const preferred = voices.find(
-      (v) => v.name.includes("Samantha") || v.name.includes("Karen") || v.name.includes("Daniel")
-    );
-    if (preferred) utterance.voice = preferred;
+    // Use cached best voice
+    if (!this.cachedVoice) {
+      this.cachedVoice = this.findBestVoice();
+    }
+    if (this.cachedVoice) {
+      utterance.voice = this.cachedVoice;
+    }
 
     this.currentUtterance = utterance;
     this.synth.speak(utterance);

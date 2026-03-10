@@ -4,11 +4,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useWakeLock } from "@/hooks/useWakeLock";
-import { useBinauralBeats, BinauralToggle, BinauralPill, HeadphonesNotice } from "@/components/BinauralBeats";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
+
 import { SomaticIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
+import MicroExplanation from "@/components/MicroExplanation";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
+import { haptics } from "@/lib/haptics";
+import PresenceCue from "@/components/PresenceCue";
+import EscapeHatch from "@/components/EscapeHatch";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -20,14 +25,16 @@ type Technique =
   | "humming"
   | "vagus-nerve-massage"
   | "eye-press"
+  | "havening"
   | "body-shaking"
   | "air-punching"
   | "bearing-down"
   | "dancing"
-  | "vestibular-eyes";
+  | "vestibular-eyes"
+  | "orienting"
+  | "pendulation";
 
 type Regulation = "up" | "down" | "both";
-type Speed = "slow" | "medium" | "fast";
 
 interface SessionStep {
   text: string;
@@ -45,10 +52,10 @@ interface ExerciseInfo {
   sessionInstruction?: string;
   sessionSteps?: SessionStep[];
   hasSpecialSession?: boolean;
+  position?: "seated" | "standing" | "any";
 }
 
-const speedMs: Record<Speed, number> = { slow: 1000, medium: 600, fast: 400 };
-const durationOptions = [2, 5, 10]; // minutes
+const durationOptions = [1, 3, 5]; // minutes
 
 // ─── Exercise Library ───────────────────────────────────────────────
 
@@ -62,6 +69,7 @@ const techniques: ExerciseInfo[] = [
     tags: ["processing", "calming"],
     duration: 5,
     hasSpecialSession: true,
+    position: "any",
   },
   {
     id: "gentle-swaying",
@@ -72,6 +80,7 @@ const techniques: ExerciseInfo[] = [
     tags: ["soothing", "grounding"],
     duration: 5,
     hasSpecialSession: true,
+    position: "any",
   },
   {
     id: "return-to-safety",
@@ -90,6 +99,29 @@ const techniques: ExerciseInfo[] = [
       { text: "Say quietly: I am safe. My body is safe. This moment is safe.", duration: 30 },
       { text: "Stay here as long as you need. There's no rush to move on.", duration: 30 },
     ],
+    position: "any",
+  },
+  {
+    id: "orienting",
+    name: "Orienting",
+    description: "Slowly look around to signal safety",
+    why: "When you're anxious or dissociating, your nervous system is scanning for danger — but doing it internally, through racing thoughts. Orienting redirects that scanning outward, toward your actual environment. Slowly turning your head and noticing what you see tells your brainstem: 'I've looked around, and there's no threat here.' This is one of the foundational techniques in Somatic Experiencing.",
+    regulation: "down",
+    tags: ["somatic experiencing", "safety", "grounding"],
+    duration: 2,
+    sessionSteps: [
+      { text: "Wherever you are, pause. Let your shoulders drop.", duration: 10 },
+      { text: "Slowly — very slowly — turn your head to the left. Let your eyes take in what's around you.", duration: 12 },
+      { text: "What do you notice? Colors, shapes, light. No need to name them. Just see.", duration: 10 },
+      { text: "Slowly bring your head back to center.", duration: 8 },
+      { text: "Now turn slowly to the right. Let your eyes wander. There's no rush.", duration: 12 },
+      { text: "Notice something that catches your eye. Stay with it for a moment.", duration: 10 },
+      { text: "Come back to center. Now look up — notice the ceiling, the sky, the space above you.", duration: 10 },
+      { text: "Look down — notice the ground, your feet, what's supporting you.", duration: 10 },
+      { text: "Let your gaze settle somewhere that feels comfortable. Take a slow breath.", duration: 12 },
+      { text: "Notice: your nervous system just scanned the environment and found no danger. You're safe here.", duration: 12 },
+    ],
+    position: "any",
   },
   {
     id: "humming",
@@ -100,6 +132,7 @@ const techniques: ExerciseInfo[] = [
     tags: ["vagus nerve", "calming"],
     duration: 3,
     sessionInstruction: "Let's hum together. Take a breath in, then hum as you exhale. Feel the vibration in your chest. Try making a low 'voo' sound \u2014 like a foghorn in the distance.",
+    position: "any",
   },
   {
     id: "vagus-nerve-massage",
@@ -116,6 +149,7 @@ const techniques: ExerciseInfo[] = [
       { text: "Gently massage the space between your collarbones.", duration: 30 },
       { text: "Rest your hands on your belly. Breathe.", duration: 30 },
     ],
+    position: "seated",
   },
   {
     id: "eye-press",
@@ -133,6 +167,29 @@ const techniques: ExerciseInfo[] = [
       { text: "One more time. Palms over eyes. Gentle pressure. Breathe.", duration: 30 },
       { text: "Release and rest. Notice how your body feels now.", duration: 10 },
     ],
+    position: "seated",
+  },
+  {
+    id: "havening",
+    name: "Self-Havening",
+    description: "Gentle arm and face strokes to calm your system",
+    why: "Havening uses gentle, repetitive touch to produce delta waves in the brain — the same waves present in deep, dreamless sleep. The slow stroking motion on your arms and face sends powerful safety signals through your skin's C-tactile afferents directly to your amygdala, reducing the emotional charge of distressing experiences.",
+    regulation: "down",
+    tags: ["touch", "calming", "delta waves"],
+    duration: 3,
+    sessionSteps: [
+      { text: "Sit comfortably. Cross your arms so each hand rests on the opposite shoulder.", duration: 10 },
+      { text: "Slowly stroke your hands down your arms from shoulder to elbow. Gentle, even pressure. Like you're soothing yourself.", duration: 20 },
+      { text: "Continue stroking. Slow and steady. Each stroke sends a safety signal to your brain.", duration: 20 },
+      { text: "Now bring your hands to your face. Place your palms on your forehead.", duration: 10 },
+      { text: "Slowly stroke down from your forehead, across your cheeks, to your chin. Very gently.", duration: 20 },
+      { text: "Continue the face strokes. Forehead to chin. Let your eyes close if they want to.", duration: 20 },
+      { text: "Return to your arms. Shoulder to elbow, slow strokes. Find a rhythm that feels right.", duration: 20 },
+      { text: "Keep going. Notice if your breathing has slowed. Notice if your shoulders have dropped.", duration: 20 },
+      { text: "One last round. Arms or face — whichever feels better right now.", duration: 20 },
+      { text: "Rest your hands in your lap. Take a deep breath. Notice how your body feels now compared to when you started.", duration: 15 },
+    ],
+    position: "seated",
   },
   {
     id: "body-shaking",
@@ -150,23 +207,25 @@ const techniques: ExerciseInfo[] = [
       { text: "Slow down gradually. Feel the tingling.", duration: 30 },
       { text: "Stand still. Notice what's different.", duration: 30 },
     ],
+    position: "standing",
   },
   {
     id: "air-punching",
     name: "Air Punching",
     description: "Controlled punching movements",
-    why: "When your body is stuck in freeze, it needs to complete the fight response it couldn't express. Punching the air gives your muscles permission to discharge that trapped energy safely. The movement tells your nervous system: the threat is over, you fought back.",
+    why: "When your body has energy building up but can't release it safely, air punching gives your muscles permission to discharge that trapped activation. The movement helps complete the fight response your body may be holding onto, telling your nervous system: you fought back, the threat is over.",
     regulation: "up",
     tags: ["release", "energizing", "fight response"],
     duration: 3,
     sessionInstruction: "Stand with feet shoulder-width. Punch forward with alternating arms. Start slow, find your rhythm. It's okay to make sounds. Let out whatever wants to come out.",
+    position: "standing",
   },
   {
     id: "bearing-down",
     name: "Bearing Down (Valsalva)",
     description: "Engage your core against resistance",
     why: "Bearing down \u2014 like pushing against a closed throat \u2014 creates pressure that stimulates the vagus nerve powerfully. It's one of the strongest vagal maneuvers known to medicine. It can reset a racing heart in moments.",
-    regulation: "up",
+    regulation: "down",
     tags: ["vagus nerve", "quick", "powerful"],
     duration: 2,
     sessionSteps: [
@@ -179,6 +238,7 @@ const techniques: ExerciseInfo[] = [
       { text: "Last round. Deep breath. Bear down. Hold.", duration: 10 },
       { text: "Release. Let your body settle. Notice what's changed.", duration: 20 },
     ],
+    position: "any",
   },
   {
     id: "dancing",
@@ -189,6 +249,7 @@ const techniques: ExerciseInfo[] = [
     tags: ["expression", "energizing"],
     duration: 5,
     sessionInstruction: "Move however your body wants to. There are no rules. Sway, stomp, wave your arms, spin. Let your body lead.",
+    position: "standing",
   },
   {
     id: "vestibular-eyes",
@@ -199,8 +260,48 @@ const techniques: ExerciseInfo[] = [
     tags: ["calming", "orienting"],
     duration: 3,
     hasSpecialSession: true,
+    position: "any",
+  },
+  {
+    id: "pendulation",
+    name: "Pendulation",
+    description: "Shift attention between tension and comfort",
+    why: "Your nervous system naturally oscillates between activation and calm. Pendulation teaches your body to move between these states fluidly, building resilience. By deliberately noticing discomfort then shifting to a place of ease, you train your nervous system to self-regulate — moving through distress rather than getting stuck in it.",
+    regulation: "both",
+    tags: ["somatic experiencing", "resilience", "awareness"],
+    duration: 3,
+    sessionSteps: [
+      { text: "Close your eyes or soften your gaze. Take a few slow breaths to arrive.", duration: 15 },
+      { text: "Scan your body. Notice where you feel tension, tightness, or discomfort. Don't try to change it — just notice.", duration: 20 },
+      { text: "Now find a place in your body that feels neutral or comfortable. Maybe your hands, your feet, or your belly. Rest your attention there.", duration: 20 },
+      { text: "Gently shift your attention back to the area of tension. Notice what's there without judgment.", duration: 15 },
+      { text: "Now pendulate — move your attention back to the comfortable place. Let your body soften as you arrive there.", duration: 20 },
+      { text: "Back to the tension. Notice — has anything shifted? Is it the same, smaller, different?", duration: 15 },
+      { text: "Return to comfort. Let yourself rest here. Your body is learning to move between states.", duration: 20 },
+      { text: "One more time toward the tension. You're not fixing it — you're showing your nervous system it can move through it.", duration: 15 },
+      { text: "Come back to comfort. Stay here. Notice what your body feels like now.", duration: 20 },
+      { text: "Take a deep breath. You just practiced pendulation — your nervous system's natural rhythm of moving between activation and calm.", duration: 15 },
+    ],
+    position: "any",
   },
 ];
+
+const somaticExplanations: Record<string, string> = {
+  "bilateral-tapping": "Bilateral stimulation helps process distress by engaging both brain hemispheres, similar to what happens during REM sleep.",
+  "gentle-swaying": "Gentle rhythmic movement activates your vestibular system, which connects directly to your vagus nerve and calming response.",
+  "return-to-safety": "Orienting to your environment signals to your primitive brain that there\u2019s no immediate threat present.",
+  "orienting": "Slowly scanning your environment redirects your threat-detection system outward, signaling safety to your brainstem.",
+  "humming": "Vibrations from humming stimulate the vagus nerve in your throat, directly activating your parasympathetic system.",
+  "vagus-nerve-massage": "Gentle pressure behind the ear stimulates a branch of the vagus nerve, slowing your heart rate.",
+  "eye-press": "Light pressure on closed eyes triggers the oculocardiac reflex, which naturally slows your heart rate.",
+  "havening": "Gentle repetitive touch produces calming delta waves in the brain and sends safety signals through skin receptors to the amygdala.",
+  "body-shaking": "Animals shake after a threat passes to discharge stress hormones. This somatic release works for humans too.",
+  "air-punching": "Controlled aggression movements help complete the fight response your body may be holding onto.",
+  "bearing-down": "This engages your core and vagus nerve simultaneously, creating a strong parasympathetic activation.",
+  "dancing": "Free movement helps discharge stored tension while bilateral coordination regulates the nervous system.",
+  "vestibular-eyes": "Slow eye movements stimulate the vestibular-ocular reflex, which has a direct calming effect on the brainstem.",
+  "pendulation": "Pendulation trains your nervous system to move fluidly between distress and ease, building resilience over time.",
+};
 
 // ─── Web Audio helper ───────────────────────────────────────────────
 
@@ -282,10 +383,11 @@ export default function SomaticPage() {
   const router = useRouter();
   const [screen, setScreen] = useState<Screen>("select");
   const [technique, setTechnique] = useState<Technique>("bilateral-tapping");
-  const [speed, setSpeed] = useState<Speed>("medium");
-  const [duration, setDuration] = useState(5);
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [hapticEnabled, setHapticEnabled] = useState(true);
+  const [duration, setDuration] = useState(3);
+  const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
+  // Bilateral tapping: 1Hz (1000ms) is the scientifically validated EMDR rate
+  const audioEnabled = true;
+  const hapticEnabled = true;
   const [nsState, setNsState] = useState<NSState | null>(null);
 
   // Session state
@@ -312,7 +414,7 @@ export default function SomaticPage() {
   const vestibularRef = useRef<number | null>(null);
 
   useWakeLock(screen === "session" && !isPaused);
-  const binaural = useBinauralBeats();
+  useScrollMemory("somatic", screen === "select");
 
   const totalSeconds = duration * 60;
   const currentExercise = techniques.find((t) => t.id === technique)!;
@@ -351,7 +453,7 @@ export default function SomaticPage() {
       return;
     }
 
-    const ms = speedMs[speed];
+    const ms = 1000; // 1Hz — scientifically validated bilateral stimulation rate
 
     tapIntervalRef.current = setInterval(() => {
       setActiveSide((prev) => {
@@ -375,7 +477,7 @@ export default function SomaticPage() {
     return () => {
       if (tapIntervalRef.current) clearInterval(tapIntervalRef.current);
     };
-  }, [screen, technique, speed, isPaused, audioEnabled, hapticEnabled]);
+  }, [screen, technique, isPaused, audioEnabled, hapticEnabled]);
 
   // ─── Swaying session ──────────────────────────────────────────
 
@@ -464,6 +566,7 @@ export default function SomaticPage() {
             if (s + 1 >= steps.length) {
               return s; // stay on last step, main timer will handle completion
             }
+            haptics.transition();
             return s + 1;
           });
           return 0;
@@ -489,6 +592,7 @@ export default function SomaticPage() {
     intervalRef.current = setInterval(() => {
       setElapsed((prev) => {
         if (prev + 1 >= totalSeconds) {
+          haptics.complete();
           stopSession();
           setScreen("complete");
           return prev + 1;
@@ -518,7 +622,6 @@ export default function SomaticPage() {
     stopSession();
     setScreen("select");
     setIsPaused(false);
-    binaural.stop();
   }
 
   function formatTime(s: number) {
@@ -604,22 +707,11 @@ export default function SomaticPage() {
     );
   }
 
-  // ─── Binaural overlays ────────────────────────────────────────
-
-  function BinauralOverlays() {
-    return (
-      <>
-        {binaural.isPlaying && binaural.activePreset && <BinauralPill preset={binaural.activePreset} onStop={binaural.stop} />}
-        {binaural.showHeadphones && <HeadphonesNotice onDismiss={binaural.dismissHeadphones} />}
-      </>
-    );
-  }
-
   // ─── SELECT SCREEN ────────────────────────────────────────────
 
   if (screen === "select") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -636,43 +728,99 @@ export default function SomaticPage() {
             </p>
           </header>
 
-          <div className="flex flex-col gap-3">
-            {sortedTechniques.map((ex) => {
-              const isRecommended = recommendations.ids.has(ex.id);
-              return (
-                <button
+          <div className="flex flex-col gap-6">
+            {/* Group exercises by regulation type */}
+            {(() => {
+              const recommended = sortedTechniques.filter((ex) => recommendations.ids.has(ex.id));
+              const calming = sortedTechniques.filter((ex) => ex.regulation === "down" && !recommendations.ids.has(ex.id));
+              const energizing = sortedTechniques.filter((ex) => ex.regulation === "up" && !recommendations.ids.has(ex.id));
+              const both = sortedTechniques.filter((ex) => ex.regulation === "both" && !recommendations.ids.has(ex.id));
+
+              const renderCard = (ex: ExerciseInfo, isRecommended = false) => (
+                <div
                   key={ex.id}
-                  onClick={() => selectTechnique(ex.id)}
-                  className={`group w-full rounded-2xl border ${
+                  className={`relative w-full rounded-2xl border ${
                     isRecommended ? "border-teal/40" : "border-teal/15"
-                  } bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8`}
+                  } bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8 active:scale-[0.98]`}
                 >
-                  {isRecommended && (
-                    <div className="mb-3 flex items-center gap-2">
-                      <span className="inline-block rounded-full bg-teal/20 px-2.5 py-0.5 text-xs font-medium text-teal-soft">
-                        Recommended
-                      </span>
-                      <span className="text-xs text-cream-dim">{recommendations.reason}</span>
-                    </div>
-                  )}
-                  <div className="flex items-start gap-4">
-                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/80">
-                      <ExerciseIcon id={ex.id} />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-base font-medium text-cream">{ex.name}</h3>
-                      <p className="mt-0.5 text-sm text-cream-dim">{ex.description}</p>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs ${regulationColor(ex.regulation)}`}>
-                          {regulationLabel(ex.regulation)}
-                        </span>
-                        <span className="text-xs text-cream-dim/50">{ex.duration} min</span>
+                  <button
+                    onClick={() => selectTechnique(ex.id)}
+                    className="group w-full text-left"
+                  >
+                    <div className="flex items-start gap-4 pr-6">
+                      <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/80">
+                        <ExerciseIcon id={ex.id} />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-base font-medium text-cream">{ex.name}</h3>
+                        <p className="mt-0.5 text-sm text-cream-dim">{ex.description}</p>
+                        <span className="mt-1.5 inline-block text-xs text-cream-dim/50">{ex.duration} min</span>
+                        {ex.position && ex.position !== "any" && (
+                          <span className="text-xs text-cream-dim/40"> · {ex.position === "seated" ? "Seated" : "Standing"}</span>
+                        )}
                       </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  <MicroExplanation
+                    text={somaticExplanations[ex.id]}
+                    isOpen={expandedExplanation === ex.id}
+                    onToggle={() => setExpandedExplanation(expandedExplanation === ex.id ? null : ex.id)}
+                  />
+                </div>
               );
-            })}
+
+              return (
+                <>
+                  {recommended.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-teal-soft/60">
+                        Recommended for you
+                      </p>
+                      <p className="mb-3 text-xs text-cream-dim/40">{recommendations.reason}</p>
+                      <div className="flex flex-col gap-2">
+                        {recommended.map((ex) => renderCard(ex, true))}
+                      </div>
+                    </div>
+                  )}
+
+                  {calming.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-teal-soft/60">
+                        Calming
+                      </p>
+                      <p className="mb-3 text-xs text-cream-dim/40">Slow your system down</p>
+                      <div className="flex flex-col gap-2">
+                        {calming.map((ex) => renderCard(ex))}
+                      </div>
+                    </div>
+                  )}
+
+                  {energizing.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-candle/50">
+                        Energizing
+                      </p>
+                      <p className="mb-3 text-xs text-cream-dim/40">Wake your body up gently</p>
+                      <div className="flex flex-col gap-2">
+                        {energizing.map((ex) => renderCard(ex))}
+                      </div>
+                    </div>
+                  )}
+
+                  {both.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-cream-dim/40">
+                        Calming & energizing
+                      </p>
+                      <p className="mb-3 text-xs text-cream-dim/40">Works either way</p>
+                      <div className="flex flex-col gap-2">
+                        {both.map((ex) => renderCard(ex))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -683,7 +831,7 @@ export default function SomaticPage() {
 
   if (screen === "info") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="info" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <BackButton onClick={resetToSelect} label="Exercises" />
 
@@ -713,6 +861,15 @@ export default function SomaticPage() {
             </p>
           </div>
 
+          {/* Eyes closed tip for bilateral tapping */}
+          {technique === "bilateral-tapping" && (
+            <div className="mb-4 rounded-2xl border border-candle/15 bg-candle/5 p-4 backdrop-blur-sm">
+              <p className="text-xs leading-relaxed text-cream-dim">
+                <span className="font-medium text-candle/80">Tip:</span> For deeper processing, try this with eyes closed. Keep eyes open if you feel ungrounded.
+              </p>
+            </div>
+          )}
+
           {/* Duration */}
           <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
             <p className="mb-3 text-center text-sm text-cream-dim">Duration</p>
@@ -733,56 +890,6 @@ export default function SomaticPage() {
             </div>
           </div>
 
-          {/* Tapping-specific config */}
-          {technique === "bilateral-tapping" && (
-            <>
-              <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
-                <p className="mb-3 text-center text-sm text-cream-dim">Rhythm</p>
-                <div className="flex justify-center gap-3">
-                  {(["slow", "medium", "fast"] as Speed[]).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSpeed(s)}
-                      className={`flex h-14 flex-1 items-center justify-center rounded-xl border text-sm font-medium capitalize transition-all duration-200 ${
-                        speed === s
-                          ? "border-teal/50 bg-teal/15 text-teal-soft shadow-md shadow-teal/10"
-                          : "border-slate-blue/50 bg-slate-blue/30 text-cream-dim hover:border-teal/30 hover:text-cream"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
-                <div className="flex items-center justify-between py-1">
-                  <span className="text-sm text-cream-dim">Haptic feedback</span>
-                  <button
-                    onClick={() => setHapticEnabled(!hapticEnabled)}
-                    className={`h-7 w-12 rounded-full transition-colors ${hapticEnabled ? "bg-teal/40" : "bg-slate-blue/50"}`}
-                  >
-                    <div className={`h-5 w-5 rounded-full bg-cream transition-transform ${hapticEnabled ? "translate-x-6" : "translate-x-1"}`} />
-                  </button>
-                </div>
-                <div className="mt-3 flex items-center justify-between py-1">
-                  <span className="text-sm text-cream-dim">Audio tones</span>
-                  <button
-                    onClick={() => setAudioEnabled(!audioEnabled)}
-                    className={`h-7 w-12 rounded-full transition-colors ${audioEnabled ? "bg-teal/40" : "bg-slate-blue/50"}`}
-                  >
-                    <div className={`h-5 w-5 rounded-full bg-cream transition-transform ${audioEnabled ? "translate-x-6" : "translate-x-1"}`} />
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Binaural beats */}
-          <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
-            <BinauralToggle presetId="calm" isPlaying={binaural.isPlaying} onToggle={binaural.toggle} />
-          </div>
-
           <button
             onClick={startSession}
             className="mt-2 w-full rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft backdrop-blur-sm transition-all duration-300 hover:bg-teal/30 hover:shadow-lg hover:shadow-teal/10 active:scale-[0.98]"
@@ -798,7 +905,7 @@ export default function SomaticPage() {
 
   if (screen === "session" && technique === "bilateral-tapping") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-0">
+      <div key="session-tapping" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-0">
         <SessionHeader />
 
         {/* Tap zones */}
@@ -856,9 +963,10 @@ export default function SomaticPage() {
           <p className="text-sm text-cream-dim/60">Tap along with the rhythm</p>
         </div>
 
+        <PresenceCue active={!isPaused} />
         <SessionControls />
         <PauseOverlay />
-        <BinauralOverlays />
+        <EscapeHatch />
       </div>
     );
   }
@@ -867,7 +975,7 @@ export default function SomaticPage() {
 
   if (screen === "session" && technique === "gentle-swaying") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="session-swaying" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <SessionHeader />
 
         <div className="flex flex-col items-center">
@@ -902,9 +1010,10 @@ export default function SomaticPage() {
           <p className="mt-2 text-sm text-cream-dim/60">Feel your feet. Let your body move.</p>
         </div>
 
+        <PresenceCue active={!isPaused} />
         <SessionControls />
         <PauseOverlay />
-        <BinauralOverlays />
+        <EscapeHatch />
       </div>
     );
   }
@@ -913,7 +1022,7 @@ export default function SomaticPage() {
 
   if (screen === "session" && technique === "humming") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="session-humming" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <SessionHeader />
 
         <div className="flex max-w-sm flex-col items-center text-center">
@@ -934,9 +1043,10 @@ export default function SomaticPage() {
           </p>
         </div>
 
+        <PresenceCue active={!isPaused} />
         <SessionControls />
         <PauseOverlay />
-        <BinauralOverlays />
+        <EscapeHatch />
       </div>
     );
   }
@@ -948,7 +1058,7 @@ export default function SomaticPage() {
     const phaseNames = ["Horizontal", "Vertical", "Diagonal", "Circular"];
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="session-vestibular" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <SessionHeader />
 
         <div className="flex flex-col items-center">
@@ -968,9 +1078,10 @@ export default function SomaticPage() {
           </div>
         </div>
 
+        <PresenceCue active={!isPaused} />
         <SessionControls />
         <PauseOverlay />
-        <BinauralOverlays />
+        <EscapeHatch />
       </div>
     );
   }
@@ -983,7 +1094,7 @@ export default function SomaticPage() {
     const stepProgress = Math.min(stepElapsed / currentStepData.duration, 1);
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="session-steps" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <SessionHeader />
 
         <div className="flex max-w-sm flex-col items-center text-center">
@@ -1029,9 +1140,10 @@ export default function SomaticPage() {
           </p>
         </div>
 
+        <PresenceCue active={!isPaused} />
         <SessionControls />
         <PauseOverlay />
-        <BinauralOverlays />
+        <EscapeHatch />
       </div>
     );
   }
@@ -1040,7 +1152,7 @@ export default function SomaticPage() {
 
   if (screen === "session") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="session-timer" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <SessionHeader />
 
         <div className="flex max-w-sm flex-col items-center text-center">
@@ -1061,9 +1173,10 @@ export default function SomaticPage() {
           <p className="mt-6 text-sm text-cream-dim/60">{currentExercise.name}</p>
         </div>
 
+        <PresenceCue active={!isPaused} />
         <SessionControls />
         <PauseOverlay />
-        <BinauralOverlays />
+        <EscapeHatch />
       </div>
     );
   }
@@ -1072,10 +1185,11 @@ export default function SomaticPage() {
 
   if (screen === "complete") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique={currentExercise.name}
           onDone={() => router.push("/")}
+          learnLink="/learn#bilateral"
         />
       </div>
     );
@@ -1121,6 +1235,14 @@ function ExerciseIcon({ id, className = "h-6 w-6 text-teal-soft" }: { id: Techni
           <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
         </svg>
       );
+    case "havening":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none">
+          <path d="M12 4c-2 0-4 1-5 3l-1 3c0 1 1 2 2 2h8c1 0 2-1 2-2l-1-3c-1-2-3-3-5-3z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M8 12v6M16 12v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M8 15l-1 2M16 15l1 2M8 13l-1 2M16 13l1 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+        </svg>
+      );
     case "body-shaking":
       return (
         <svg className={className} viewBox="0 0 24 24" fill="none">
@@ -1154,6 +1276,22 @@ function ExerciseIcon({ id, className = "h-6 w-6 text-teal-soft" }: { id: Techni
           <circle cx="8" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
           <circle cx="16" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
           <path d="M4 8c2-3 5-5 8-5s6 2 8 5M4 16c2 3 5 5 8 5s6-2 8-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case "orienting":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="12" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M17 7l2-2M7 7L5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M15 12a3 3 0 01-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case "pendulation":
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="none">
+          <path d="M4 6c4 8 12 8 16 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="12" cy="10" r="2.5" fill="currentColor" />
         </svg>
       );
     default:

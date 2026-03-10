@@ -1,8 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
+interface CustomCrisisLine {
+  name: string;
+  number: string;
+  textNumber?: string;
+}
+
 export default function CrisisPage() {
+  const [customLine, setCustomLine] = useState<CustomCrisisLine | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("regulate-custom-crisis");
+      if (stored) setCustomLine(JSON.parse(stored));
+    } catch { /* */ }
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
       <div className="w-full max-w-md">
@@ -21,6 +37,30 @@ export default function CrisisPage() {
         </header>
 
         <div className="flex flex-col gap-3">
+          {/* Custom crisis line */}
+          {customLine && (
+            <div className="rounded-2xl border-2 border-candle/30 bg-candle/8 p-5 shadow-sm shadow-candle/5">
+              <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-candle/60">Your crisis line</p>
+              <h3 className="text-sm font-medium text-cream">{customLine.name}</h3>
+              <div className="mt-3 flex gap-2">
+                <a
+                  href={`tel:${customLine.number.replace(/\s/g, "")}`}
+                  className="flex-1 rounded-xl bg-candle/15 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"
+                >
+                  Call {customLine.number}
+                </a>
+                {customLine.textNumber && (
+                  <a
+                    href={`sms:${customLine.textNumber.replace(/\s/g, "")}`}
+                    className="flex-1 rounded-xl border border-candle/20 py-3 text-center text-sm text-candle-soft transition-colors hover:bg-candle/10"
+                  >
+                    Text {customLine.textNumber}
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-candle/15 bg-candle/5 p-5">
             <h3 className="text-sm font-medium text-cream">988 Suicide & Crisis Lifeline</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Free, confidential support for people in distress.</p>

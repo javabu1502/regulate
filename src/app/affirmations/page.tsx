@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AffirmationsIcon } from "@/components/Icons";
+import { haptics } from "@/lib/haptics";
+import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
@@ -35,75 +38,75 @@ const categories: { id: Category; label: string; desc: string }[] = [
 
 const builtInAffirmations: Affirmation[] = [
   // Panic — body-first, no toxic positivity
-  { text: "This is your body protecting you. It will pass.", category: "panic" },
-  { text: "You have survived every panic attack before this one. This one is no different.", category: "panic" },
-  { text: "You don't need to fight this. Let it move through you like a wave.", category: "panic" },
-  { text: "Your heart is racing because your body loves you. It's trying to keep you safe.", category: "panic" },
-  { text: "The worst part is almost over. Stay with your breath.", category: "panic" },
-  { text: "You are not dying. You are not going crazy. This is adrenaline. It will pass.", category: "panic" },
-  { text: "Your body knows how to come back from this. It has done it every time.", category: "panic" },
-  { text: "Let your shoulders drop. Unclench your jaw. You are safe enough right now.", category: "panic" },
+  { text: "My body is protecting me. This will pass.", category: "panic" },
+  { text: "I have survived every panic attack before this one. This one is no different.", category: "panic" },
+  { text: "I don't need to fight this. I can let it move through me like a wave.", category: "panic" },
+  { text: "My heart is racing because my body loves me. It's trying to keep me safe.", category: "panic" },
+  { text: "The worst part is almost over. I'm staying with my breath.", category: "panic" },
+  { text: "I am not dying. I am not going crazy. This is adrenaline. It will pass.", category: "panic" },
+  { text: "My body knows how to come back from this. It has done it every time.", category: "panic" },
+  { text: "I let my shoulders drop. I unclench my jaw. I am safe enough right now.", category: "panic" },
 
   // Safety — when hypervigilance is running
-  { text: "Right now, in this moment, you are safe.", category: "safety" },
-  { text: "The danger has passed. Your body just needs time to catch up.", category: "safety" },
-  { text: "You are allowed to feel safe even if your body says otherwise.", category: "safety" },
-  { text: "Nothing is happening to you right now. You are here. You are whole.", category: "safety" },
-  { text: "Your nervous system is learning that it's safe to relax. Give it time.", category: "safety" },
-  { text: "You can create safety within yourself, one breath at a time.", category: "safety" },
-  { text: "Safety isn't the absence of fear. It's knowing you can hold yourself through it.", category: "safety" },
+  { text: "Right now, in this moment, I am safe.", category: "safety" },
+  { text: "The danger has passed. My body just needs time to catch up.", category: "safety" },
+  { text: "I am allowed to feel safe even if my body says otherwise.", category: "safety" },
+  { text: "Nothing is happening to me right now. I am here. I am whole.", category: "safety" },
+  { text: "My nervous system is learning that it's safe to relax. I give it time.", category: "safety" },
+  { text: "I can create safety within myself, one breath at a time.", category: "safety" },
+  { text: "Safety isn't the absence of fear. It's knowing I can hold myself through it.", category: "safety" },
 
   // Grounding — when dissociated or floating
-  { text: "Feel your feet on the ground. You are here.", category: "grounding" },
-  { text: "Come back to your body. It's waiting for you.", category: "grounding" },
-  { text: "Right here. Right now. This is where you are. That's enough.", category: "grounding" },
-  { text: "Notice what's real. The ground beneath you. The air around you.", category: "grounding" },
-  { text: "You are not in the past. You are not in the future. You are here.", category: "grounding" },
-  { text: "Your body knows how to be here. Trust it.", category: "grounding" },
-  { text: "Press your hands together. Feel the pressure. That's you. You're real.", category: "grounding" },
+  { text: "I feel my feet on the ground. I am here.", category: "grounding" },
+  { text: "I come back to my body. It's waiting for me.", category: "grounding" },
+  { text: "Right here. Right now. This is where I am. That's enough.", category: "grounding" },
+  { text: "I notice what's real. The ground beneath me. The air around me.", category: "grounding" },
+  { text: "I am not in the past. I am not in the future. I am here.", category: "grounding" },
+  { text: "My body knows how to be here. I trust it.", category: "grounding" },
+  { text: "I press my hands together. I feel the pressure. That's me. I'm real.", category: "grounding" },
 
   // Self-Worth
-  { text: "You are worthy of care, even when you feel broken.", category: "self-worth" },
-  { text: "You don't have to earn rest. You deserve it right now.", category: "self-worth" },
-  { text: "You are not too much. You are not too little. You are enough.", category: "self-worth" },
-  { text: "Your struggles do not define you. Your courage does.", category: "self-worth" },
-  { text: "You are allowed to take up space.", category: "self-worth" },
-  { text: "Being kind to yourself is not selfish. It's necessary.", category: "self-worth" },
-  { text: "You matter, even on the days you can't feel it.", category: "self-worth" },
+  { text: "I am worthy of care, even when I feel broken.", category: "self-worth" },
+  { text: "I don't have to earn rest. I deserve it right now.", category: "self-worth" },
+  { text: "I am not too much. I am not too little. I am enough.", category: "self-worth" },
+  { text: "My struggles do not define me. My courage does.", category: "self-worth" },
+  { text: "I am allowed to take up space.", category: "self-worth" },
+  { text: "Being kind to myself is not selfish. It's necessary.", category: "self-worth" },
+  { text: "I matter, even on the days I can't feel it.", category: "self-worth" },
 
   // Strength — when depleted
-  { text: "You have gotten through hard things before. You will get through this.", category: "strength" },
-  { text: "You are stronger than your anxiety knows.", category: "strength" },
+  { text: "I have gotten through hard things before. I will get through this.", category: "strength" },
+  { text: "I am stronger than my anxiety knows.", category: "strength" },
   { text: "Asking for help is a sign of strength, not weakness.", category: "strength" },
-  { text: "You are building resilience every time you ride out a wave.", category: "strength" },
-  { text: "The fact that you're here, trying, is proof of your strength.", category: "strength" },
+  { text: "I am building resilience every time I ride out a wave.", category: "strength" },
+  { text: "The fact that I'm here, trying, is proof of my strength.", category: "strength" },
   { text: "Courage isn't the absence of fear. It's showing up anyway.", category: "strength" },
-  { text: "You are not starting over. You are starting from experience.", category: "strength" },
-  { text: "You don't have to be brave all the time. Just brave enough for the next breath.", category: "strength" },
+  { text: "I am not starting over. I am starting from experience.", category: "strength" },
+  { text: "I don't have to be brave all the time. Just brave enough for the next breath.", category: "strength" },
 
   // Healing
-  { text: "Healing is not about going back to who you were. It's about becoming who you're meant to be.", category: "healing" },
-  { text: "You don't have to heal all at once. One breath at a time.", category: "healing" },
-  { text: "Recovery isn't linear. Bad days don't erase your progress.", category: "healing" },
-  { text: "Your body remembers what your mind has tried to forget. Be patient with it.", category: "healing" },
+  { text: "Healing is not about going back to who I was. It's about becoming who I'm meant to be.", category: "healing" },
+  { text: "I don't have to heal all at once. One breath at a time.", category: "healing" },
+  { text: "Recovery isn't linear. Bad days don't erase my progress.", category: "healing" },
+  { text: "My body remembers what my mind has tried to forget. I am patient with it.", category: "healing" },
   { text: "Every small step forward counts, even when it doesn't feel like it.", category: "healing" },
-  { text: "You are not broken. You are healing. Those are very different things.", category: "healing" },
+  { text: "I am not broken. I am healing. Those are very different things.", category: "healing" },
 
   // Self-Compassion
-  { text: "Talk to yourself the way you'd talk to someone you love.", category: "self-compassion" },
-  { text: "You are doing the best you can with what you have right now.", category: "self-compassion" },
-  { text: "It's okay to not be okay. You don't have to perform wellness.", category: "self-compassion" },
-  { text: "You deserve the same kindness you give to others.", category: "self-compassion" },
-  { text: "Your feelings are valid, even the messy ones.", category: "self-compassion" },
-  { text: "You don't owe anyone a version of yourself that's easy to be around.", category: "self-compassion" },
+  { text: "I talk to myself the way I'd talk to someone I love.", category: "self-compassion" },
+  { text: "I am doing the best I can with what I have right now.", category: "self-compassion" },
+  { text: "It's okay to not be okay. I don't have to perform wellness.", category: "self-compassion" },
+  { text: "I deserve the same kindness I give to others.", category: "self-compassion" },
+  { text: "My feelings are valid, even the messy ones.", category: "self-compassion" },
+  { text: "I don't owe anyone a version of myself that's easy to be around.", category: "self-compassion" },
 
   // Boundaries
-  { text: "You are allowed to say no without explaining yourself.", category: "boundaries" },
-  { text: "Protecting your energy is not selfish. It's survival.", category: "boundaries" },
-  { text: "You don't owe anyone access to your peace.", category: "boundaries" },
+  { text: "I am allowed to say no without explaining myself.", category: "boundaries" },
+  { text: "Protecting my energy is not selfish. It's survival.", category: "boundaries" },
+  { text: "I don't owe anyone access to my peace.", category: "boundaries" },
   { text: "It's okay to outgrow people, places, and patterns.", category: "boundaries" },
   { text: "Setting boundaries is an act of self-love.", category: "boundaries" },
-  { text: "You can love someone and still need distance from them.", category: "boundaries" },
+  { text: "I can love someone and still need distance from them.", category: "boundaries" },
 ];
 
 const STORAGE_KEY = "regulate-favorites";
@@ -124,11 +127,59 @@ function savePersonalAffirmations(items: string[]) {
   localStorage.setItem(PERSONAL_STORAGE_KEY, JSON.stringify(items));
 }
 
+// ─── NS State → Category mapping ────────────────────────────────────
+
+/** Maps body states (from home page / SOS query param) to recommended categories */
+const stateToCategories: Record<string, Category[]> = {
+  panicking: ["safety", "grounding"],
+  hyperactivated: ["safety", "grounding"],
+  anxious: ["self-compassion", "strength"],
+  activated: ["self-compassion", "strength"],
+  shutdown: ["self-worth", "healing"],
+  hypoactivated: ["self-worth", "healing"],
+};
+
+/** Maps NS state (from NSStateSelector) to body-state key for lookup */
+function nsStateToBodyState(ns: NSState): string {
+  switch (ns) {
+    case "hyperactivated": return "hyperactivated";
+    case "activated": return "activated";
+    case "hypoactivated": return "hypoactivated";
+    case "window": return "";
+    default: return "";
+  }
+}
+
+function getRecommendedCategories(queryState: string | null): Category[] {
+  // Query param takes priority (from SOS flow)
+  if (queryState && stateToCategories[queryState]) {
+    return stateToCategories[queryState];
+  }
+  // Fall back to stored NS state
+  const nsState = getCurrentNSState();
+  if (nsState) {
+    const key = nsStateToBodyState(nsState);
+    if (key && stateToCategories[key]) {
+      return stateToCategories[key];
+    }
+  }
+  return [];
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 type View = "home" | "flow" | "favorites" | "personal";
 
+// Wrapper for Suspense (useSearchParams needs it)
 export default function AffirmationsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AffirmationsPageInner />
+    </Suspense>
+  );
+}
+
+function AffirmationsPageInner() {
   const [view, setView] = useState<View>("home");
   const [activeCategory, setActiveCategory] = useState<Category>("panic");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -136,11 +187,28 @@ export default function AffirmationsPage() {
   const [fading, setFading] = useState(false);
   const [personalAffirmations, setPersonalAffirmations] = useState<string[]>([]);
   const [newPersonal, setNewPersonal] = useState("");
+  const [recommendedCats, setRecommendedCats] = useState<Category[]>([]);
+  const [autoStarted, setAutoStarted] = useState(false);
+
+  const searchParams = useSearchParams();
+  const queryState = searchParams.get("state");
 
   useEffect(() => {
     setFavorites(loadFavorites());
     setPersonalAffirmations(loadPersonalAffirmations());
-  }, []);
+
+    // Determine recommended categories based on NS state
+    const recommended = getRecommendedCategories(queryState);
+    setRecommendedCats(recommended);
+
+    // Auto-start flow if arriving from SOS with a state param
+    if (queryState && recommended.length > 0) {
+      setActiveCategory(recommended[0]);
+      setCurrentIndex(0);
+      setView("flow");
+      setAutoStarted(true);
+    }
+  }, [queryState]);
 
   const allAffirmations: Affirmation[] = [
     ...builtInAffirmations,
@@ -152,6 +220,7 @@ export default function AffirmationsPage() {
   const isFaved = current ? favorites.includes(current.text) : false;
 
   const advance = useCallback(() => {
+    haptics.subtle();
     setFading(true);
     setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % filtered.length);
@@ -199,7 +268,7 @@ export default function AffirmationsPage() {
 
   if (view === "home") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="home" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -212,12 +281,42 @@ export default function AffirmationsPage() {
             <p className="mt-2 text-sm text-cream-dim">Pick what fits right now.</p>
           </header>
 
+          {/* Recommended for you */}
+          {recommendedCats.length > 0 && (
+            <div className="mb-4">
+              <p className="mb-2 text-[10px] uppercase tracking-widest text-teal-soft/50">Recommended for you</p>
+              <p className="mb-3 text-xs text-cream-dim/40">Based on how you&apos;re feeling</p>
+              <div className="flex flex-col gap-2">
+                {categories
+                  .filter((cat) => recommendedCats.includes(cat.id))
+                  .map((cat) => (
+                    <button
+                      key={`rec-${cat.id}`}
+                      onClick={() => startCategory(cat.id)}
+                      className="w-full rounded-2xl border border-teal/25 bg-teal/5 px-5 py-4 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
+                    >
+                      <span className="text-sm font-medium text-cream">{cat.label}</span>
+                      <span className="mt-0.5 block text-xs text-cream-dim/50">{cat.desc}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* All categories */}
+          {recommendedCats.length > 0 && (
+            <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/30">All categories</p>
+          )}
           <div className="flex flex-col gap-2.5">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => startCategory(cat.id)}
-                className="w-full rounded-2xl border border-slate-blue/25 bg-deep/50 px-5 py-4 text-left transition-all hover:border-teal/25 active:scale-[0.98]"
+                className={`w-full rounded-2xl border px-5 py-4 text-left transition-all active:scale-[0.98] ${
+                  recommendedCats.includes(cat.id)
+                    ? "border-teal/15 bg-deep/50 hover:border-teal/25"
+                    : "border-slate-blue/25 bg-deep/50 hover:border-teal/25"
+                }`}
               >
                 <span className="text-sm font-medium text-cream">{cat.label}</span>
                 <span className="mt-0.5 block text-xs text-cream-dim/50">{cat.desc}</span>
@@ -254,20 +353,30 @@ export default function AffirmationsPage() {
     const catLabel = categories.find((c) => c.id === activeCategory)?.label || "";
 
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-6">
+      <div key="flow" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-6">
         {/* Back */}
         <button
-          onClick={() => setView("home")}
+          onClick={() => { setView("home"); setAutoStarted(false); }}
           className="fixed left-4 top-6 p-2 text-cream-dim/40 hover:text-cream-dim"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
 
-        {/* Category label */}
-        <p className="fixed top-8 text-xs text-cream-dim/40">{catLabel}</p>
+        {/* Category label + choose different */}
+        <div className="fixed top-8 flex flex-col items-center gap-1">
+          <p className="text-xs text-cream-dim/40">{catLabel}</p>
+          {autoStarted && (
+            <button
+              onClick={() => { setView("home"); setAutoStarted(false); }}
+              className="text-[11px] text-teal-soft/50 underline underline-offset-2 transition-colors hover:text-teal-soft/80"
+            >
+              Choose different
+            </button>
+          )}
+        </div>
 
         {/* Progress dots */}
-        <div className="fixed top-14 flex gap-1">
+        <div className={`fixed flex gap-1 ${autoStarted ? "top-[4.5rem]" : "top-14"}`}>
           {filtered.map((_, i) => (
             <div
               key={i}
@@ -326,7 +435,7 @@ export default function AffirmationsPage() {
     const favAffirmations = allAffirmations.filter((a) => favorites.includes(a.text));
 
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="favorites" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <button onClick={() => setView("home")} className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -377,7 +486,7 @@ export default function AffirmationsPage() {
 
   if (view === "personal") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="personal" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <button onClick={() => setView("home")} className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>

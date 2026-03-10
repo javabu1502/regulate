@@ -11,6 +11,11 @@
   --color-candle-soft: #f5deb3;
   --color-cream: #f7f2eb;
   --color-cream-dim: #d0c9be;
+  --color-coral: #c27a6a;
+  --color-coral-soft: #d49183;
+  --color-indigo: #7b7fb5;
+  --color-indigo-soft: #9b9ed0;
+  --color-lavender: #8e82b0;
   --font-sans: var(--font-geist-sans);
 }
 
@@ -63,17 +68,30 @@ body {
   animation: page-in 0.3s ease-out;
 }
 
+/* Screen transitions (multi-step exercise flows) */
+@keyframes screen-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-screen-enter {
+  animation: screen-enter 0.4s ease-out;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-breathe,
   .animate-float,
   .animate-pulse-soft,
-  .animate-page-in {
+  .animate-page-in,
+  .animate-screen-enter {
     animation: none !important;
   }
 
   * {
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
@@ -98,6 +116,39 @@ body {
 .press-feedback:active {
   transform: scale(0.97);
   opacity: 0.9;
+}
+
+/* Accessibility: large text mode */
+.large-text {
+  font-size: 18px;
+}
+.large-text .text-xs {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.large-text .text-sm {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+.large-text .text-\[10px\] {
+  font-size: 0.75rem;
+}
+.large-text .text-\[11px\] {
+  font-size: 0.8125rem;
+}
+
+/* Night mode — auto-applied 10pm–6am */
+.night-mode {
+  --color-midnight: #080c18;
+  --color-deep: #0e1628;
+  --color-teal: #2a6b6e;
+  --color-teal-soft: #4ea8ab;
+  --color-cream: #e0dbd4;
+  --color-cream-dim: #b0a99e;
+}
+
+.night-mode body {
+  background: var(--color-midnight);
 }
 
 /* High contrast */

@@ -6,24 +6,52 @@ import { SafetyPlanIcon } from "@/components/Icons";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
+type ContactLabel = "therapist" | "friend" | "family" | "other";
+
+interface SafetyPlanPerson {
+  name: string;
+  phone: string;
+  label: ContactLabel;
+}
+
 interface SafetyPlanData {
   warningSigns: string[];
   copingStrategies: string[];
-  people: { name: string; phone: string }[];
+  people: SafetyPlanPerson[];
   reasons: string[];
 }
+
+const LABEL_OPTIONS: { value: ContactLabel; display: string }[] = [
+  { value: "therapist", display: "Therapist" },
+  { value: "friend", display: "Friend" },
+  { value: "family", display: "Family" },
+  { value: "other", display: "Other" },
+];
+
+const MAX_PEOPLE = 3;
 
 const PLAN_KEY = "regulate-safety-plan";
 const PERSON_KEY = "my_person";
 const ONBOARDING_DATA_KEY = "onboarding_data";
 
+function migratePerson(p: { name: string; phone: string; label?: ContactLabel }): SafetyPlanPerson {
+  return { name: p.name, phone: p.phone, label: p.label || "other" };
+}
+
 function loadPlan(): SafetyPlanData {
   if (typeof window === "undefined") {
-    return { warningSigns: [""], copingStrategies: [""], people: [{ name: "", phone: "" }], reasons: [""] };
+    return { warningSigns: [""], copingStrategies: [""], people: [{ name: "", phone: "", label: "other" }], reasons: [""] };
   }
   try {
     const saved = localStorage.getItem(PLAN_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Migrate people entries that lack a label
+      if (parsed.people) {
+        parsed.people = parsed.people.map(migratePerson);
+      }
+      return parsed;
+    }
   } catch { /* */ }
 
   // Pre-populate from onboarding + my person
@@ -33,12 +61,24 @@ function loadPlan(): SafetyPlanData {
     if (ob.helped) copingDefaults.push(...ob.helped.filter((h: string) => h !== "Nothing has worked yet" && h !== "I'm not sure"));
   } catch { /* */ }
 
-  const peopleDefaults: { name: string; phone: string }[] = [];
+  const peopleDefaults: SafetyPlanPerson[] = [];
   try {
-    const person = JSON.parse(localStorage.getItem(PERSON_KEY) || "null");
-    if (person) peopleDefaults.push(person);
+    const raw = localStorage.getItem(PERSON_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // New array format
+      if (Array.isArray(parsed)) {
+        for (const p of parsed) {
+          if (p.name && p.phone) peopleDefaults.push(migratePerson(p));
+        }
+      }
+      // Old single-object format
+      else if (parsed && parsed.name && parsed.phone) {
+        peopleDefaults.push(migratePerson(parsed));
+      }
+    }
   } catch { /* */ }
-  if (peopleDefaults.length === 0) peopleDefaults.push({ name: "", phone: "" });
+  if (peopleDefaults.length === 0) peopleDefaults.push({ name: "", phone: "", label: "other" });
 
   return {
     warningSigns: [""],
@@ -52,19 +92,30 @@ function savePlan(data: SafetyPlanData) {
   localStorage.setItem(PLAN_KEY, JSON.stringify(data));
 }
 
+interface CustomCrisisLine {
+  name: string;
+  number: string;
+  textNumber?: string;
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function SafetyPlanPage() {
   const [plan, setPlan] = useState<SafetyPlanData>({
     warningSigns: [""],
     copingStrategies: [""],
-    people: [{ name: "", phone: "" }],
+    people: [{ name: "", phone: "", label: "other" }],
     reasons: [""],
   });
   const [saved, setSaved] = useState(false);
+  const [customCrisis, setCustomCrisis] = useState<CustomCrisisLine | null>(null);
 
   useEffect(() => {
     setPlan(loadPlan());
+    try {
+      const stored = localStorage.getItem("regulate-custom-crisis");
+      if (stored) setCustomCrisis(JSON.parse(stored));
+    } catch { /* */ }
   }, []);
 
   function update(field: keyof SafetyPlanData, value: SafetyPlanData[typeof field]) {
@@ -84,14 +135,21 @@ export default function SafetyPlanPage() {
     update(field, [...plan[field], ""]);
   }
 
-  function updatePerson(index: number, key: "name" | "phone", value: string) {
+  function updatePerson(index: number, key: "name" | "phone" | "label", value: string) {
     const arr = [...plan.people];
     arr[index] = { ...arr[index], [key]: value };
     update("people", arr);
   }
 
+  function removePerson(index: number) {
+    const arr = plan.people.filter((_, i) => i !== index);
+    if (arr.length === 0) arr.push({ name: "", phone: "", label: "other" });
+    update("people", arr);
+  }
+
   function addPerson() {
-    update("people", [...plan.people, { name: "", phone: "" }]);
+    if (plan.people.length >= MAX_PEOPLE) return;
+    update("people", [...plan.people, { name: "", phone: "", label: "other" }]);
   }
 
   function handleSave() {
@@ -172,31 +230,72 @@ export default function SafetyPlanPage() {
             {/* People I can call */}
             <div className="print-section rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
               <h3 className="mb-3 text-sm font-medium text-cream">People I can call</h3>
+              <p className="mb-3 text-xs text-cream-dim/50">Up to {MAX_PEOPLE} contacts</p>
               {plan.people.map((person, i) => (
-                <div key={i} className="mb-2 flex gap-2">
-                  <input
-                    type="text"
-                    value={person.name}
-                    onChange={(e) => updatePerson(i, "name", e.target.value)}
-                    placeholder="Name"
-                    className="flex-1 rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
-                  />
-                  <input
-                    type="tel"
-                    value={person.phone}
-                    onChange={(e) => updatePerson(i, "phone", e.target.value)}
-                    placeholder="Phone"
-                    className="flex-1 rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
-                  />
+                <div key={i} className="mb-3 rounded-xl border border-slate-blue/20 bg-midnight/30 p-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={person.name}
+                      onChange={(e) => updatePerson(i, "name", e.target.value)}
+                      placeholder="Name"
+                      className="flex-1 rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                    />
+                    <input
+                      type="tel"
+                      value={person.phone}
+                      onChange={(e) => updatePerson(i, "phone", e.target.value)}
+                      placeholder="Phone"
+                      className="flex-1 rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                    />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex flex-wrap gap-1.5">
+                      {LABEL_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => updatePerson(i, "label", opt.value)}
+                          className={`no-print rounded-lg px-2.5 py-1 text-[11px] transition-all ${
+                            person.label === opt.value
+                              ? "bg-teal/20 text-teal-soft"
+                              : "bg-slate-blue/15 text-cream-dim/40 hover:text-cream-dim"
+                          }`}
+                        >
+                          {opt.display}
+                        </button>
+                      ))}
+                      {/* Print-only label */}
+                      <span className="hidden text-xs text-cream-dim print:inline">
+                        ({LABEL_OPTIONS.find((o) => o.value === person.label)?.display})
+                      </span>
+                    </div>
+                    {plan.people.length > 1 && (
+                      <button
+                        onClick={() => removePerson(i)}
+                        className="no-print ml-2 text-[10px] text-red-400/40 hover:text-red-400"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
-              <button onClick={addPerson} className="no-print text-xs text-teal-soft/60 hover:text-teal-soft">+ Add person</button>
+              {plan.people.length < MAX_PEOPLE && (
+                <button onClick={addPerson} className="no-print text-xs text-teal-soft/60 hover:text-teal-soft">+ Add person</button>
+              )}
             </div>
 
             {/* Crisis resources */}
             <div className="print-section rounded-2xl border border-candle/15 bg-candle/5 p-5">
               <h3 className="mb-3 text-sm font-medium text-cream">Crisis resources</h3>
               <div className="space-y-2 text-sm">
+                {customCrisis && (
+                  <div className="flex items-center justify-between rounded-lg border border-candle/20 bg-candle/5 px-2 py-1.5">
+                    <span className="font-medium text-cream">{customCrisis.name}</span>
+                    <a href={`tel:${customCrisis.number.replace(/\s/g, "")}`} className="font-medium text-candle no-print">{customCrisis.number}</a>
+                    <span className="hidden text-cream font-medium print:inline">{customCrisis.number}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-cream-dim">988 Suicide & Crisis Lifeline</span>
                   <a href="tel:988" className="font-medium text-candle no-print">Call 988</a>

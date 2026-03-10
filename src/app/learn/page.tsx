@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LearnIcon } from "@/components/Icons";
+import { useScrollMemory } from "@/hooks/useScrollMemory";
 
 // ─── Content sections ───────────────────────────────────────────────
 
@@ -76,15 +77,16 @@ const sections: Section[] = [
             <p>Slows heart rate, deepens breathing, promotes calm and recovery. This is the state the tools in this app help you access.</p>
           </div>
         </div>
-        <p className="font-medium text-cream">Fight, flight, freeze, and fawn:</p>
-        <ul className="ml-4 space-y-1.5 list-disc">
-          <li><span className="text-cream">Fight:</span> Anger, tension, urge to confront</li>
-          <li><span className="text-cream">Flight:</span> Urge to escape, restlessness, panic</li>
-          <li><span className="text-cream">Freeze:</span> Shutdown, numbness, dissociation</li>
-          <li><span className="text-cream">Fawn:</span> People-pleasing, losing your own boundaries</li>
+        <p className="font-medium text-cream">Your body has different survival modes:</p>
+        <p className="mt-1 text-xs text-cream-dim/50">Based on polyvagal theory (Stephen Porges)</p>
+        <ul className="ml-4 space-y-2 list-disc">
+          <li><span className="text-cream">Fight:</span> Anger, tension, urge to confront — your sympathetic nervous system mobilizing energy</li>
+          <li><span className="text-cream">Flight:</span> Urge to escape, restlessness, panic — also sympathetic activation</li>
+          <li><span className="text-cream">Shutdown / freeze:</span> Numbness, disconnection, dissociation — a <span className="text-cream">different pathway</span> (dorsal vagal), where your body conserves energy by going still. This is why shutdown needs gentle <em>activation</em>, not more calming</li>
+          <li><span className="text-cream">Fawn:</span> People-pleasing, losing your own boundaries — a learned survival pattern often layered on top of other states</li>
         </ul>
         <p>
-          All of these are <span className="text-cream">normal survival responses</span>. With practice, you can learn to recognize which state you&apos;re in and gently guide your nervous system back toward safety.
+          All of these are <span className="text-cream">normal survival responses</span>. Fight and flight are your body mobilizing to protect you. Shutdown is your body protecting you by going still. Regulate helps you recognize which state you&apos;re in and uses <span className="text-cream">different tools for different states</span> — because what calms panic can deepen shutdown, and what activates shutdown can overwhelm panic.
         </p>
       </div>
     ),
@@ -100,31 +102,31 @@ const sections: Section[] = [
     ),
     content: (
       <div className="space-y-4 text-sm leading-relaxed text-cream-dim">
-        <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="breathing" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Breathing exercises</p>
           <p>
             Slow, extended exhales stimulate the vagus nerve (the longest nerve in your body, running from brain to gut). This directly slows your heart rate and signals safety to your nervous system.
           </p>
         </div>
-        <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="grounding" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">5-4-3-2-1 Grounding</p>
           <p>
             Engages the thinking part of your brain. During panic, your threat-detection center takes over. By deliberately noticing sensory details, you pull your brain back into the present.
           </p>
         </div>
-        <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="body-scan" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Body scan</p>
           <p>
             Builds awareness of your body&apos;s internal state. Many people with anxiety are disconnected from their body. Progressive relaxation helps you notice where you&apos;re holding tension and consciously release it.
           </p>
         </div>
-        <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="bilateral" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Bilateral stimulation</p>
           <p>
             Alternating left-right stimulation (like the butterfly hug) is connected to EMDR therapy research. It appears to help the brain process distressing experiences by engaging both hemispheres.
           </p>
         </div>
-        <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="physiological-sigh" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Physiological sigh</p>
           <p>
             A double inhale followed by an extended exhale. Stanford researchers found this is the fastest known way to calm your nervous system in real time.
@@ -235,11 +237,29 @@ export default function LearnPage() {
   const [showIntro, setShowIntro] = useState(false);
   const [introChecked, setIntroChecked] = useState(false);
 
+  useScrollMemory("learn");
+
   useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
     const seen = localStorage.getItem(INTRO_KEY);
-    if (!seen) {
+
+    // If arriving via a hash link, skip the intro and open the techniques section
+    if (hash) {
+      localStorage.setItem(INTRO_KEY, "1");
+      setShowIntro(false);
+      setOpenSection("techniques");
+
+      // Scroll to the anchor after render
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const el = document.getElementById(hash);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+      });
+    } else if (!seen) {
       setShowIntro(true);
     }
+
     setIntroChecked(true);
   }, []);
 

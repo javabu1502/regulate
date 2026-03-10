@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GroundingIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
+import MicroExplanation from "@/components/MicroExplanation";
+import { haptics } from "@/lib/haptics";
+import PresenceCue from "@/components/PresenceCue";
+import EscapeHatch from "@/components/EscapeHatch";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
@@ -93,6 +97,12 @@ const objectSteps = [
   "Describe it to yourself as if you've never seen anything like it.",
 ];
 
+const groundingExplanations: Record<string, string> = {
+  sensory: "Engaging each sense pulls your attention into the present moment, interrupting the anxiety loop.",
+  body: "Focusing on physical contact points reminds your nervous system that you are safe and supported right now.",
+  object: "Detailed sensory focus on a single object anchors your attention and interrupts dissociation.",
+};
+
 // ─── Component ──────────────────────────────────────────────────────
 
 type Screen = "select" | "intro" | "session" | "complete";
@@ -102,6 +112,7 @@ export default function GroundingPage() {
   const router = useRouter();
   const [screen, setScreen] = useState<Screen>("select");
   const [groundingType, setGroundingType] = useState<GroundingType>("sensory");
+  const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
 
   // Sensory grounding state
   const [stepIndex, setStepIndex] = useState(0);
@@ -142,6 +153,7 @@ export default function GroundingPage() {
     if (next[index]) return;
     next[index] = true;
     setChecked(next);
+    haptics.groundingCheck();
 
     if (next.every(Boolean)) {
       setTimeout(() => advanceSenseStep(), 600);
@@ -149,6 +161,7 @@ export default function GroundingPage() {
   }
 
   function advanceSenseStep() {
+    haptics.transition();
     setFadingOut(true);
     setTimeout(() => {
       const nextIndex = stepIndex + 1;
@@ -165,8 +178,10 @@ export default function GroundingPage() {
   function advanceSimpleStep() {
     const steps = groundingType === "body" ? bodySteps : objectSteps;
     if (simpleStepIndex < steps.length - 1) {
+      haptics.transition();
       setSimpleStepIndex((i) => i + 1);
     } else {
+      haptics.complete();
       setScreen("complete");
     }
   }
@@ -175,7 +190,7 @@ export default function GroundingPage() {
 
   if (screen === "select") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -194,29 +209,50 @@ export default function GroundingPage() {
           </header>
 
           <div className="flex flex-col gap-3">
-            <button
-              onClick={() => selectType("sensory")}
-              className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
-            >
-              <h3 className="text-base font-medium text-cream">5-4-3-2-1 Senses</h3>
-              <p className="mt-1 text-sm text-cream-dim">Engage all five senses</p>
-            </button>
+            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8">
+              <button
+                onClick={() => selectType("sensory")}
+                className="group w-full text-left pr-6"
+              >
+                <h3 className="text-base font-medium text-cream">5-4-3-2-1 Senses</h3>
+                <p className="mt-1 text-sm text-cream-dim">Engage all five senses</p>
+              </button>
+              <MicroExplanation
+                text={groundingExplanations.sensory}
+                isOpen={expandedExplanation === "sensory"}
+                onToggle={() => setExpandedExplanation(expandedExplanation === "sensory" ? null : "sensory")}
+              />
+            </div>
 
-            <button
-              onClick={() => selectType("body")}
-              className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
-            >
-              <h3 className="text-base font-medium text-cream">Body Grounding</h3>
-              <p className="mt-1 text-sm text-cream-dim">Feel your body in space</p>
-            </button>
+            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8">
+              <button
+                onClick={() => selectType("body")}
+                className="group w-full text-left pr-6"
+              >
+                <h3 className="text-base font-medium text-cream">Body Grounding</h3>
+                <p className="mt-1 text-sm text-cream-dim">Feel your body in space</p>
+              </button>
+              <MicroExplanation
+                text={groundingExplanations.body}
+                isOpen={expandedExplanation === "body"}
+                onToggle={() => setExpandedExplanation(expandedExplanation === "body" ? null : "body")}
+              />
+            </div>
 
-            <button
-              onClick={() => selectType("object")}
-              className="group w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8"
-            >
-              <h3 className="text-base font-medium text-cream">Object Grounding</h3>
-              <p className="mt-1 text-sm text-cream-dim">Focus on a single object</p>
-            </button>
+            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8">
+              <button
+                onClick={() => selectType("object")}
+                className="group w-full text-left pr-6"
+              >
+                <h3 className="text-base font-medium text-cream">Object Grounding</h3>
+                <p className="mt-1 text-sm text-cream-dim">Focus on a single object</p>
+              </button>
+              <MicroExplanation
+                text={groundingExplanations.object}
+                isOpen={expandedExplanation === "object"}
+                onToggle={() => setExpandedExplanation(expandedExplanation === "object" ? null : "object")}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -227,7 +263,7 @@ export default function GroundingPage() {
 
   if (screen === "intro") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="intro" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <button
             onClick={() => setScreen("select")}
@@ -297,7 +333,7 @@ export default function GroundingPage() {
 
   if (screen === "session" && groundingType === "sensory") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="session-sensory" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         {/* Progress bar */}
         <div className="fixed left-0 right-0 top-0 z-20 h-1 bg-slate-blue/30">
           <div
@@ -356,6 +392,9 @@ export default function GroundingPage() {
             {checked.every(Boolean) ? "Continue" : "Skip this sense"}
           </button>
         </div>
+
+        <PresenceCue active={true} />
+        <EscapeHatch />
       </div>
     );
   }
@@ -366,7 +405,7 @@ export default function GroundingPage() {
     const steps = groundingType === "body" ? bodySteps : objectSteps;
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key={`session-${groundingType}`} className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <div className="flex w-full max-w-md flex-col items-center text-center">
           <p className="text-xl font-light leading-relaxed text-cream">
             {steps[simpleStepIndex]}
@@ -395,6 +434,9 @@ export default function GroundingPage() {
             ))}
           </div>
         </div>
+
+        <PresenceCue active={true} />
+        <EscapeHatch />
       </div>
     );
   }
@@ -409,10 +451,11 @@ export default function GroundingPage() {
     };
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique={techniqueNames[groundingType]}
           onDone={() => router.push("/")}
+          learnLink="/learn#grounding"
         />
       </div>
     );

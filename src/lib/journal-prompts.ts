@@ -25,6 +25,47 @@ const prompts: Prompt[] = [
   { text: "Where in your body did you feel the release?", techniques: ["Body scan", "Bilateral tapping", "Swaying"] },
 ];
 
+// ─── Reflective progress prompts (10+ sessions) ─────────────────
+
+const reflectionPrompts: string[] = [
+  "What do you notice about your body's signals now compared to when you started?",
+  "Which tools feel most natural to reach for? What does that tell you?",
+  "Have you noticed any patterns in when you feel activated?",
+  "What has surprised you about your regulation practice?",
+  "How has your relationship with anxiety or panic changed?",
+  "What would you tell someone just starting this journey?",
+  "Have you noticed your window of tolerance expanding?",
+  "What does safety feel like in your body now?",
+];
+
+const REFLECTION_SHOWN_KEY = "regulate-reflection-shown";
+
+/**
+ * Pick a reflective prompt that hasn't been shown in the last 3.
+ * Stores the history in localStorage so repeats are avoided.
+ */
+export function getReflectionPrompt(): string {
+  let shown: string[] = [];
+  try {
+    shown = JSON.parse(localStorage.getItem(REFLECTION_SHOWN_KEY) || "[]");
+  } catch { /* */ }
+
+  const lastThree = shown.slice(-3);
+  const available = reflectionPrompts.filter((p) => !lastThree.includes(p));
+  const pool = available.length > 0 ? available : reflectionPrompts;
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+
+  // Record it
+  shown.push(picked);
+  // Keep only last 10 to avoid unbounded growth
+  if (shown.length > 10) shown = shown.slice(-10);
+  try {
+    localStorage.setItem(REFLECTION_SHOWN_KEY, JSON.stringify(shown));
+  } catch { /* */ }
+
+  return picked;
+}
+
 export function getPrompts(triggers: string[], techniques: string[]): string[] {
   const relevant: string[] = [];
 

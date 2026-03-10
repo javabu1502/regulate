@@ -33,5 +33,25 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "SOS — I need help now",
+      "short_name": "SOS",
+      "url": "/sos?source=shortcut",
+      "icons": [{ "src": "/icons/sos-96.svg", "sizes": "96x96", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Breathing",
+      "short_name": "Breathe",
+      "url": "/breathing?source=shortcut",
+      "icons": [{ "src": "/icons/breathe-96.svg", "sizes": "96x96", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Grounding",
+      "short_name": "Ground",
+      "url": "/grounding?source=shortcut",
+      "icons": [{ "src": "/icons/ground-96.svg", "sizes": "96x96", "type": "image/svg+xml" }]
+    }
   ]
 }

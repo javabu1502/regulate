@@ -26,7 +26,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false,
+  userScalable: true,
   themeColor: "#0a0f1e",
 };
 
@@ -39,13 +39,24 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            if (localStorage.getItem('regulate-font-size') === 'large') {
+              document.documentElement.classList.add('large-text');
+            }
+            var h = new Date().getHours();
+            if (h >= 22 || h < 6) {
+              document.documentElement.classList.add('night-mode');
+            }
+          } catch(e) {}
+        `}} />
       </head>
       <body className={`${geistSans.variable} antialiased`}>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-teal/20 focus:px-4 focus:py-2 focus:text-sm focus:text-teal-soft">
           Skip to content
         </a>
         <RegisterSW />
-        <OnboardingGate><AppShell><div id="main-content">{children}</div></AppShell></OnboardingGate>
+        <OnboardingGate><AppShell><main id="main-content">{children}</main></AppShell></OnboardingGate>
       </body>
     </html>
   );

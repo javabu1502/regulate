@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { WaveIcon } from "@/components/Icons";
 
 // ─── Data ───────────────────────────────────────────────────────────
@@ -57,7 +57,17 @@ const ONBOARDING_DATA_KEY = "onboarding_data";
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-midnight" />}>
+      <OnboardingPageInner />
+    </Suspense>
+  );
+}
+
+function OnboardingPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isTherapistRef = searchParams.get("ref") === "therapist";
   const [step, setStep] = useState(1);
   const [reasons, setReasons] = useState<string[]>([]);
   const [helped, setHelped] = useState<string[]>([]);
@@ -146,10 +156,22 @@ export default function OnboardingPage() {
               <WaveIcon className="h-12 w-12 text-teal-soft" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-cream">
-              Welcome to Regulate
+              {isTherapistRef
+                ? "Welcome \u2014 your therapist sent you to the right place"
+                : "Welcome to Regulate"}
             </h1>
-            <p className="mx-auto mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
-              A nervous system toolkit for hard moments. Built around somatic and trauma-informed techniques that work with your body, not against it.
+            <p className="mx-auto mt-3 max-w-[300px] text-sm leading-relaxed text-cream-dim">
+              {isTherapistRef
+                ? "Regulate gives you somatic tools to use between sessions. Everything your therapist would guide you through \u2014 in your pocket."
+                : "When panic hits, your thinking brain goes offline. Regulate works with your body \u2014 because that\u2019s what actually helps."}
+            </p>
+            {!isTherapistRef && (
+            <p className="mx-auto mt-3 max-w-[300px] text-xs leading-relaxed text-cream-dim/70">
+              Somatic tools grounded in polyvagal theory. Free for every crisis, forever.
+            </p>
+            )}
+            <p className="mx-auto mt-3 max-w-[300px] text-xs text-cream-dim/50">
+              Your data never leaves this device. No accounts, no cloud, no tracking.
             </p>
             <button
               onClick={next}

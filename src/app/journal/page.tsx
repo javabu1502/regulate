@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import NSStateSelector, { type NSState, getCurrentNSState } from "@/components/NSStateSelector";
 import { JournalIcon } from "@/components/Icons";
-import { getPrompts } from "@/lib/journal-prompts";
+import { getPrompts, getReflectionPrompt } from "@/lib/journal-prompts";
+import PremiumGate from "@/components/PremiumGate";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -142,6 +144,53 @@ function computeInsights(entries: JournalEntry[]) {
   }
   if (bestWeek === Infinity) bestWeek = 0;
 
+  // Correlations
+  const correlations: string[] = [];
+
+  // Time-of-day correlation with intensity
+  const todIntensity: Record<string, number[]> = {};
+  entries.forEach((e) => {
+    const tod = getTimeOfDay(e.timestamp);
+    if (!todIntensity[tod]) todIntensity[tod] = [];
+    todIntensity[tod].push(e.intensity);
+  });
+  const todAvgs = Object.entries(todIntensity).map(([tod, intensities]) => ({
+    tod,
+    avg: intensities.reduce((s, v) => s + v, 0) / intensities.length,
+    count: intensities.length,
+  })).filter(t => t.count >= 3);
+  const worstTod = todAvgs.sort((a, b) => b.avg - a.avg)[0];
+  if (worstTod && worstTod.avg > 5) {
+    correlations.push(`Your ${worstTod.tod.toLowerCase()} episodes tend to be more intense (avg ${worstTod.avg.toFixed(1)}/10)`);
+  }
+
+  // Trigger + technique correlation
+  const triggerTechSuccess: Record<string, Record<string, number>> = {};
+  entries.forEach((e) => {
+    if (e.aftercareResponse === "better") {
+      e.triggers.forEach((tr) => {
+        if (!triggerTechSuccess[tr]) triggerTechSuccess[tr] = {};
+        e.techniques.forEach((tech) => {
+          triggerTechSuccess[tr][tech] = (triggerTechSuccess[tr][tech] || 0) + 1;
+        });
+      });
+    }
+  });
+  Object.entries(triggerTechSuccess).forEach(([trigger, techs]) => {
+    const best = Object.entries(techs).sort((a, b) => b[1] - a[1])[0];
+    if (best && best[1] >= 2) {
+      correlations.push(`When triggered by ${trigger.toLowerCase()}, ${best[0].toLowerCase()} tends to help most`);
+    }
+  });
+
+  // Duration trend
+  const recentDurations = sorted.slice(0, 10).map((e) => e.duration).filter(Boolean);
+  const longCount = recentDurations.filter((d) => d === "30+ min" || d === "15–30 min").length;
+  const shortCount = recentDurations.filter((d) => d === "Under 5 min" || d === "5–15 min").length;
+  if (shortCount > longCount + 2) {
+    correlations.push("Your episodes are getting shorter — that's real progress");
+  }
+
   return {
     mostCommonTime,
     topTriggers,
@@ -153,6 +202,7 @@ function computeInsights(entries: JournalEntry[]) {
     lastMonthCount,
     daysSince,
     bestWeek,
+    correlations,
   };
 }
 
@@ -194,8 +244,25 @@ function Sparkline({ data }: { data: number[] }) {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-type Screen = "list" | "log" | "saved" | "detail";
-type Tab = "entries" | "insights" | "timeline";
+type Screen = "list" | "log" | "quick-log" | "saved" | "detail";
+type Tab = "entries" | "insights" | "timeline" | "sessions";
+
+// ─── SOS Session History types ──────────────────────────────────────
+
+interface SOSSession {
+  tool: string;
+  label: string;
+  ts: string;
+  helped: boolean;
+  partial?: boolean;
+}
+
+function loadSOSSessions(): SOSSession[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem("regulate-sos-history") || "[]");
+  } catch { return []; }
+}
 
 // ─── Timeline helpers ────────────────────────────────────────────────
 
@@ -218,12 +285,22 @@ function groupByDate(allEntries: JournalEntry[]): Record<string, JournalEntry[]>
 }
 
 export default function JournalPage() {
+  return (
+    <Suspense fallback={<div className="fixed inset-0 bg-midnight" />}>
+      <JournalPageInner />
+    </Suspense>
+  );
+}
+
+function JournalPageInner() {
+  const searchParams = useSearchParams();
   const [screen, setScreen] = useState<Screen>("list");
   const [tab, setTab] = useState<Tab>("entries");
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [detailEntry, setDetailEntry] = useState<JournalEntry | null>(null);
   const [copied, setCopied] = useState(false);
   const [patternDismissed, setPatternDismissed] = useState(false);
+  const [sosSessions, setSOSSessions] = useState<SOSSession[]>([]);
 
   // Log form state
   const [intensity, setIntensity] = useState(5);
@@ -234,10 +311,35 @@ export default function JournalPage() {
   const [nsState, setNsState] = useState<NSState | null>(null);
   const [showPrompts, setShowPrompts] = useState(false);
 
+  // Reflective prompt state
+  const [reflectionPrompt, setReflectionPrompt] = useState<string | null>(null);
+  const [reflectionDismissed, setReflectionDismissed] = useState(false);
+
   useEffect(() => {
-    setEntries(loadEntries());
+    const loaded = loadEntries();
+    setEntries(loaded);
     setNsState(getCurrentNSState());
-  }, []);
+    setSOSSessions(loadSOSSessions());
+
+    // Show reflection prompt if 10+ entries
+    if (loaded.length >= 10) {
+      const prompt = getReflectionPrompt();
+      setReflectionPrompt(prompt);
+    }
+
+    // If arrived via ?reflect=1, show the prompt immediately
+    if (searchParams.get("reflect") === "1" && loaded.length >= 10) {
+      // Prompt is already set above
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleReflect() {
+    if (!reflectionPrompt) return;
+    setReflectionDismissed(true);
+    resetForm();
+    setReflection(reflectionPrompt);
+    setScreen("log");
+  }
 
   // ─── Pattern detection ──────────────────────────────────────
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -327,6 +429,126 @@ export default function JournalPage() {
     });
   }
 
+  function downloadTherapistSummary() {
+    if (entries.length === 0) return;
+
+    const dlSorted = [...entries].sort((a, b) => a.timestamp - b.timestamp);
+    const earliest = new Date(dlSorted[0].timestamp);
+    const latest = new Date(dlSorted[dlSorted.length - 1].timestamp);
+    const dateRangeStr = `${earliest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} \u2013 ${latest.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+
+    const dlTriggerCounts: Record<string, number> = {};
+    entries.forEach((e) => e.triggers.forEach((t) => { dlTriggerCounts[t] = (dlTriggerCounts[t] || 0) + 1; }));
+    const dlTopTriggers = Object.entries(dlTriggerCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+    const techStats: Record<string, { total: number; better: number }> = {};
+    entries.forEach((e) => {
+      e.techniques.forEach((t) => {
+        if (!techStats[t]) techStats[t] = { total: 0, better: 0 };
+        techStats[t].total++;
+        if (e.aftercareResponse === "better") techStats[t].better++;
+      });
+      if (e.technique) {
+        if (!techStats[e.technique]) techStats[e.technique] = { total: 0, better: 0 };
+        techStats[e.technique].total++;
+        if (e.aftercareResponse === "better") techStats[e.technique].better++;
+      }
+    });
+    const dlTopTechniques = Object.entries(techStats)
+      .sort((a, b) => b[1].total - a[1].total)
+      .slice(0, 3)
+      .map(([name, stats]) => ({
+        name,
+        total: stats.total,
+        successRate: stats.total > 0 ? Math.round((stats.better / stats.total) * 100) : 0,
+      }));
+
+    const stateCounts: Record<string, number> = {};
+    const stateLabels: Record<string, string> = {
+      hyperactivated: "Panicking / hyperactivated",
+      activated: "Anxious / activated",
+      hypoactivated: "Shutdown / hypoactivated",
+    };
+    entries.forEach((e) => {
+      if (e.nsState) {
+        const label = stateLabels[e.nsState] || e.nsState;
+        stateCounts[label] = (stateCounts[label] || 0) + 1;
+      }
+    });
+    const stateDistribution = Object.entries(stateCounts).sort((a, b) => b[1] - a[1]);
+
+    const recentSorted = [...entries].sort((a, b) => b.timestamp - a.timestamp);
+    const recent10 = recentSorted.slice(0, 10);
+    const prev10 = recentSorted.slice(10, 20);
+    const dlRecentAvg = recent10.reduce((s, e) => s + e.intensity, 0) / recent10.length;
+    const dlPrevAvg = prev10.length > 0 ? prev10.reduce((s, e) => s + e.intensity, 0) / prev10.length : dlRecentAvg;
+    const intensityTrend = dlRecentAvg < dlPrevAvg - 0.5 ? "Improving" : dlRecentAvg > dlPrevAvg + 0.5 ? "Worsening" : "Stable";
+
+    const dayOfWeekCounts: Record<string, number> = {};
+    const todCounts: Record<string, number> = {};
+    entries.forEach((e) => {
+      const d = new Date(e.timestamp);
+      const isWeekday = d.getDay() >= 1 && d.getDay() <= 5;
+      const dayType = isWeekday ? "Weekday" : "Weekend";
+      dayOfWeekCounts[dayType] = (dayOfWeekCounts[dayType] || 0) + 1;
+      const h = d.getHours();
+      const tod = h < 6 ? "nights" : h < 12 ? "mornings" : h < 18 ? "afternoons" : "evenings";
+      todCounts[tod] = (todCounts[tod] || 0) + 1;
+    });
+    const mostCommonDayType = Object.entries(dayOfWeekCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Weekday";
+    const mostCommonTod = Object.entries(todCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "evenings";
+    const frequencyPattern = `Most sessions on ${mostCommonDayType.toLowerCase()} ${mostCommonTod}`;
+
+    const lines = [
+      `Regulate \u2014 Practice Summary for ${dateRangeStr}`,
+      "This summary contains patterns from your regulation practice. No personal journal entries are included.",
+      "",
+      "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+      "",
+      `Date range: ${dateRangeStr}`,
+      `Total sessions: ${entries.length}`,
+      "",
+      "\u2500\u2500 Most Common Triggers (Top 3) \u2500\u2500",
+      ...(dlTopTriggers.length > 0
+        ? dlTopTriggers.map(([t, c], i) => `  ${i + 1}. ${t} (${c} occurrences)`)
+        : ["  No trigger data recorded"]),
+      "",
+      "\u2500\u2500 Most Effective Techniques (Top 3) \u2500\u2500",
+      ...(dlTopTechniques.length > 0
+        ? dlTopTechniques.map((t, i) => `  ${i + 1}. ${t.name} \u2014 used ${t.total} times, ${t.successRate}% felt better after`)
+        : ["  No technique data recorded"]),
+      "",
+      "\u2500\u2500 Nervous System State Distribution \u2500\u2500",
+      ...(stateDistribution.length > 0
+        ? stateDistribution.map(([state, count]) => `  ${state}: ${count} sessions (${Math.round((count / entries.length) * 100)}%)`)
+        : ["  No state data recorded"]),
+      "",
+      "\u2500\u2500 Average Intensity Trend \u2500\u2500",
+      `  Recent average: ${dlRecentAvg.toFixed(1)}/10`,
+      ...(prev10.length > 0 ? [`  Previous average: ${dlPrevAvg.toFixed(1)}/10`] : []),
+      `  Trend: ${intensityTrend}`,
+      "",
+      "\u2500\u2500 Frequency Pattern \u2500\u2500",
+      `  ${frequencyPattern}`,
+      "",
+      "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500",
+      "",
+      "Generated by Regulate \u2014 Nervous System Support",
+    ];
+
+    const dlText = lines.join("\n");
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([dlText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `regulate-summary-${dateStr}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   // ─── Back button ──────────────────────────────────────────────
 
   function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
@@ -383,6 +605,43 @@ export default function JournalPage() {
             </div>
           )}
 
+          {/* Reflective prompt card */}
+          {reflectionPrompt && !reflectionDismissed && entries.length >= 10 && (
+            <div className="mb-6 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
+              <div className="flex items-start justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-widest text-purple-300/60">Reflection</p>
+                  <p className="mt-2 text-sm leading-relaxed text-cream">
+                    &ldquo;{reflectionPrompt}&rdquo;
+                  </p>
+                </div>
+                <button
+                  onClick={() => setReflectionDismissed(true)}
+                  className="ml-3 shrink-0 p-1 text-cream-dim/30 hover:text-cream-dim/60"
+                  aria-label="Dismiss"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={handleReflect}
+                  className="flex-1 rounded-xl bg-purple-400/15 py-2.5 text-sm text-purple-200 transition-colors hover:bg-purple-400/25"
+                >
+                  Reflect on this
+                </button>
+                <button
+                  onClick={() => setReflectionDismissed(true)}
+                  className="text-xs text-cream-dim/30 hover:text-cream-dim/50"
+                >
+                  Not now
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Log button */}
           <button
             onClick={() => { resetForm(); setScreen("log"); }}
@@ -391,14 +650,27 @@ export default function JournalPage() {
             I just had a panic attack
           </button>
 
+          <button
+            onClick={() => setScreen("quick-log")}
+            className="mb-6 -mt-4 w-full rounded-2xl border border-slate-blue/25 bg-deep/50 py-3.5 text-sm text-cream-dim transition-all hover:border-teal/20 active:scale-[0.98]"
+          >
+            Quick log
+          </button>
+
           {/* Tabs */}
-          {entries.length > 0 && (
+          {(entries.length > 0 || sosSessions.length > 0) && (
             <div className="mb-5 flex justify-center gap-2">
               <button
                 onClick={() => setTab("entries")}
                 className={`rounded-full px-4 py-2 text-sm transition-colors ${tab === "entries" ? "bg-teal/20 text-teal-soft" : "text-cream-dim hover:text-cream"}`}
               >
                 Entries
+              </button>
+              <button
+                onClick={() => setTab("sessions")}
+                className={`rounded-full px-4 py-2 text-sm transition-colors ${tab === "sessions" ? "bg-teal/20 text-teal-soft" : "text-cream-dim hover:text-cream"}`}
+              >
+                Sessions
               </button>
               <button
                 onClick={() => setTab("timeline")}
@@ -422,19 +694,32 @@ export default function JournalPage() {
             <>
               {/* Stats */}
               {entries.length > 0 && (
-                <div className="mb-6 grid grid-cols-3 gap-2">
-                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
-                    <p className="text-lg font-medium text-cream">{entries.length}</p>
-                    <p className="text-xs text-cream-dim/60">Logged</p>
+                <div className="mb-6">
+                  <div className="mb-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                      <p className="text-lg font-medium text-cream">{entries.length}</p>
+                      <p className="text-xs text-cream-dim/60">Logged</p>
+                    </div>
+                    <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                      <p className="text-lg font-medium text-cream">{avgIntensity}</p>
+                      <p className="text-xs text-cream-dim/60">Avg intensity</p>
+                    </div>
+                    <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                      <p className="truncate text-sm font-medium text-cream">{topTechnique}</p>
+                      <p className="text-xs text-cream-dim/60">Most helpful</p>
+                    </div>
                   </div>
-                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
-                    <p className="text-lg font-medium text-cream">{avgIntensity}</p>
-                    <p className="text-xs text-cream-dim/60">Avg intensity</p>
-                  </div>
-                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
-                    <p className="truncate text-sm font-medium text-cream">{topTechnique}</p>
-                    <p className="text-xs text-cream-dim/60">Most helpful</p>
-                  </div>
+                  <PremiumGate feature="Export a summary of your patterns to share with your therapist or counselor.">
+                    <button
+                      onClick={downloadTherapistSummary}
+                      className="w-full rounded-xl border border-teal/15 py-2.5 text-xs text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-1.5"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0">
+                        <path d="M8 2v8M8 10L5 7M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Share with therapist
+                    </button>
+                  </PremiumGate>
                 </div>
               )}
 
@@ -471,6 +756,48 @@ export default function JournalPage() {
                 </div>
               )}
             </>
+          )}
+
+          {/* SESSIONS TAB */}
+          {tab === "sessions" && (
+            <PremiumGate feature="Review your SOS session history to see what helped and track your progress over time.">
+              {sosSessions.length === 0 ? (
+                <div className="mt-8 text-center">
+                  <p className="text-sm text-cream-dim/60">No SOS sessions yet.</p>
+                  <p className="mt-1 text-xs text-cream-dim/40">When you use an SOS tool, it will show up here.</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {[...sosSessions].reverse().map((session, i) => {
+                    const date = new Date(session.ts);
+                    const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                    const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                    return (
+                      <div
+                        key={`${session.ts}-${i}`}
+                        className="w-full rounded-xl border border-teal/10 bg-deep/40 p-4 text-left"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={`h-2 w-2 shrink-0 rounded-full ${session.helped ? "bg-teal-soft" : session.partial ? "bg-cream-dim/30" : "bg-candle"}`} />
+                            <span className="text-sm font-medium text-cream">{session.label}</span>
+                          </div>
+                          <span className="text-xs text-cream-dim/40">{dateStr}</span>
+                        </div>
+                        <div className="mt-1.5 flex items-center gap-3 pl-4">
+                          <span className="text-xs text-cream-dim/50">{timeStr}</span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                            session.helped ? "bg-teal/15 text-teal-soft" : session.partial ? "bg-slate-blue/20 text-cream-dim/50" : "bg-candle/10 text-candle-soft"
+                          }`}>
+                            {session.helped ? "Helped" : session.partial ? "Exited early" : "Didn\u2019t help"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </PremiumGate>
           )}
 
           {/* TIMELINE TAB */}
@@ -649,15 +976,112 @@ export default function JournalPage() {
                 </div>
               </div>
 
+              {/* Correlations */}
+              {insights.correlations && insights.correlations.length > 0 && (
+                <PremiumGate feature="Personal pattern insights — correlations between your triggers, timing, and what helps most.">
+                  <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+                    <h3 className="mb-3 text-sm font-medium text-cream">Patterns we noticed</h3>
+                    <div className="space-y-2.5">
+                      {insights.correlations.map((c: string, i: number) => (
+                        <p key={i} className="text-sm leading-relaxed text-cream-dim">
+                          {c}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </PremiumGate>
+              )}
+
               {/* Share with therapist */}
-              <button
-                onClick={shareInsights}
-                className="mt-2 w-full rounded-2xl border border-teal/15 bg-deep/60 py-4 text-sm text-cream-dim transition-colors hover:text-cream"
-              >
-                {copied ? "Copied to clipboard" : "Share summary with your therapist"}
-              </button>
+              <PremiumGate feature="Export a summary of your patterns to share with your therapist or counselor.">
+                <button
+                  onClick={downloadTherapistSummary}
+                  className="mt-2 w-full rounded-2xl border border-teal/15 bg-deep/60 py-4 text-sm text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-2"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
+                    <path d="M8 2v8M8 10L5 7M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Download summary for therapist
+                </button>
+                <button
+                  onClick={shareInsights}
+                  className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/60 transition-colors hover:text-cream-dim"
+                >
+                  {copied ? "Copied to clipboard" : "Or copy summary to clipboard"}
+                </button>
+              </PremiumGate>
             </div>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── QUICK-LOG SCREEN ────────────────────────────────────────
+
+  if (screen === "quick-log") {
+    return (
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+        <div className="w-full max-w-md">
+          <BackButton onClick={() => setScreen("list")} label="Journal" />
+
+          <header className="mb-8 mt-6 text-center">
+            <h1 className="text-lg font-medium text-cream">Quick check-in</h1>
+            <p className="mt-1 text-sm text-cream-dim">Just the basics.</p>
+          </header>
+
+          {/* Intensity */}
+          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <p className="mb-3 text-sm text-cream-dim">How intense was it?</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={intensity}
+                onChange={(e) => setIntensity(Number(e.target.value))}
+                className="h-2 flex-1 appearance-none rounded-full bg-slate-blue/50 outline-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0"
+                style={{
+                  background: `linear-gradient(to right, #2a6b6e ${(intensity - 1) * 11.1}%, #1a2a4a ${(intensity - 1) * 11.1}%)`,
+                }}
+              />
+              <span className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium ${intensityColor(intensity)}`}>
+                {intensity}
+              </span>
+            </div>
+          </div>
+
+          {/* How do you feel now */}
+          <div className="mt-4 flex flex-col gap-2">
+            {[
+              { label: "Lighter", value: "better", cls: "border-teal/20 bg-teal/8 text-teal-soft hover:border-teal/35" },
+              { label: "About the same", value: "same", cls: "border-slate-blue/25 bg-deep/50 text-cream-dim hover:border-candle/20" },
+              { label: "Heavier", value: "harder", cls: "border-candle/15 bg-candle/5 text-candle-soft hover:border-candle/25" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  const entry: JournalEntry = {
+                    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                    timestamp: Date.now(),
+                    intensity,
+                    duration: "",
+                    triggers: [],
+                    techniques: [],
+                    reflection: "",
+                    aftercareResponse: opt.value,
+                  };
+                  const updated = [entry, ...entries];
+                  setEntries(updated);
+                  saveEntries(updated);
+                  setScreen("saved");
+                }}
+                className={`w-full rounded-2xl border px-5 py-4 text-left text-base font-medium transition-all active:scale-[0.98] ${opt.cls}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -774,6 +1198,7 @@ export default function JournalPage() {
                 rows={3}
                 className="w-full resize-none rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
+              <p className="mt-2 text-xs text-cream-dim/40">Private to you — stored only on this device</p>
             </div>
 
             {/* Journaling prompts */}

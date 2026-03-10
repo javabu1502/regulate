@@ -1,6 +1,7 @@
 "use client";
 
 const JOURNAL_KEY = "regulate-journal";
+const SOS_HISTORY_KEY = "regulate-sos-history";
 
 interface SessionEntry {
   technique?: string;
@@ -9,6 +10,14 @@ interface SessionEntry {
   timestamp?: number;
   date?: string;
   techniques?: string[];
+}
+
+interface SOSHistoryEntry {
+  tool: string;
+  label: string;
+  ts: string;
+  helped: boolean;
+  partial?: boolean;
 }
 
 interface Recommendation {
@@ -30,6 +39,49 @@ const techniqueToModule: Record<string, { href: string; title: string }> = {
   "Guided Breathing": { href: "/breathing", title: "Guided Breathing" },
   "5-4-3-2-1 Grounding": { href: "/grounding", title: "5-4-3-2-1 Grounding" },
 };
+
+// Map SOS tool IDs to exercise IDs used in the SOS page
+const sosToolToExerciseId: Record<string, string> = {
+  breathing: "breathing",
+  extended: "extended",
+  tapping: "tapping",
+  grounding: "grounding",
+  "gentle-movement": "gentle-movement",
+  "body-scan": "body-scan",
+  somatic: "somatic",
+  affirmations: "affirmations",
+  sleep: "sleep",
+};
+
+// Map SOS tool IDs to human-readable labels for the insight card
+const sosToolLabels: Record<string, string> = {
+  breathing: "Physiological sigh",
+  extended: "Extended exhale",
+  tapping: "Bilateral tapping",
+  grounding: "5-4-3-2-1 Grounding",
+  "gentle-movement": "Gentle movement",
+  "body-scan": "Body scan",
+  somatic: "Somatic exercises",
+  affirmations: "Affirmations",
+  sleep: "Sleep sequence",
+};
+
+// Map journal technique names to SOS exercise IDs
+const journalTechniqueToSosId: Record<string, string> = {
+  "Breathing": "breathing",
+  "Guided Breathing": "breathing",
+  "Grounding": "grounding",
+  "5-4-3-2-1 Grounding": "grounding",
+  "Body scan": "body-scan",
+  "Body Scan": "body-scan",
+  "Bilateral Tapping": "tapping",
+  "Bilateral tapping": "tapping",
+  "Gentle Swaying": "gentle-movement",
+  "Swaying": "gentle-movement",
+  "Affirmations": "affirmations",
+};
+
+// ─── Original recommendation function (for module pages) ─────────────
 
 export function getRecommendations(nsState?: string | null): Recommendation[] {
   try {
@@ -108,5 +160,205 @@ export function getRecommendations(nsState?: string | null): Recommendation[] {
     return recs;
   } catch {
     return [];
+  }
+}
+
+// ─── Personalized SOS recommendations ──────────────────────────────
+
+// Default body-state mapping (clinically aligned)
+const defaultRecommendations: Record<string, string[]> = {
+  panicking: ["breathing", "tapping", "grounding"],
+  anxious: ["extended", "body-scan", "grounding"],
+  shutdown: ["gentle-movement", "somatic", "tapping"],
+};
+
+interface ToolScore {
+  id: string;
+  helped: number;
+  notHelped: number;
+  total: number;
+  successRate: number;
+}
+
+/**
+ * Scores all SOS tool IDs by combining:
+ * 1. SOS history (helped/not helped)
+ * 2. Journal aftercare responses (better/same/harder) mapped to tool IDs
+ */
+function getToolScores(): Map<string, ToolScore> {
+  const scores = new Map<string, ToolScore>();
+
+  function getOrCreate(id: string): ToolScore {
+    if (!scores.has(id)) {
+      scores.set(id, { id, helped: 0, notHelped: 0, total: 0, successRate: 0 });
+    }
+    return scores.get(id)!;
+  }
+
+  // 1. SOS history
+  try {
+    const raw = localStorage.getItem(SOS_HISTORY_KEY);
+    if (raw) {
+      const history: SOSHistoryEntry[] = JSON.parse(raw);
+      for (const entry of history) {
+        const toolId = sosToolToExerciseId[entry.tool] || entry.tool;
+        const score = getOrCreate(toolId);
+        score.total++;
+        if (entry.helped) score.helped++;
+        else score.notHelped++;
+      }
+    }
+  } catch { /* */ }
+
+  // 2. Journal aftercare entries
+  try {
+    const raw = localStorage.getItem(JOURNAL_KEY);
+    if (raw) {
+      const entries: SessionEntry[] = JSON.parse(raw);
+      for (const entry of entries) {
+        if (!entry.aftercareResponse || entry.aftercareResponse === "skipped") continue;
+
+        const techniques: string[] = [];
+        if (entry.technique) techniques.push(entry.technique);
+        if (entry.techniques) techniques.push(...entry.techniques);
+
+        for (const t of techniques) {
+          const toolId = journalTechniqueToSosId[t];
+          if (!toolId) continue;
+
+          const score = getOrCreate(toolId);
+          score.total++;
+          if (entry.aftercareResponse === "better") score.helped++;
+          else if (entry.aftercareResponse === "harder") score.notHelped++;
+          // "same" counts as total but not helped/not helped
+        }
+      }
+    }
+  } catch { /* */ }
+
+  // Calculate success rates
+  for (const score of scores.values()) {
+    score.successRate = score.total > 0 ? score.helped / score.total : 0;
+  }
+
+  return scores;
+}
+
+/**
+ * Returns personalized SOS exercise IDs for a given body state.
+ * Combines personal history with clinically-aligned defaults.
+ *
+ * - Tools the user has marked as "helped" get prioritized
+ * - Falls back to the default fixed map when no history exists
+ * - Always returns exactly 3 recommendations
+ */
+export function getPersonalizedRecommendations(bodyState: string): string[] {
+  const state = bodyState || "panicking";
+  const defaults = defaultRecommendations[state] || defaultRecommendations.panicking;
+
+  try {
+    const scores = getToolScores();
+
+    // No data at all — return defaults
+    if (scores.size === 0) return defaults;
+
+    // Get tools that have been used and have a positive success rate
+    // Only consider tools with at least 2 data points to avoid noise
+    const effective = Array.from(scores.values())
+      .filter((s) => s.total >= 2 && s.successRate > 0.3)
+      .sort((a, b) => {
+        // Sort by success rate first, then by total uses as tiebreaker
+        if (Math.abs(b.successRate - a.successRate) > 0.1) {
+          return b.successRate - a.successRate;
+        }
+        return b.total - a.total;
+      });
+
+    if (effective.length === 0) return defaults;
+
+    // Build final list: personal successes first, then fill with defaults
+    const result: string[] = [];
+    const used = new Set<string>();
+
+    // Add personally effective tools (up to 2 to leave room for a default)
+    for (const tool of effective) {
+      if (result.length >= 2) break;
+      result.push(tool.id);
+      used.add(tool.id);
+    }
+
+    // Fill remaining slots with defaults that aren't already included
+    for (const id of defaults) {
+      if (result.length >= 3) break;
+      if (!used.has(id)) {
+        result.push(id);
+        used.add(id);
+      }
+    }
+
+    // If still not 3, fill from all defaults across states
+    if (result.length < 3) {
+      const allDefaults = [...new Set(Object.values(defaultRecommendations).flat())];
+      for (const id of allDefaults) {
+        if (result.length >= 3) break;
+        if (!used.has(id)) {
+          result.push(id);
+          used.add(id);
+        }
+      }
+    }
+
+    return result;
+  } catch {
+    return defaults;
+  }
+}
+
+// ─── Insight: top effective techniques for the home page ────────────
+
+export interface TopTechnique {
+  id: string;
+  label: string;
+  successRate: number;
+  totalSessions: number;
+}
+
+/**
+ * Returns the user's top 2-3 most effective techniques.
+ * Returns null if there isn't enough data (fewer than 3 total sessions).
+ */
+export function getTopTechniques(): TopTechnique[] | null {
+  try {
+    const scores = getToolScores();
+
+    // Need at least 3 total data points across all tools
+    let totalDataPoints = 0;
+    for (const s of scores.values()) {
+      totalDataPoints += s.total;
+    }
+    if (totalDataPoints < 3) return null;
+
+    // Get tools with at least 1 helped response
+    const effective = Array.from(scores.values())
+      .filter((s) => s.helped > 0 && s.total >= 1)
+      .sort((a, b) => {
+        // Primary: success rate, secondary: total uses
+        if (Math.abs(b.successRate - a.successRate) > 0.1) {
+          return b.successRate - a.successRate;
+        }
+        return b.total - a.total;
+      })
+      .slice(0, 3);
+
+    if (effective.length === 0) return null;
+
+    return effective.map((s) => ({
+      id: s.id,
+      label: sosToolLabels[s.id] || s.id,
+      successRate: s.successRate,
+      totalSessions: s.total,
+    }));
+  } catch {
+    return null;
   }
 }

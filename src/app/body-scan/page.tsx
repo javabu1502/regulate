@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { BodyScanIcon } from "@/components/Icons";
-import { useBinauralBeats, BinauralToggle, BinauralPill, HeadphonesNotice } from "@/components/BinauralBeats";
+
 import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
 import { voiceGuidance } from "@/lib/voice-guidance";
+import { haptics } from "@/lib/haptics";
+import PresenceCue from "@/components/PresenceCue";
+import EscapeHatch from "@/components/EscapeHatch";
 
 // ─── Body regions ───────────────────────────────────────────────────
 
@@ -19,7 +22,7 @@ interface BodyRegion {
   yRange: [number, number]; // top %, bottom % on the SVG body
 }
 
-const regions: BodyRegion[] = [
+const fullRegions: BodyRegion[] = [
   { id: "head", name: "Head & Face", instruction: "Soften your forehead. Unclench your jaw. Let your eyes rest.", yRange: [0, 12] },
   { id: "neck", name: "Neck & Shoulders", instruction: "Let your shoulders drop away from your ears. Release the back of your neck.", yRange: [12, 22] },
   { id: "chest", name: "Chest & Heart", instruction: "Notice your heartbeat. Breathe into the space around it. Soften.", yRange: [22, 35] },
@@ -30,7 +33,15 @@ const regions: BodyRegion[] = [
   { id: "feet", name: "Feet & Ground", instruction: "Feel the ground beneath you. You are held. You are here.", yRange: [82, 100] },
 ];
 
-const durationOptions = [5, 10, 20]; // minutes
+const quickRegions: BodyRegion[] = [
+  { id: "head", name: "Upper Body", instruction: "Soften your forehead, unclench your jaw. Let your shoulders drop. Breathe into your chest and let it soften.", yRange: [0, 35] },
+  { id: "belly", name: "Core", instruction: "Let your belly be soft. Unclench your fists, relax your fingers. Feel the warmth in your palms.", yRange: [35, 55] },
+  { id: "legs", name: "Lower Body", instruction: "Release the muscles in your hips. Soften your thighs and calves. Feel the ground beneath your feet.", yRange: [55, 100] },
+];
+
+type ScanMode = "quick" | "full";
+
+const durationOptions = [3, 5, 10]; // minutes
 
 // ─── Body SVG ───────────────────────────────────────────────────────
 
@@ -101,7 +112,8 @@ type Screen = "intro" | "session" | "complete";
 export default function BodyScanPage() {
   const router = useRouter();
   const [screen, setScreen] = useState<Screen>("intro");
-  const [totalMinutes, setTotalMinutes] = useState(10);
+  const [totalMinutes, setTotalMinutes] = useState(5);
+  const [scanMode, setScanMode] = useState<ScanMode>("full");
   const [currentRegion, setCurrentRegion] = useState(0);
   const [regionElapsed, setRegionElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -109,8 +121,8 @@ export default function BodyScanPage() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useWakeLock(screen === "session" && !isPaused);
-  const binaural = useBinauralBeats();
 
+  const regions = scanMode === "quick" ? quickRegions : fullRegions;
   const regionDuration = Math.floor((totalMinutes * 60) / regions.length);
   const region = regions[currentRegion];
 
@@ -119,9 +131,11 @@ export default function BodyScanPage() {
   const advanceRegion = useCallback(() => {
     const next = currentRegion + 1;
     if (next < regions.length) {
+      haptics.transition();
       setCurrentRegion(next);
       setRegionElapsed(0);
     } else {
+      haptics.complete();
       setScreen("complete");
     }
   }, [currentRegion]);
@@ -170,7 +184,7 @@ export default function BodyScanPage() {
 
   if (screen === "intro") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="intro" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -186,8 +200,31 @@ export default function BodyScanPage() {
             </p>
           </header>
 
-          {/* Duration picker */}
+          {/* Scan mode picker */}
           <div className="rounded-2xl border border-teal/15 bg-deep/60 p-6 backdrop-blur-sm">
+            <p className="mb-4 text-center text-sm text-cream-dim">Scan depth</p>
+            <div className="flex justify-center gap-3">
+              {([
+                { mode: "quick" as ScanMode, label: "Quick (3 regions)" },
+                { mode: "full" as ScanMode, label: "Full (8 regions)" },
+              ]).map(({ mode, label }) => (
+                <button
+                  key={mode}
+                  onClick={() => setScanMode(mode)}
+                  className={`flex h-14 items-center justify-center rounded-xl border px-4 text-sm font-medium transition-all duration-200 ${
+                    scanMode === mode
+                      ? "border-teal/50 bg-teal/15 text-teal-soft shadow-md shadow-teal/10"
+                      : "border-slate-blue/50 bg-slate-blue/30 text-cream-dim hover:border-teal/30 hover:text-cream"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Duration picker */}
+          <div className="mt-3 rounded-2xl border border-teal/15 bg-deep/60 p-6 backdrop-blur-sm">
             <p className="mb-4 text-center text-sm text-cream-dim">How long?</p>
             <div className="flex justify-center gap-3">
               {durationOptions.map((n) => (
@@ -209,11 +246,6 @@ export default function BodyScanPage() {
             </p>
           </div>
 
-          {/* Binaural beats */}
-          <div className="mt-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
-            <BinauralToggle presetId="balance" isPlaying={binaural.isPlaying} onToggle={binaural.toggle} />
-          </div>
-
           <button
             onClick={startSession}
             className="mt-6 w-full rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft backdrop-blur-sm transition-all duration-300 hover:bg-teal/30 active:scale-[0.98]"
@@ -232,7 +264,7 @@ export default function BodyScanPage() {
     const regionRemaining = regionDuration - regionElapsed;
 
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-20 pt-6">
+      <div key="session" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-20 pt-6">
         {/* Session progress bar */}
         <div className="fixed left-0 right-0 top-2 z-20 px-6">
           <SessionProgressBar current={currentRegion + 1} total={regions.length} />
@@ -302,6 +334,8 @@ export default function BodyScanPage() {
           <button onClick={() => { setScreen("intro"); setIsPaused(false); }} className="text-xs text-cream-dim/40 transition-colors hover:text-cream-dim">End</button>
         </div>
 
+        <PresenceCue active={!isPaused} />
+
         {isPaused && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight/60 backdrop-blur-sm">
             <div className="text-center">
@@ -311,10 +345,7 @@ export default function BodyScanPage() {
           </div>
         )}
 
-        {binaural.isPlaying && binaural.activePreset && (
-          <BinauralPill preset={binaural.activePreset} onStop={binaural.stop} />
-        )}
-        {binaural.showHeadphones && <HeadphonesNotice onDismiss={binaural.dismissHeadphones} />}
+        <EscapeHatch />
       </div>
     );
   }
@@ -322,12 +353,12 @@ export default function BodyScanPage() {
   // ─── COMPLETE ─────────────────────────────────────────────────
 
   if (screen === "complete") {
-    binaural.stop();
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique="Body Scan"
           onDone={() => router.push("/")}
+          learnLink="/learn#body-scan"
         />
       </div>
     );
