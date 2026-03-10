@@ -44,9 +44,14 @@ export default function RootLayout({
             if (localStorage.getItem('regulate-font-size') === 'large') {
               document.documentElement.classList.add('large-text');
             }
-            var h = new Date().getHours();
-            if (h >= 22 || h < 6) {
+            var nm = localStorage.getItem('regulate-night-mode');
+            if (nm === 'on') {
               document.documentElement.classList.add('night-mode');
+            } else if (nm !== 'off') {
+              var h = new Date().getHours();
+              if (h >= 22 || h < 6) {
+                document.documentElement.classList.add('night-mode');
+              }
             }
           } catch(e) {}
         `}} />

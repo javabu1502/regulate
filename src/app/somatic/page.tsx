@@ -12,6 +12,7 @@ import SessionProgressBar from "@/components/SessionProgressBar";
 import MicroExplanation from "@/components/MicroExplanation";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
 import { haptics } from "@/lib/haptics";
+import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
 
@@ -413,6 +414,9 @@ export default function SomaticPage() {
   const [dotY, setDotY] = useState(50);
   const vestibularRef = useRef<number | null>(null);
 
+  // Ambient audio state
+  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
+
   useWakeLock(screen === "session" && !isPaused);
   useScrollMemory("somatic", screen === "select");
 
@@ -436,6 +440,8 @@ export default function SomaticPage() {
     intervalRef.current = null;
     tapIntervalRef.current = null;
     vestibularRef.current = null;
+    ambientAudio.stop();
+    setAmbientSound("off");
   }, []);
 
   useEffect(() => {
@@ -670,6 +676,27 @@ export default function SomaticPage() {
   }
 
   // ─── Session controls ─────────────────────────────────────────
+
+  function AmbientToggle() {
+    return (
+      <div className="fixed bottom-20 left-0 right-0 flex justify-center gap-1">
+        {(["off", "rain", "ocean", "forest"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => {
+              if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+              else { ambientAudio.start(s); setAmbientSound(s); }
+            }}
+            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+              ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+            }`}
+          >
+            {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   function SessionControls() {
     return (
@@ -964,6 +991,7 @@ export default function SomaticPage() {
         </div>
 
         <PresenceCue active={!isPaused} />
+        <AmbientToggle />
         <SessionControls />
         <PauseOverlay />
         <EscapeHatch />
@@ -1011,6 +1039,7 @@ export default function SomaticPage() {
         </div>
 
         <PresenceCue active={!isPaused} />
+        <AmbientToggle />
         <SessionControls />
         <PauseOverlay />
         <EscapeHatch />
@@ -1044,6 +1073,7 @@ export default function SomaticPage() {
         </div>
 
         <PresenceCue active={!isPaused} />
+        <AmbientToggle />
         <SessionControls />
         <PauseOverlay />
         <EscapeHatch />
@@ -1079,6 +1109,7 @@ export default function SomaticPage() {
         </div>
 
         <PresenceCue active={!isPaused} />
+        <AmbientToggle />
         <SessionControls />
         <PauseOverlay />
         <EscapeHatch />
@@ -1141,6 +1172,7 @@ export default function SomaticPage() {
         </div>
 
         <PresenceCue active={!isPaused} />
+        <AmbientToggle />
         <SessionControls />
         <PauseOverlay />
         <EscapeHatch />
@@ -1174,6 +1206,7 @@ export default function SomaticPage() {
         </div>
 
         <PresenceCue active={!isPaused} />
+        <AmbientToggle />
         <SessionControls />
         <PauseOverlay />
         <EscapeHatch />

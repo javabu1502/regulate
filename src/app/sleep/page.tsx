@@ -7,6 +7,7 @@ import BreathingOrb from "@/components/BreathingOrb";
 import AftercareFlow from "@/components/AftercareFlow";
 import MicroExplanation from "@/components/MicroExplanation";
 import { useWakeLock } from "@/hooks/useWakeLock";
+import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import EscapeHatch from "@/components/EscapeHatch";
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -98,12 +99,26 @@ export default function SleepPage() {
   const lastTickRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
 
+  // Ambient audio state
+  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
+
   // Timed step state (relaxation, grounding, affirmations, body scan)
   const [stepIndex, setStepIndex] = useState(0);
   const stepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Wake lock — active during any active phase
   useWakeLock(screen !== "select" && screen !== "complete");
+
+  // Stop ambient audio on unmount or when exercise completes
+  useEffect(() => {
+    if (screen === "complete" || screen === "select") {
+      ambientAudio.stop();
+      setAmbientSound("off");
+    }
+    return () => {
+      ambientAudio.stop();
+    };
+  }, [screen]);
 
   // Resolve active breath config based on mode
   const breathSteps =
@@ -390,6 +405,24 @@ export default function SleepPage() {
           </div>
         </div>
 
+        {/* Ambient sound toggle */}
+        <div className="fixed bottom-16 left-0 right-0 flex justify-center gap-1">
+          {(["off", "rain", "ocean", "forest"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(s); setAmbientSound(s); }
+              }}
+              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+              }`}
+            >
+              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
+            </button>
+          ))}
+        </div>
+
         <EscapeHatch />
       </div>
     );
@@ -441,6 +474,24 @@ export default function SleepPage() {
               />
             ))}
           </div>
+        </div>
+
+        {/* Ambient sound toggle */}
+        <div className="fixed bottom-16 left-0 right-0 flex justify-center gap-1">
+          {(["off", "rain", "ocean", "forest"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(s); setAmbientSound(s); }
+              }}
+              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+              }`}
+            >
+              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
+            </button>
+          ))}
         </div>
 
         <EscapeHatch />

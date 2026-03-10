@@ -15,7 +15,11 @@ import {
   LearnIcon,
   WaveIcon,
 } from "@/components/Icons";
-import { getTopTechniques, type TopTechnique } from "@/lib/recommendations";
+import {
+  getTopTechniques,
+  getPersonalizedRecommendations,
+  type TopTechnique,
+} from "@/lib/recommendations";
 import PremiumGate from "@/components/PremiumGate";
 
 // ─── Body state options ─────────────────────────────────────────────
@@ -229,6 +233,11 @@ const secondaryLinks = [
     href: "/journal",
     title: "Journal",
     icon: <JournalIcon className="h-4 w-4" />,
+  },
+  {
+    href: "/programs/first-week",
+    title: "Programs",
+    icon: <WaveIcon className="h-4 w-4" />,
   },
   {
     href: "/learn",
@@ -820,6 +829,45 @@ export default function Home() {
             ))}
           </div>
 
+          {/* "Just help me" escape hatch */}
+          <button
+            onClick={() => {
+              try {
+                const journal = JSON.parse(
+                  localStorage.getItem("regulate-journal") || "[]",
+                );
+                const history = JSON.parse(
+                  localStorage.getItem("regulate-sos-history") || "[]",
+                );
+                if (journal.length > 0 || history.length > 0) {
+                  // Use recommendation engine to pick best technique
+                  const recs = getPersonalizedRecommendations("anxious");
+                  const sosToRoute: Record<string, string> = {
+                    breathing: "/breathing",
+                    extended: "/breathing",
+                    tapping: "/somatic?start=tapping",
+                    grounding: "/grounding",
+                    "gentle-movement": "/somatic?start=gentle-movement",
+                    "body-scan": "/body-scan",
+                    somatic: "/somatic",
+                    affirmations: "/affirmations",
+                    sleep: "/sleep",
+                  };
+                  const route = sosToRoute[recs[0]] || "/breathing";
+                  router.push(route);
+                } else {
+                  // No history — default to physiological sigh
+                  router.push("/breathing");
+                }
+              } catch {
+                router.push("/breathing");
+              }
+            }}
+            className="mt-4 w-full rounded-2xl border border-teal/20 bg-teal/10 px-4 py-3 text-sm text-cream-dim transition-all hover:border-teal/30 hover:bg-teal/15 active:scale-[0.98]"
+          >
+            I don&apos;t know &mdash; just help me
+          </button>
+
           {/* Crisis line */}
           <div className="mt-10 flex justify-center">
             <a
@@ -890,6 +938,55 @@ export default function Home() {
           </svg>
           I need support right now
         </button>
+
+        {/* ── First-week program card (prominent for new/active users) ── */}
+        {programState && programState.status === "not-started" && (
+          <Link
+            href="/programs/first-week"
+            className="mb-5 block rounded-2xl border border-teal/20 bg-teal/8 p-4 transition-colors hover:border-teal/30"
+          >
+            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+              Guided program
+            </p>
+            <p className="mt-1 text-sm font-medium text-cream">
+              Start your first week
+            </p>
+            <p className="mt-1 text-xs text-cream-dim/50">
+              7 days of guided practice &mdash; one technique a day. No
+              pressure.
+            </p>
+            <span className="mt-3 inline-block text-xs font-medium text-teal-soft">
+              Begin &rarr;
+            </span>
+          </Link>
+        )}
+        {programState && programState.status === "in-progress" && (
+          <Link
+            href="/programs/first-week"
+            className="mb-5 block rounded-2xl border border-teal/20 bg-teal/5 p-4 transition-colors hover:border-teal/30"
+          >
+            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+              Your first week
+            </p>
+            <p className="mt-1 text-sm font-medium text-cream">
+              Day {programState.currentDay}: {programState.dayTitle} &mdash;
+              Continue
+            </p>
+            <div className="mt-2.5 flex items-center justify-between">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                  <div
+                    key={d}
+                    className={`h-1 w-4 rounded-full ${d <= programState.completedCount ? "bg-teal/60" : "bg-slate-blue/20"}`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-medium text-teal-soft">
+                Continue &rarr;
+              </span>
+            </div>
+          </Link>
+        )}
 
         {/* ── Daily suggested practice ── */}
         <div className="mb-5 rounded-2xl border-2 border-teal/25 bg-teal/5 p-4">
@@ -992,53 +1089,6 @@ export default function Home() {
               </>
             )}
           </div>
-        )}
-
-        {/* ── First-week program card (if in progress) ── */}
-        {programState && programState.status === "in-progress" && (
-          <Link
-            href="/programs/first-week"
-            className="mb-5 block rounded-2xl border border-teal/20 bg-teal/5 p-4 transition-colors hover:border-teal/30"
-          >
-            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
-              Your first week
-            </p>
-            <p className="mt-1 text-sm font-medium text-cream">
-              Day {programState.currentDay}: {programState.dayTitle}
-            </p>
-            <div className="mt-2.5 flex items-center justify-between">
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-                  <div
-                    key={d}
-                    className={`h-1 w-4 rounded-full ${d <= programState.completedCount ? "bg-teal/60" : "bg-slate-blue/20"}`}
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-medium text-teal-soft">
-                Continue
-              </span>
-            </div>
-          </Link>
-        )}
-        {programState && programState.status === "not-started" && (
-          <Link
-            href="/programs/first-week"
-            className="mb-5 block rounded-2xl border border-teal/15 bg-deep/60 p-4 transition-colors hover:border-teal/30"
-          >
-            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
-              Guided program
-            </p>
-            <p className="mt-1 text-sm font-medium text-cream">
-              Start your first week
-            </p>
-            <p className="mt-1 text-xs text-cream-dim/50">
-              One technique a day, seven days. No pressure.
-            </p>
-            <span className="mt-3 inline-block text-xs font-medium text-teal-soft">
-              Begin
-            </span>
-          </Link>
         )}
 
         {/* ── Try something new (discovery) ── */}
@@ -1185,6 +1235,14 @@ export default function Home() {
             </Link>
           ))}
         </div>
+
+        {/* ── Learn link ── */}
+        <Link
+          href="/learn"
+          className="mt-3 block text-center text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
+        >
+          Understanding your nervous system &rarr;
+        </Link>
 
         {/* My person */}
         <div className="mt-5">

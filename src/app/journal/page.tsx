@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import NSStateSelector, { type NSState, getCurrentNSState } from "@/components/NSStateSelector";
 import { JournalIcon } from "@/components/Icons";
 import { getPrompts, getReflectionPrompt } from "@/lib/journal-prompts";
 import PremiumGate from "@/components/PremiumGate";
+import { isPremium } from "@/lib/premium";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -77,6 +78,67 @@ function formatDate(ts: number) {
 function formatTime(ts: number) {
   const d = new Date(ts);
   return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+// ─── Dashboard helpers ──────────────────────────────────────────────
+
+function computeDashboard(allEntries: JournalEntry[]) {
+  const entries = allEntries.filter((e) => e.type !== "reflection");
+  if (entries.length === 0) return null;
+
+  const now = Date.now();
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  // 1. This week: 7-day dot row
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const weekDots: boolean[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const dayStart = today.getTime() - i * dayMs;
+    const dayEnd = dayStart + dayMs;
+    weekDots.push(entries.some((e) => e.timestamp >= dayStart && e.timestamp < dayEnd));
+  }
+  const thisWeekCount = weekDots.filter(Boolean).length;
+
+  // 2. Technique effectiveness (used 2+ times, has aftercareResponse data)
+  const techStats: Record<string, { total: number; helped: number }> = {};
+  entries.forEach((e) => {
+    const techs = [...(e.techniques || [])];
+    if (e.technique && !techs.includes(e.technique)) techs.push(e.technique);
+    techs.forEach((t) => {
+      if (!techStats[t]) techStats[t] = { total: 0, helped: 0 };
+      techStats[t].total++;
+      if (e.aftercareResponse === "better") techStats[t].helped++;
+    });
+  });
+  const techniqueEffectiveness = Object.entries(techStats)
+    .filter(([, s]) => s.total >= 2)
+    .map(([name, s]) => ({ name, total: s.total, helped: s.helped, rate: s.total > 0 ? s.helped / s.total : 0 }))
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 5);
+
+  // 3. Average intensity + trend vs last month
+  let avgIntensity: number | null = null;
+  let lastMonthAvg: number | null = null;
+  if (entries.length >= 5) {
+    avgIntensity = entries.reduce((s, e) => s + e.intensity, 0) / entries.length;
+    const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1).getTime();
+    const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1).getTime();
+    const lastMonthEntries = entries.filter((e) => e.timestamp >= lastMonthStart && e.timestamp < thisMonthStart);
+    if (lastMonthEntries.length >= 3) {
+      lastMonthAvg = lastMonthEntries.reduce((s, e) => s + e.intensity, 0) / lastMonthEntries.length;
+    }
+  }
+
+  // 4. Most common triggers
+  const triggerCounts: Record<string, number> = {};
+  entries.forEach((e) => e.triggers.forEach((t) => { triggerCounts[t] = (triggerCounts[t] || 0) + 1; }));
+  const topTriggers = Object.entries(triggerCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([name, count]) => ({ name, count }));
+
+  return { weekDots, thisWeekCount, techniqueEffectiveness, avgIntensity, lastMonthAvg, topTriggers };
 }
 
 // ─── Insights helpers ───────────────────────────────────────────────
@@ -408,6 +470,7 @@ function JournalPageInner() {
   const topTechnique = Object.entries(techniqueCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
 
   const insights = computeInsights(entries);
+  const dashboard = useMemo(() => computeDashboard(entries), [entries]);
 
   // ─── Share with therapist ─────────────────────────────────────
 
@@ -733,6 +796,95 @@ function JournalPageInner() {
                     </button>
                   </PremiumGate>
                 </div>
+              )}
+
+              {/* Insights dashboard */}
+              {dashboard && entries.length >= 3 && (
+                <PremiumGate feature="See patterns in your practice — what helps, when you show up, and what your body is telling you.">
+                  <div className="mb-6 rounded-2xl border border-teal/15 bg-deep/60 p-5">
+                    <p className="mb-4 text-xs leading-relaxed text-cream-dim/60">
+                      Here&apos;s what your body has been telling you
+                    </p>
+
+                    {/* This week summary */}
+                    <div className="mb-5">
+                      <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">This week</p>
+                      <p className="mb-2 text-sm text-cream">
+                        {dashboard.thisWeekCount} session{dashboard.thisWeekCount !== 1 ? "s" : ""} this week
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        {["M", "T", "W", "T", "F", "S", "S"].map((day, i) => (
+                          <div key={i} className="flex flex-col items-center gap-1">
+                            <div
+                              className={`h-2.5 w-2.5 rounded-full ${
+                                dashboard.weekDots[i] ? "bg-teal-soft" : "bg-slate-blue/30"
+                              }`}
+                            />
+                            <span className="text-[9px] text-cream-dim/25">{day}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Technique effectiveness */}
+                    {dashboard.techniqueEffectiveness.length > 0 && (
+                      <div className="mb-5">
+                        <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">What helps</p>
+                        <div className="space-y-2">
+                          {dashboard.techniqueEffectiveness.map((t) => (
+                            <div key={t.name}>
+                              <div className="mb-1 flex items-baseline justify-between">
+                                <span className="text-sm text-cream">{t.name}</span>
+                                <span className="text-xs text-cream-dim/50">helped {t.helped}/{t.total}</span>
+                              </div>
+                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-blue/20">
+                                <div
+                                  className="h-full rounded-full bg-teal-soft/70 transition-all"
+                                  style={{ width: `${Math.round(t.rate * 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Average intensity */}
+                    {dashboard.avgIntensity !== null && (
+                      <div className="mb-5">
+                        <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">Average intensity</p>
+                        <p className="text-sm text-cream">
+                          {dashboard.avgIntensity.toFixed(1)}/10
+                          {dashboard.lastMonthAvg !== null && (
+                            <span className="ml-2 text-xs text-cream-dim/50">
+                              {dashboard.avgIntensity < dashboard.lastMonthAvg
+                                ? `Down from ${dashboard.lastMonthAvg.toFixed(1)} last month`
+                                : dashboard.avgIntensity > dashboard.lastMonthAvg
+                                  ? `Up from ${dashboard.lastMonthAvg.toFixed(1)} last month`
+                                  : `Same as last month`}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Most common triggers */}
+                    {dashboard.topTriggers.length > 0 && (
+                      <div>
+                        <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">Common triggers</p>
+                        <p className="text-sm text-cream">
+                          {dashboard.topTriggers.map((t, i) => (
+                            <span key={t.name}>
+                              {i > 0 && <span className="text-cream-dim/30"> &middot; </span>}
+                              {t.name}
+                              <span className="ml-1 text-xs text-cream-dim/40">({t.count}x)</span>
+                            </span>
+                          ))}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </PremiumGate>
               )}
 
               {/* Entries list */}

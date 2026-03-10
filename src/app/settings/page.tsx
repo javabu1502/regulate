@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isPremium, purchasePremium, restorePurchases, PREMIUM_FEATURES, FREE_FEATURES, PRICE } from "@/lib/premium";
+import { getStorageUsage } from "@/lib/storage";
 
 interface CustomCrisisLine {
   name: string;
@@ -38,6 +39,8 @@ export default function SettingsPage() {
   const [importLoading, setImportLoading] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [importConfirm, setImportConfirm] = useState<Record<string, unknown> | null>(null);
+  const [nightMode, setNightMode] = useState<"auto" | "on" | "off">("auto");
+  const [storageKB, setStorageKB] = useState<number | null>(null);
 
   useEffect(() => {
     try {
@@ -53,6 +56,10 @@ export default function SettingsPage() {
         setCrisisNumber(parsed.number || "");
         setCrisisText(parsed.textNumber || "");
       }
+      const storedNight = localStorage.getItem("regulate-night-mode");
+      if (storedNight === "on" || storedNight === "off") setNightMode(storedNight);
+      const usage = getStorageUsage();
+      setStorageKB(Math.round(usage.used / 1024));
     } catch { /* */ }
   }, []);
 
@@ -238,7 +245,7 @@ export default function SettingsPage() {
       "current_ns_state", "regulate-install-dismissed",
       "regulate-custom-patterns", "regulate-personal-affirmations",
       "regulate-favorites-v2", "regulate-haptics-enabled", "regulate-font-size",
-      "regulate-custom-crisis", "regulate-premium",
+      "regulate-custom-crisis", "regulate-premium", "regulate-night-mode",
     ];
     keys.forEach((k) => localStorage.removeItem(k));
     setConfirmClear(null);
@@ -316,6 +323,41 @@ export default function SettingsPage() {
                 <p className="mt-1 text-xs text-cream-dim/60">Spoken cues during exercises</p>
               </div>
               <span className="rounded-full bg-slate-blue/20 px-2.5 py-0.5 text-[10px] font-medium text-cream-dim/40">Coming soon</span>
+            </div>
+          </div>
+
+          {/* Night mode */}
+          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
+            <div>
+              <h3 className="text-sm font-medium text-cream">Night mode</h3>
+              <p className="mt-1 text-xs text-cream-dim/60">Warmer, dimmer colors for late sessions</p>
+            </div>
+            <div className="mt-3 flex rounded-xl border border-slate-blue/20 overflow-hidden">
+              {([["auto", "Auto"], ["on", "Always on"], ["off", "Always off"]] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => {
+                    setNightMode(value);
+                    localStorage.setItem("regulate-night-mode", value);
+                    // Apply immediately
+                    if (value === "on") {
+                      document.documentElement.classList.add("night-mode");
+                    } else if (value === "off") {
+                      document.documentElement.classList.remove("night-mode");
+                    } else {
+                      const h = new Date().getHours();
+                      document.documentElement.classList.toggle("night-mode", h >= 22 || h < 6);
+                    }
+                  }}
+                  className={`flex-1 py-2 text-xs font-medium transition-colors ${
+                    nightMode === value
+                      ? "bg-teal/20 text-teal-soft"
+                      : "text-cream-dim/50 hover:text-cream-dim"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -613,6 +655,12 @@ export default function SettingsPage() {
             <h3 className="text-sm font-medium text-candle-soft">Clear all app data</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Reset everything and start fresh</p>
           </button>
+
+          {storageKB !== null && (
+            <p className="mt-2 text-center text-[11px] text-cream-dim/30">
+              Using {storageKB < 1 ? "<1" : storageKB} KB of local storage
+            </p>
+          )}
         </div>
 
         {/* App info */}

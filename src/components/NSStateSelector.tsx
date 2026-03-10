@@ -148,3 +148,32 @@ export function getCurrentNSState(): NSState | null {
     return null;
   }
 }
+
+// ─── Body state ↔ NS state mapping ──────────────────────────────────
+// Home page / SOS flow use casual body-state labels (panicking, anxious, etc.)
+// NSStateSelector uses clinical NS states (hyperactivated, activated, etc.)
+
+const bodyStateToNSMap: Record<string, NSState> = {
+  panicking: "hyperactivated",
+  anxious: "activated",
+  okay: "window",
+  shutdown: "hypoactivated",
+  sleep: "hypoactivated",
+};
+
+const nsToBodyStateMap: Record<NSState, string> = {
+  hyperactivated: "panicking",
+  activated: "anxious",
+  window: "okay",
+  hypoactivated: "shutdown",
+};
+
+/** Map a casual body-state label to its clinical NSState equivalent */
+export function mapBodyStateToNS(bodyState: string): NSState {
+  return bodyStateToNSMap[bodyState.toLowerCase()] || "activated";
+}
+
+/** Map a clinical NSState to its casual body-state label */
+export function mapNSToBodyState(ns: NSState): string {
+  return nsToBodyStateMap[ns] || "anxious";
+}

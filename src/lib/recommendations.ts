@@ -26,22 +26,12 @@ interface Recommendation {
   reason: string;
 }
 
-const techniqueToModule: Record<string, { href: string; title: string }> = {
-  "Breathing": { href: "/breathing", title: "Guided Breathing" },
-  "Grounding": { href: "/grounding", title: "5-4-3-2-1 Grounding" },
-  "Body scan": { href: "/body-scan", title: "Body Scan" },
-  "Body Scan": { href: "/body-scan", title: "Body Scan" },
-  "Bilateral Tapping": { href: "/somatic", title: "Somatic Movement" },
-  "Bilateral tapping": { href: "/somatic", title: "Somatic Movement" },
-  "Gentle Swaying": { href: "/somatic", title: "Somatic Movement" },
-  "Swaying": { href: "/somatic", title: "Somatic Movement" },
-  "Affirmations": { href: "/affirmations", title: "Affirmations" },
-  "Guided Breathing": { href: "/breathing", title: "Guided Breathing" },
-  "5-4-3-2-1 Grounding": { href: "/grounding", title: "5-4-3-2-1 Grounding" },
-};
+// ─── Canonical technique ID map ─────────────────────────────────────
+// Normalizes every known variation (display names, journal entries, SOS tool IDs)
+// down to a single canonical ID that matches the SOS exercise IDs.
 
-// Map SOS tool IDs to exercise IDs used in the SOS page
-const sosToolToExerciseId: Record<string, string> = {
+const canonicalTechniqueId: Record<string, string> = {
+  // Already-canonical SOS tool IDs → themselves
   breathing: "breathing",
   extended: "extended",
   tapping: "tapping",
@@ -51,9 +41,47 @@ const sosToolToExerciseId: Record<string, string> = {
   somatic: "somatic",
   affirmations: "affirmations",
   sleep: "sleep",
+  // Journal / display-name variations → canonical
+  "Breathing": "breathing",
+  "Guided Breathing": "breathing",
+  "Physiological sigh": "breathing",
+  "Extended exhale": "extended",
+  "Extended Exhale": "extended",
+  "Grounding": "grounding",
+  "5-4-3-2-1 Grounding": "grounding",
+  "Body scan": "body-scan",
+  "Body Scan": "body-scan",
+  "Bilateral Tapping": "tapping",
+  "Bilateral tapping": "tapping",
+  "Gentle Swaying": "gentle-movement",
+  "Gentle movement": "gentle-movement",
+  "Swaying": "gentle-movement",
+  "Somatic exercises": "somatic",
+  "Somatic Movement": "somatic",
+  "Affirmations": "affirmations",
+  "Sleep sequence": "sleep",
+  "Sleep": "sleep",
 };
 
-// Map SOS tool IDs to human-readable labels for the insight card
+/** Normalize any technique name/ID to a canonical exercise ID */
+function normalizeTechniqueId(name: string): string | null {
+  return canonicalTechniqueId[name] ?? canonicalTechniqueId[name.toLowerCase()] ?? null;
+}
+
+// Map canonical IDs to module pages (for getRecommendations)
+const techniqueToModule: Record<string, { href: string; title: string }> = {
+  breathing: { href: "/breathing", title: "Guided Breathing" },
+  extended: { href: "/breathing", title: "Guided Breathing" },
+  grounding: { href: "/grounding", title: "5-4-3-2-1 Grounding" },
+  "body-scan": { href: "/body-scan", title: "Body Scan" },
+  tapping: { href: "/somatic", title: "Somatic Movement" },
+  "gentle-movement": { href: "/somatic", title: "Somatic Movement" },
+  somatic: { href: "/somatic", title: "Somatic Movement" },
+  affirmations: { href: "/affirmations", title: "Affirmations" },
+  sleep: { href: "/sleep", title: "Sleep Sequence" },
+};
+
+// Map canonical IDs to human-readable labels for the insight card
 const sosToolLabels: Record<string, string> = {
   breathing: "Physiological sigh",
   extended: "Extended exhale",
@@ -64,21 +92,6 @@ const sosToolLabels: Record<string, string> = {
   somatic: "Somatic exercises",
   affirmations: "Affirmations",
   sleep: "Sleep sequence",
-};
-
-// Map journal technique names to SOS exercise IDs
-const journalTechniqueToSosId: Record<string, string> = {
-  "Breathing": "breathing",
-  "Guided Breathing": "breathing",
-  "Grounding": "grounding",
-  "5-4-3-2-1 Grounding": "grounding",
-  "Body scan": "body-scan",
-  "Body Scan": "body-scan",
-  "Bilateral Tapping": "tapping",
-  "Bilateral tapping": "tapping",
-  "Gentle Swaying": "gentle-movement",
-  "Swaying": "gentle-movement",
-  "Affirmations": "affirmations",
 };
 
 // ─── Original recommendation function (for module pages) ─────────────
@@ -98,13 +111,29 @@ export function getRecommendations(nsState?: string | null): Recommendation[] {
       if (e.techniques) techniques.push(...e.techniques);
 
       techniques.forEach((t) => {
-        if (!scores[t]) scores[t] = { better: 0, same: 0, harder: 0, total: 0 };
-        scores[t].total++;
-        if (e.aftercareResponse === "better") scores[t].better++;
-        else if (e.aftercareResponse === "same") scores[t].same++;
-        else if (e.aftercareResponse === "harder") scores[t].harder++;
+        const id = normalizeTechniqueId(t) || t;
+        if (!scores[id]) scores[id] = { better: 0, same: 0, harder: 0, total: 0 };
+        scores[id].total++;
+        if (e.aftercareResponse === "better") scores[id].better++;
+        else if (e.aftercareResponse === "same") scores[id].same++;
+        else if (e.aftercareResponse === "harder") scores[id].harder++;
       });
     });
+
+    // Also fold in SOS history data for a fuller picture
+    try {
+      const sosRaw = localStorage.getItem(SOS_HISTORY_KEY);
+      if (sosRaw) {
+        const history: SOSHistoryEntry[] = JSON.parse(sosRaw);
+        for (const entry of history) {
+          const id = normalizeTechniqueId(entry.tool) || entry.tool;
+          if (!scores[id]) scores[id] = { better: 0, same: 0, harder: 0, total: 0 };
+          scores[id].total++;
+          if (entry.helped) scores[id].better++;
+          else scores[id].harder++;
+        }
+      }
+    } catch { /* */ }
 
     // Rank by effectiveness (better responses weighted highest)
     const ranked = Object.entries(scores)
@@ -201,7 +230,7 @@ function getToolScores(): Map<string, ToolScore> {
     if (raw) {
       const history: SOSHistoryEntry[] = JSON.parse(raw);
       for (const entry of history) {
-        const toolId = sosToolToExerciseId[entry.tool] || entry.tool;
+        const toolId = normalizeTechniqueId(entry.tool) || entry.tool;
         const score = getOrCreate(toolId);
         score.total++;
         if (entry.helped) score.helped++;
@@ -223,7 +252,7 @@ function getToolScores(): Map<string, ToolScore> {
         if (entry.techniques) techniques.push(...entry.techniques);
 
         for (const t of techniques) {
-          const toolId = journalTechniqueToSosId[t];
+          const toolId = normalizeTechniqueId(t);
           if (!toolId) continue;
 
           const score = getOrCreate(toolId);

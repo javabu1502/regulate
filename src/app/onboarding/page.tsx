@@ -340,6 +340,9 @@ function OnboardingPageInner() {
               Come back anytime. Even at 3am.<br />
               You don&apos;t have to be in crisis to use it — regular practice builds resilience over time.
             </p>
+            <p className="mx-auto mt-3 max-w-[280px] text-xs text-cream-dim/50">
+              Audio guidance is available for every exercise — look for the voice toggle during sessions.
+            </p>
             <button
               onClick={finish}
               className="mt-10 w-full max-w-[220px] rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft transition-all hover:bg-teal/30 active:scale-[0.98]"

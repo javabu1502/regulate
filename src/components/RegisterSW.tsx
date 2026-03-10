@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { pruneOldEntries } from "@/lib/storage";
 
 // Check if a scheduled notification is due and show it via the service worker
 function checkScheduledNotification(registration: ServiceWorkerRegistration) {
@@ -52,6 +53,10 @@ function checkScheduledNotification(registration: ServiceWorkerRegistration) {
 
 export default function RegisterSW() {
   useEffect(() => {
+    // Prune old entries on app load
+    pruneOldEntries("regulate-sos-history", 200);
+    pruneOldEntries("regulate-journal", 500);
+
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js", { scope: "/" })

@@ -29,33 +29,142 @@ function inferCategory(technique: string): string {
   return "Somatic";
 }
 
-/**
- * Post-session aftercare flow shown after completing any module.
- * Asks how the user feels, responds appropriately, and logs to journal.
- */
-function getAlternativeTechniques(technique: string): { label: string; href: string }[] {
-  const t = technique.toLowerCase();
-  if (t.includes("breathing"))
-    return [
-      { label: "Grounding", href: "/grounding" },
-      { label: "Somatic", href: "/somatic" },
-    ];
-  if (t.includes("grounding"))
-    return [
-      { label: "Breathing", href: "/breathing" },
-      { label: "Body scan", href: "/body-scan" },
-    ];
-  if (t.includes("body"))
-    return [
-      { label: "Somatic", href: "/somatic" },
-      { label: "Breathing", href: "/breathing" },
-    ];
-  return [
+// ─── Complementary technique mapping ──────────────────────────────────
+
+const COMPLEMENTARY_MAP: Record<string, { label: string; href: string }[]> = {
+  Breathing: [
+    { label: "Grounding", href: "/grounding" },
+    { label: "Body Scan", href: "/body-scan" },
+  ],
+  Grounding: [
+    { label: "Body Scan", href: "/body-scan" },
+    { label: "Breathing", href: "/breathing" },
+  ],
+  Somatic: [
+    { label: "Breathing", href: "/breathing" },
+    { label: "Grounding", href: "/grounding" },
+  ],
+  "Body Scan": [
+    { label: "Somatic", href: "/somatic" },
+    { label: "Breathing", href: "/breathing" },
+  ],
+  Sleep: [
+    { label: "Body Scan", href: "/body-scan" },
+    { label: "Breathing", href: "/breathing" },
+  ],
+  Affirmations: [
+    { label: "Breathing", href: "/breathing" },
+    { label: "Journal", href: "/journal" },
+  ],
+};
+
+function getComplementary(category: string): { label: string; href: string }[] {
+  return COMPLEMENTARY_MAP[category] ?? [
     { label: "Breathing", href: "/breathing" },
     { label: "Grounding", href: "/grounding" },
   ];
 }
 
+// ─── Learn page anchor mapping ────────────────────────────────────────
+
+const LEARN_LINKS: Record<string, string> = {
+  Breathing: "/learn#breathing",
+  Grounding: "/learn#grounding",
+  "Body Scan": "/learn#body-scan",
+  Somatic: "/learn#bilateral",
+  Sleep: "/learn#breathing",
+  Affirmations: "/learn#techniques",
+};
+
+function getLearnLink(category: string, explicitLink?: string): string {
+  return explicitLink ?? LEARN_LINKS[category] ?? "/learn#techniques";
+}
+
+// ─── Gentle alternatives for "harder" path ────────────────────────────
+
+const GENTLE_ALTERNATIVES: Record<string, { label: string; href: string }> = {
+  Breathing: { label: "Body Scan", href: "/body-scan" },
+  Grounding: { label: "Body Scan", href: "/body-scan" },
+  Somatic: { label: "Breathing", href: "/breathing" },
+  "Body Scan": { label: "Breathing", href: "/breathing" },
+  Sleep: { label: "Body Scan", href: "/body-scan" },
+  Affirmations: { label: "Body Scan", href: "/body-scan" },
+};
+
+// ─── Quick-journal component ──────────────────────────────────────────
+
+function QuickJournal({ technique }: { technique: string }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  function save() {
+    if (!text.trim()) return;
+    try {
+      const raw = localStorage.getItem("regulate-journal");
+      const entries = raw ? JSON.parse(raw) : [];
+      entries.push({
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        type: "reflection",
+        technique,
+        content: text.trim(),
+      });
+      localStorage.setItem("regulate-journal", JSON.stringify(entries));
+      setSaved(true);
+    } catch { /* */ }
+  }
+
+  if (saved) {
+    return (
+      <p className="text-xs text-teal-soft/70">Moment saved.</p>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim"
+      >
+        Save this moment
+      </button>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-xs flex flex-col gap-2">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="What do you want to remember about this moment?"
+        rows={3}
+        autoFocus
+        className="w-full rounded-xl border border-teal/15 bg-deep/60 px-4 py-3 text-sm text-cream placeholder:text-cream-dim/40 focus:border-teal/30 focus:outline-none resize-none"
+      />
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={() => setOpen(false)}
+          className="text-xs text-cream-dim/50 px-3 py-1.5 transition-colors hover:text-cream-dim"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={save}
+          disabled={!text.trim()}
+          className="rounded-lg bg-teal/15 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:bg-teal/25 disabled:opacity-40 disabled:cursor-default"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Post-session aftercare flow shown after completing any module.
+ * Asks how the user feels, responds appropriately, and logs to journal.
+ */
 export default function AftercareFlow({
   technique,
   onDone,
@@ -67,6 +176,10 @@ export default function AftercareFlow({
   const resolvedCategory = category || inferCategory(technique);
   const [feeling, setFeeling] = useState<Feeling | null>(null);
   const [showSafetyCheck, setShowSafetyCheck] = useState(false);
+
+  const complementary = getComplementary(resolvedCategory);
+  const resolvedLearnLink = getLearnLink(resolvedCategory, learnLink);
+  const gentle = GENTLE_ALTERNATIVES[resolvedCategory] ?? { label: "Body Scan", href: "/body-scan" };
 
   function handleFeeling(f: Feeling) {
     setFeeling(f);
@@ -197,14 +310,32 @@ export default function AftercareFlow({
           <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
             {completionSubtext}
           </p>
-          {learnLink && (
+
+          {/* Quick journal */}
+          <div className="mt-5">
+            <QuickJournal technique={technique} />
+          </div>
+
+          {/* Complementary technique suggestion */}
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <p className="text-xs text-cream-dim/60">
+              {resolvedCategory} pairs well with {complementary[0].label.toLowerCase()} — try it next?
+            </p>
             <Link
-              href={learnLink}
-              className="mt-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
+              href={complementary[0].href}
+              className="rounded-full border border-teal/15 bg-deep/60 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80 active:scale-[0.97]"
             >
-              Learn why this works
+              {complementary[0].label}
             </Link>
-          )}
+          </div>
+
+          {/* Learn link */}
+          <Link
+            href={resolvedLearnLink}
+            className="mt-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
+          >
+            Why this works &rarr;
+          </Link>
         </>
       )}
 
@@ -214,14 +345,32 @@ export default function AftercareFlow({
           <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
             Sometimes regulation is subtle. The fact that you tried is what matters. Your nervous system is learning even when it doesn&apos;t feel like it.
           </p>
-          {learnLink && (
-            <Link
-              href={learnLink}
-              className="mt-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
-            >
-              Learn why this works
-            </Link>
-          )}
+
+          {/* Suggest a different category */}
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <p className="text-xs text-cream-dim/60">
+              Sometimes combining techniques helps — try {complementary[0].label.toLowerCase()} next?
+            </p>
+            <div className="flex gap-2">
+              {complementary.map((alt) => (
+                <Link
+                  key={alt.href}
+                  href={alt.href}
+                  className="rounded-full border border-teal/15 bg-deep/60 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80 active:scale-[0.97]"
+                >
+                  {alt.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Learn link */}
+          <Link
+            href={resolvedLearnLink}
+            className="mt-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
+          >
+            Why this works &rarr;
+          </Link>
         </>
       )}
 
@@ -241,19 +390,15 @@ export default function AftercareFlow({
             Sometimes exercises bring things to the surface. That&apos;s not failure — it means your body is processing. Be gentle with yourself right now.
           </p>
 
+          {/* Gentle alternative */}
           <div className="mt-6 flex flex-col items-center gap-2">
-            <p className="text-xs text-cream-dim/70">Sometimes a different approach helps</p>
-            <div className="flex gap-2">
-              {getAlternativeTechniques(technique).map((alt) => (
-                <Link
-                  key={alt.href}
-                  href={alt.href}
-                  className="rounded-full border border-teal/15 bg-deep/60 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80 active:scale-[0.97]"
-                >
-                  {alt.label}
-                </Link>
-              ))}
-            </div>
+            <p className="text-xs text-cream-dim/60">Would a gentler exercise help?</p>
+            <Link
+              href={gentle.href}
+              className="rounded-full border border-teal/15 bg-deep/60 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80 active:scale-[0.97]"
+            >
+              Try {gentle.label}
+            </Link>
           </div>
         </>
       )}
