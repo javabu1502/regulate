@@ -9,6 +9,7 @@ import { useWakeLock } from "@/hooks/useWakeLock";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { getPersonalizedRecommendations } from "@/lib/recommendations";
+import { isPremium } from "@/lib/premium";
 import PresenceCue from "@/components/PresenceCue";
 
 // ─── Breathing patterns ──────────────────────────────────────────────
@@ -489,6 +490,7 @@ function SOSPageInner() {
   // ─── Save what helped ─────────────────────────────────────────────
 
   function recordPartialSession() {
+    if (!isPremium()) return;
     const label = allExercises.find((t) => t.id === activeTool)?.label || "Exercise";
     try {
       const history = JSON.parse(localStorage.getItem("regulate-sos-history") || "[]");
@@ -501,10 +503,11 @@ function SOSPageInner() {
     const label = allExercises.find((t) => t.id === activeTool)?.label || "Breathing";
     try {
       localStorage.setItem("regulate-last-helped", JSON.stringify({ id: activeTool, label, ts: new Date().toISOString() }));
-      // Also append to session history
-      const history = JSON.parse(localStorage.getItem("regulate-sos-history") || "[]");
-      history.push({ tool: activeTool, label, ts: new Date().toISOString(), helped: true });
-      localStorage.setItem("regulate-sos-history", JSON.stringify(history.slice(-50)));
+      if (isPremium()) {
+        const history = JSON.parse(localStorage.getItem("regulate-sos-history") || "[]");
+        history.push({ tool: activeTool, label, ts: new Date().toISOString(), helped: true });
+        localStorage.setItem("regulate-sos-history", JSON.stringify(history.slice(-50)));
+      }
     } catch { /* */ }
   }
 
