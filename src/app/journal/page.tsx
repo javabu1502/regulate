@@ -22,6 +22,8 @@ interface JournalEntry {
   technique?: string;
   aftercareResponse?: string;
   date?: string;
+  type?: "reflection";
+  prompt?: string;
 }
 
 const durationOptions = ["Under 5 min", "5–15 min", "15–30 min", "30+ min"];
@@ -87,7 +89,8 @@ function getTimeOfDay(ts: number): string {
   return "Evening";
 }
 
-function computeInsights(entries: JournalEntry[]) {
+function computeInsights(allEntries: JournalEntry[]) {
+  const entries = allEntries.filter((e) => e.type !== "reflection");
   if (entries.length < 10) return null;
 
   // Time of day
@@ -244,7 +247,7 @@ function Sparkline({ data }: { data: number[] }) {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-type Screen = "list" | "log" | "quick-log" | "saved" | "detail";
+type Screen = "list" | "log" | "quick-log" | "saved" | "detail" | "reflect";
 type Tab = "entries" | "insights" | "timeline" | "sessions";
 
 // ─── SOS Session History types ──────────────────────────────────────
@@ -321,24 +324,23 @@ function JournalPageInner() {
     setNsState(getCurrentNSState());
     setSOSSessions(loadSOSSessions());
 
-    // Show reflection prompt if 10+ entries
-    if (loaded.length >= 10) {
+    // Show reflection prompt if 3+ entries
+    if (loaded.length >= 3) {
       const prompt = getReflectionPrompt();
       setReflectionPrompt(prompt);
     }
 
-    // If arrived via ?reflect=1, show the prompt immediately
-    if (searchParams.get("reflect") === "1" && loaded.length >= 10) {
-      // Prompt is already set above
+    // If arrived via ?reflect=1, go straight to reflect screen
+    if (searchParams.get("reflect") === "1" && loaded.length >= 3) {
+      setScreen("reflect");
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleReflect() {
     if (!reflectionPrompt) return;
     setReflectionDismissed(true);
-    resetForm();
-    setReflection(reflectionPrompt);
-    setScreen("log");
+    setReflection("");
+    setScreen("reflect");
   }
 
   // ─── Pattern detection ──────────────────────────────────────
@@ -393,14 +395,16 @@ function JournalPageInner() {
     setScreen("list");
   }
 
-  // ─── Stats ────────────────────────────────────────────────────
+  // ─── Stats (exclude reflections) ──────────────────────────────
 
-  const avgIntensity = entries.length
-    ? (entries.reduce((s, e) => s + e.intensity, 0) / entries.length).toFixed(1)
+  const sessionEntries = entries.filter((e) => e.type !== "reflection");
+
+  const avgIntensity = sessionEntries.length
+    ? (sessionEntries.reduce((s, e) => s + e.intensity, 0) / sessionEntries.length).toFixed(1)
     : "—";
 
   const techniqueCounts: Record<string, number> = {};
-  entries.forEach((e) => e.techniques.forEach((t) => { techniqueCounts[t] = (techniqueCounts[t] || 0) + 1; }));
+  sessionEntries.forEach((e) => e.techniques.forEach((t) => { techniqueCounts[t] = (techniqueCounts[t] || 0) + 1; }));
   const topTechnique = Object.entries(techniqueCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
 
   const insights = computeInsights(entries);
@@ -606,7 +610,7 @@ function JournalPageInner() {
           )}
 
           {/* Reflective prompt card */}
-          {reflectionPrompt && !reflectionDismissed && entries.length >= 10 && (
+          {reflectionPrompt && !reflectionDismissed && entries.length >= 3 && (
             <div className="mb-6 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">
@@ -666,6 +670,14 @@ function JournalPageInner() {
               >
                 Entries
               </button>
+              {entries.length >= 3 && (
+                <button
+                  onClick={() => { if (!reflectionPrompt) setReflectionPrompt(getReflectionPrompt()); setScreen("reflect"); }}
+                  className="rounded-full px-4 py-2 text-sm text-purple-300/70 transition-colors hover:text-purple-200"
+                >
+                  Reflect
+                </button>
+              )}
               <button
                 onClick={() => setTab("sessions")}
                 className={`rounded-full px-4 py-2 text-sm transition-colors ${tab === "sessions" ? "bg-teal/20 text-teal-soft" : "text-cream-dim hover:text-cream"}`}
@@ -735,22 +747,36 @@ function JournalPageInner() {
                     <button
                       key={entry.id}
                       onClick={() => { setDetailEntry(entry); setScreen("detail"); }}
-                      className="w-full rounded-xl border border-teal/10 bg-deep/40 p-4 text-left transition-colors hover:border-teal/25"
+                      className={`w-full rounded-xl border p-4 text-left transition-colors ${
+                        entry.type === "reflection"
+                          ? "border-l-2 border-l-purple-400/40 border-t-purple-400/10 border-r-purple-400/10 border-b-purple-400/10 bg-purple-400/5 hover:border-l-purple-400/60"
+                          : "border-teal/10 bg-deep/40 hover:border-teal/25"
+                      }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${intensityColor(entry.intensity)}`}>
-                            {entry.intensity}/10
-                          </span>
-                          <span className="text-xs text-cream-dim/50">{entry.duration}</span>
+                          {entry.type === "reflection" ? (
+                            <span className="rounded-md bg-purple-400/15 px-2 py-0.5 text-xs font-medium text-purple-300/80">Reflection</span>
+                          ) : (
+                            <>
+                              <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${intensityColor(entry.intensity)}`}>
+                                {entry.intensity}/10
+                              </span>
+                              <span className="text-xs text-cream-dim/50">{entry.duration}</span>
+                            </>
+                          )}
                         </div>
                         <span className="text-xs text-cream-dim/40">{formatDate(entry.timestamp)}</span>
                       </div>
-                      {entry.triggers.length > 0 && (
+                      {entry.type === "reflection" ? (
+                        <p className="mt-1.5 truncate text-xs text-cream-dim/60 italic">
+                          {entry.prompt || entry.reflection}
+                        </p>
+                      ) : entry.triggers.length > 0 ? (
                         <p className="mt-1.5 truncate text-xs text-cream-dim/60">
                           {entry.triggers.join(", ")}
                         </p>
-                      )}
+                      ) : null}
                     </button>
                   ))}
                 </div>
@@ -1243,6 +1269,93 @@ function JournalPageInner() {
     );
   }
 
+  // ─── REFLECT SCREEN ──────────────────────────────────────────
+
+  if (screen === "reflect") {
+    const currentPrompt = reflectionPrompt || getReflectionPrompt();
+
+    function saveReflection() {
+      if (!reflection.trim()) return;
+      const entry: JournalEntry = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        timestamp: Date.now(),
+        intensity: 0,
+        duration: "",
+        triggers: [],
+        techniques: [],
+        reflection: reflection.trim(),
+        type: "reflection",
+        prompt: currentPrompt,
+      };
+      const updated = [entry, ...entries];
+      setEntries(updated);
+      saveEntries(updated);
+      setScreen("saved");
+    }
+
+    function shufflePrompt() {
+      const newPrompt = getReflectionPrompt();
+      setReflectionPrompt(newPrompt);
+      setReflection("");
+    }
+
+    return (
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+        <div className="w-full max-w-md">
+          <BackButton onClick={() => setScreen("list")} label="Journal" />
+
+          <header className="mb-6 mt-6 text-center">
+            <p className="text-[10px] uppercase tracking-widest text-purple-300/60">Guided reflection</p>
+            <h1 className="mt-2 text-lg font-medium text-cream">A moment to pause</h1>
+            <p className="mt-1 text-sm text-cream-dim">No right answers. Just honesty with yourself.</p>
+          </header>
+
+          <div className="flex flex-col gap-5">
+            {/* Prompt card */}
+            <div className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
+              <p className="text-sm leading-relaxed text-cream italic">
+                &ldquo;{currentPrompt}&rdquo;
+              </p>
+              <button
+                onClick={shufflePrompt}
+                className="mt-3 text-xs text-purple-300/40 transition-colors hover:text-purple-300/70"
+              >
+                Try a different prompt
+              </button>
+            </div>
+
+            {/* Response textarea */}
+            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+              <p className="mb-3 text-sm text-cream-dim">Your thoughts</p>
+              <textarea
+                value={reflection}
+                onChange={(e) => setReflection(e.target.value)}
+                placeholder="Take your time..."
+                rows={6}
+                className="w-full resize-none rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-purple-400/30 focus:outline-none"
+                autoFocus
+              />
+              <p className="mt-2 text-xs text-cream-dim/40">Private to you — stored only on this device</p>
+            </div>
+
+            {/* Save */}
+            <button
+              onClick={saveReflection}
+              disabled={!reflection.trim()}
+              className={`w-full rounded-2xl py-4 text-base font-medium transition-all duration-300 active:scale-[0.98] ${
+                reflection.trim()
+                  ? "bg-purple-400/15 text-purple-200 hover:bg-purple-400/25"
+                  : "bg-slate-blue/20 text-cream-dim/30 cursor-not-allowed"
+              }`}
+            >
+              Save reflection
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ─── SAVED CONFIRMATION ───────────────────────────────────────
 
   if (screen === "saved") {
@@ -1281,12 +1394,23 @@ function JournalPageInner() {
                 <p className="text-base font-medium text-cream">{formatDate(detailEntry.timestamp)}</p>
                 <p className="text-xs text-cream-dim/50">{formatTime(detailEntry.timestamp)}</p>
               </div>
-              <span className={`rounded-lg px-3 py-1 text-sm font-medium ${intensityColor(detailEntry.intensity)}`}>
-                {detailEntry.intensity}/10
-              </span>
+              {detailEntry.type === "reflection" ? (
+                <span className="rounded-lg bg-purple-400/15 px-3 py-1 text-sm font-medium text-purple-300/80">Reflection</span>
+              ) : (
+                <span className={`rounded-lg px-3 py-1 text-sm font-medium ${intensityColor(detailEntry.intensity)}`}>
+                  {detailEntry.intensity}/10
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col gap-4">
+              {detailEntry.type === "reflection" && detailEntry.prompt && (
+                <div className="rounded-xl border border-purple-400/15 bg-purple-400/5 p-4">
+                  <p className="mb-1 text-xs text-purple-300/50">Prompt</p>
+                  <p className="text-sm italic leading-relaxed text-cream-dim">&ldquo;{detailEntry.prompt}&rdquo;</p>
+                </div>
+              )}
+
               {detailEntry.nsState && (
                 <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
                   <p className="mb-1 text-xs text-cream-dim/50">Nervous system state</p>

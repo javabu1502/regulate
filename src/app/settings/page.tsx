@@ -265,7 +265,12 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-medium text-cream">Haptic feedback</h3>
-                <p className="mt-1 text-xs text-cream-dim/60">Vibration during exercises</p>
+                <p className="mt-1 text-xs text-cream-dim/60">
+                  Vibration during exercises
+                  {typeof navigator !== "undefined" && !("vibrate" in navigator) && (
+                    <span className="block mt-1 text-candle-soft/60">Not supported on this device</span>
+                  )}
+                </p>
               </div>
               <button
                 onClick={() => {
@@ -314,16 +319,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Apple Health */}
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-cream">Apple Health</h3>
-                <p className="mt-1 text-xs text-cream-dim/60">Log mindful minutes automatically</p>
-              </div>
-              <span className="rounded-full bg-slate-blue/20 px-2.5 py-0.5 text-[10px] font-medium text-cream-dim/40">Coming soon</span>
-            </div>
-          </div>
 
           <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Regulate+</p>
 

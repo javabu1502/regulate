@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
-const APP_URL = "regulate-liart.vercel.app";
+const APP_URL = typeof window !== "undefined" && window.location.hostname !== "localhost"
+  ? window.location.origin
+  : "https://regulate-liart.vercel.app";
 
 /**
  * Infer the route path from technique name and category.

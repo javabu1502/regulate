@@ -79,7 +79,17 @@ function OnboardingPageInner() {
     return arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
   }
 
+  function trackStep(stepNum: number) {
+    try {
+      const key = "regulate-onboarding-analytics";
+      const existing = JSON.parse(localStorage.getItem(key) || "{}");
+      existing[`step_${stepNum}_at`] = Date.now();
+      localStorage.setItem(key, JSON.stringify(existing));
+    } catch { /* */ }
+  }
+
   function next() {
+    trackStep(step);
     setFadingOut(true);
     setTimeout(() => {
       if (step === 3) {
@@ -96,15 +106,23 @@ function OnboardingPageInner() {
   }
 
   function skip() {
+    trackStep(-1); // -1 = skipped
     localStorage.setItem(ONBOARDING_KEY, "1");
     localStorage.setItem(QUICK_ACCESS_KEY, JSON.stringify(defaultModules));
+    // Preserve referral source
+    const ref = searchParams.get("ref");
+    if (ref) localStorage.setItem("regulate-referral-source", ref);
     router.replace("/");
   }
 
   function finish() {
+    trackStep(step);
     localStorage.setItem(ONBOARDING_KEY, "1");
     localStorage.setItem(QUICK_ACCESS_KEY, JSON.stringify(quickAccess));
     localStorage.setItem(ONBOARDING_DATA_KEY, JSON.stringify({ reasons, helped, triggers }));
+    // Preserve referral source
+    const ref = searchParams.get("ref");
+    if (ref) localStorage.setItem("regulate-referral-source", ref);
     router.replace("/");
   }
 
