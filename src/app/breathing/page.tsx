@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
 import BreathingOrb from "@/components/BreathingOrb";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
 import MicroExplanation from "@/components/MicroExplanation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { voiceGuidance } from "@/lib/voice-guidance";
@@ -129,9 +129,24 @@ function PatternIcon({ id }: { id: string }) {
 type Screen = "select" | "session" | "complete";
 
 export default function BreathingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-midnight" />}>
+      <BreathingPageInner />
+    </Suspense>
+  );
+}
+
+function BreathingPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const patternParam = searchParams.get("pattern");
   const [screen, setScreen] = useState<Screen>("select");
-  const [selectedPattern, setSelectedPattern] = useState<BreathPattern | null>(null);
+  const [selectedPattern, setSelectedPattern] = useState<BreathPattern | null>(() => {
+    if (patternParam) {
+      return patterns.find((p) => p.id === patternParam) ?? null;
+    }
+    return null;
+  });
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
 
   // Session state
@@ -234,6 +249,13 @@ export default function BreathingPage() {
 
   // ─── Voice guidance ────────────────────────────────────────────
 
+  // Stop voice on unmount (e.g. browser back navigation)
+  useEffect(() => {
+    return () => {
+      voiceGuidance.stop();
+    };
+  }, []);
+
   useEffect(() => {
     if (screen === "session" && currentStep && voiceOn) {
       voiceGuidance.speak(currentStep.label);
@@ -304,6 +326,21 @@ export default function BreathingPage() {
     setIsPaused(false);
     setEyesFree(false);
   }
+
+  // ─── Keyboard controls ──────────────────────────────────────────
+  useEffect(() => {
+    if (screen !== "session") return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.code === "Space") {
+        e.preventDefault();
+        setIsPaused((p) => !p);
+      } else if (e.code === "Escape") {
+        resetToSelect();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [screen]);
 
   // ─── SELECT SCREEN ────────────────────────────────────────────
 

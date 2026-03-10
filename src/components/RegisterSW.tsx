@@ -3,6 +3,19 @@
 import { useEffect } from "react";
 import { pruneOldEntries } from "@/lib/storage";
 
+// ─── PWA Install Prompt ─────────────────────────────────────────────
+// Store the deferred prompt globally so any component can trigger install.
+
+let deferredPrompt: Event | null = null;
+
+export function getInstallPrompt(): Event | null {
+  return deferredPrompt;
+}
+
+export function clearInstallPrompt() {
+  deferredPrompt = null;
+}
+
 // Check if a scheduled notification is due and show it via the service worker
 function checkScheduledNotification(registration: ServiceWorkerRegistration) {
   try {
@@ -56,6 +69,26 @@ export default function RegisterSW() {
     // Prune old entries on app load
     pruneOldEntries("regulate-sos-history", 200);
     pruneOldEntries("regulate-journal", 500);
+
+    // Listen for the install prompt so we can surface it in UI
+    const installHandler = (e: Event) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      try {
+        localStorage.setItem("regulate-install-available", "true");
+      } catch {}
+      // Dispatch a custom event so listening components can re-render
+      window.dispatchEvent(new Event("regulate-install-ready"));
+    };
+    window.addEventListener("beforeinstallprompt", installHandler);
+
+    // If the app was installed, clear the flag
+    window.addEventListener("appinstalled", () => {
+      deferredPrompt = null;
+      try {
+        localStorage.removeItem("regulate-install-available");
+      } catch {}
+    });
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { useScrollMemory } from "@/hooks/useScrollMemory";
@@ -381,9 +381,25 @@ function getSortedTechniques(nsState: NSState | null): ExerciseInfo[] {
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function SomaticPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-midnight" />}>
+      <SomaticPageInner />
+    </Suspense>
+  );
+}
+
+function SomaticPageInner() {
   const router = useRouter();
-  const [screen, setScreen] = useState<Screen>("select");
-  const [technique, setTechnique] = useState<Technique>("bilateral-tapping");
+  const searchParams = useSearchParams();
+  const exerciseParam = searchParams.get("exercise") as Technique | null;
+  const [screen, setScreen] = useState<Screen>(() => {
+    if (exerciseParam && techniques.some((t) => t.id === exerciseParam)) return "info";
+    return "select";
+  });
+  const [technique, setTechnique] = useState<Technique>(() => {
+    if (exerciseParam && techniques.some((t) => t.id === exerciseParam)) return exerciseParam;
+    return "bilateral-tapping";
+  });
   const [duration, setDuration] = useState(3);
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
   // Bilateral tapping: 1Hz (1000ms) is the scientifically validated EMDR rate

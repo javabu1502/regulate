@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GroundingIcon } from "@/components/Icons";
@@ -121,6 +121,13 @@ export default function GroundingPage() {
 
   // Body / Object grounding state
   const [simpleStepIndex, setSimpleStepIndex] = useState(0);
+
+  // Reset checked items when sense step changes to prevent stale state
+  useEffect(() => {
+    if (screen === "session" && groundingType === "sensory") {
+      setChecked(Array(senseSteps[stepIndex].count).fill(false));
+    }
+  }, [stepIndex, screen, groundingType]);
 
   const currentSense = senseSteps[stepIndex];
   const totalItems = senseSteps.reduce((sum, s) => sum + s.count, 0);

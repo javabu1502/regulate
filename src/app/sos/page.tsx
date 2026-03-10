@@ -118,8 +118,8 @@ interface Exercise {
 
 const allExercises: Exercise[] = [
   // Inline (built into SOS flow)
-  { id: "breathing", label: "Physiological sigh", icon: "\u{1F32C}\uFE0F", desc: "Double inhale, long exhale \u2014 fastest nervous system reset", time: "~2 min", type: "inline" },
-  { id: "extended", label: "Extended exhale", icon: "\u{1FAC1}", desc: "4 seconds in, 8 seconds out \u2014 slows everything down", time: "~3 min", type: "inline" },
+  { id: "breathing", label: "Physiological sigh", icon: "\u{1F32C}\uFE0F", desc: "Double inhale, long exhale \u2014 fastest nervous system reset", time: "~1 min", type: "inline" },
+  { id: "extended", label: "Extended exhale", icon: "\u{1FAC1}", desc: "4 seconds in, 8 seconds out \u2014 slows everything down", time: "~1 min", type: "inline" },
   { id: "tapping", label: "Bilateral tapping", icon: "\u{1F932}", desc: "Left-right rhythm with sound \u2014 helps process what you're feeling", time: "2 min", type: "inline" },
   { id: "grounding", label: "5-4-3-2-1 Grounding", icon: "\u{1F441}\uFE0F", desc: "Use your senses to come back to the present moment", time: "~3 min", type: "inline" },
   { id: "gentle-movement", label: "Gentle movement", icon: "\u{1F30A}", desc: "Wiggle, rock, stretch \u2014 small movements to come back online", time: "1 min", type: "inline" },
@@ -127,7 +127,7 @@ const allExercises: Exercise[] = [
   { id: "body-scan", label: "Body scan", icon: "\u{1F9D8}", desc: "Move attention slowly through your body \u2014 progressive release", time: "5 min", type: "link", href: "/body-scan" },
   { id: "somatic", label: "Somatic exercises", icon: "\u{1FAE8}", desc: "Shaking, humming, vagus nerve work \u2014 release what your body is holding", time: "2-5 min", type: "link", href: "/somatic" },
   { id: "affirmations", label: "Affirmations", icon: "\u{1F4AC}", desc: "Words to hold you \u2014 chosen for how you're feeling", time: "~2 min", type: "link", href: "/affirmations" },
-  { id: "sleep", label: "Sleep sequence", icon: "\u{1F319}", desc: "Breathing + muscle relaxation for restless nights", time: "5 min", type: "link", href: "/sleep" },
+  { id: "sleep", label: "Sleep sequence", icon: "\u{1F319}", desc: "Breathing + muscle relaxation for restless nights", time: "3-5 min", type: "link", href: "/sleep" },
 ];
 
 // ─── Recommended exercises per body state ────────────────────────────
@@ -215,8 +215,24 @@ function SOSPageInner() {
   // Check back later
   const [checkBackScheduled, setCheckBackScheduled] = useState(false);
 
+  // My Person contacts (for exercise screens)
+  const [myPersonContacts, setMyPersonContacts] = useState<{name: string; phone: string}[]>([]);
+
   // Last helped
   const [lastHelped, setLastHelped] = useState<{id: string; label: string; ts: string} | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("my_person");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const contacts = Array.isArray(parsed)
+          ? parsed.filter((c: { name?: string; phone?: string }) => c.name && c.phone)
+          : parsed && parsed.name && parsed.phone ? [parsed] : [];
+        setMyPersonContacts(contacts);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     try {
@@ -527,6 +543,27 @@ function SOSPageInner() {
     );
   }
 
+  // Small "Call [Name]" button for active exercise screens
+  function CallDuringExercise() {
+    if (myPersonContacts.length === 0) return null;
+    return (
+      <div className="flex flex-wrap justify-center gap-2">
+        {myPersonContacts.map((c, i) => (
+          <a
+            key={i}
+            href={`tel:${c.phone}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-blue/20 px-3 py-2 text-xs text-cream-dim/50 transition-colors hover:border-teal/30 hover:text-cream-dim"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 2.5C3 2.5 4.5 2 5.5 3.5L6.5 5.5C6.5 5.5 5.5 6.5 6.5 8C7.5 9.5 8.5 9 8.5 9L10.5 10C12 11 11.5 12.5 11.5 12.5C10.5 14 8 13.5 6 11.5C4 9.5 2.5 7 3 5C3 5 3 3.5 3 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+            Call {c.name}
+          </a>
+        ))}
+      </div>
+    );
+  }
+
   // "Try something else" link (shared across exercise screens)
   function TrySomethingElse() {
     return (
@@ -810,8 +847,9 @@ function SOSPageInner() {
           <p className="mt-3 font-mono text-5xl font-extralight tabular-nums text-cream/70" role="timer" aria-label={`${secondsLeft} seconds remaining`}>{secondsLeft}</p>
         </div>
 
-        {/* Try something else + Crisis line — always visible, never distracting */}
+        {/* Try something else + Call person + Crisis line — always visible, never distracting */}
         <div className="fixed bottom-12 left-0 right-0 flex flex-col items-center gap-3">
+          <CallDuringExercise />
           <TrySomethingElse />
           <div className="flex items-center gap-3">
             <a href="tel:988" className="text-[10px] text-cream-dim/50 underline underline-offset-2">988 Lifeline</a>
@@ -857,6 +895,7 @@ function SOSPageInner() {
           >
             I&apos;m ready to stop
           </button>
+          <CallDuringExercise />
           <TrySomethingElse />
         </div>
       </div>
@@ -902,6 +941,7 @@ function SOSPageInner() {
           >
             Done
           </button>
+          <CallDuringExercise />
           <TrySomethingElse />
         </div>
       </div>
@@ -947,6 +987,7 @@ function SOSPageInner() {
           >
             {timedSecondsLeft === 0 ? "Ready to continue" : "I\u2019m ready"}
           </button>
+          <CallDuringExercise />
           <TrySomethingElse />
         </div>
       </div>
@@ -993,7 +1034,8 @@ function SOSPageInner() {
           </div>
         </div>
 
-        <div className="fixed bottom-10 flex justify-center">
+        <div className="fixed bottom-10 flex flex-col items-center gap-3">
+          <CallDuringExercise />
           <TrySomethingElse />
         </div>
       </div>
@@ -1020,13 +1062,19 @@ function SOSPageInner() {
               Lighter
             </button>
             <button
-              onClick={() => setStep("pick-tool")}
+              onClick={() => {
+                recordPartialSession();
+                setStep("pick-tool");
+              }}
               className="w-full rounded-2xl bg-candle/15 py-4 text-base font-medium text-candle transition-all hover:bg-candle/25 active:scale-[0.98]"
             >
               I need something else
             </button>
             <button
-              onClick={() => setStep("final")}
+              onClick={() => {
+                recordPartialSession();
+                setStep("final");
+              }}
               className="mt-1 min-h-[44px] text-xs text-cream-dim/50 hover:text-cream-dim"
             >
               I&apos;m done for now

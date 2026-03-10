@@ -29,7 +29,7 @@ const days: DayInfo[] = [
     title: "Breathing Basics",
     description:
       "Your breath is the fastest way to signal safety to your nervous system. The physiological sigh — a double inhale through the nose followed by a long exhale — activates your vagus nerve and shifts you out of fight-or-flight. Today, you will try it for yourself.",
-    href: "/breathing",
+    href: "/breathing?pattern=sigh",
     linkLabel: "Open breathing exercises",
   },
   {
@@ -53,24 +53,24 @@ const days: DayInfo[] = [
     title: "Bilateral Tapping",
     description:
       "Alternating left-right stimulation — like the butterfly hug — calms the amygdala, your brain's alarm system. This is the same principle behind EMDR therapy. Crossing your arms over your chest and tapping gently tells your nervous system that you are safe enough to settle.",
-    href: "/somatic",
-    linkLabel: "Open somatic exercises — choose Bilateral Tapping",
+    href: "/somatic?exercise=bilateral-tapping",
+    linkLabel: "Open Bilateral Tapping",
   },
   {
     day: 5,
     title: "Self-Havening",
     description:
       "Gentle, repetitive touch on your face, arms, and palms produces delta waves in the brain — the same waves present in deep sleep. Havening was developed to help process distressing memories, but it is also a beautiful way to soothe yourself in any difficult moment.",
-    href: "/somatic",
-    linkLabel: "Open somatic exercises — choose Havening",
+    href: "/somatic?exercise=havening",
+    linkLabel: "Open Self-Havening",
   },
   {
     day: 6,
     title: "Orienting & Safety",
     description:
       "When your nervous system is stuck in threat-detection mode, it scans internally — racing thoughts, worst-case scenarios. Orienting redirects that scanning outward. Slowly turning your head and noticing your surroundings tells your brainstem: I have looked around, and I am safe here.",
-    href: "/somatic",
-    linkLabel: "Open somatic exercises — choose Orienting",
+    href: "/somatic?exercise=orienting",
+    linkLabel: "Open Orienting",
   },
   {
     day: 7,
@@ -198,12 +198,12 @@ export default function FirstWeekPage() {
 
   // Day 7 toolkit: all previous techniques for review
   const toolkitTechniques = [
-    { name: "Physiological Sigh", href: "/breathing", day: 1 },
+    { name: "Physiological Sigh", href: "/breathing?pattern=sigh", day: 1 },
     { name: "5-4-3-2-1 Grounding", href: "/grounding", day: 2 },
     { name: "Body Scan", href: "/body-scan", day: 3 },
-    { name: "Bilateral Tapping", href: "/somatic", day: 4 },
-    { name: "Havening", href: "/somatic", day: 5 },
-    { name: "Orienting", href: "/somatic", day: 6 },
+    { name: "Bilateral Tapping", href: "/somatic?exercise=bilateral-tapping", day: 4 },
+    { name: "Havening", href: "/somatic?exercise=havening", day: 5 },
+    { name: "Orienting", href: "/somatic?exercise=orienting", day: 6 },
   ];
 
   return (

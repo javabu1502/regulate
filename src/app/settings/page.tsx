@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isPremium, purchasePremium, restorePurchases, PREMIUM_FEATURES, FREE_FEATURES, PRICE } from "@/lib/premium";
 import { getStorageUsage } from "@/lib/storage";
+import TherapistSummary from "@/components/TherapistSummary";
 
 interface CustomCrisisLine {
   name: string;
@@ -606,6 +607,9 @@ export default function SettingsPage() {
             <h3 className="text-sm font-medium text-cream">Download my data</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Export all app data as a JSON backup file</p>
           </button>
+
+          {/* Therapist summary */}
+          <TherapistSummary />
 
           {/* Restore from backup */}
           <input

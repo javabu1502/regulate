@@ -293,19 +293,19 @@ export default function SleepPage() {
         id: "cant-sleep" as Mode,
         title: "Can\u2019t fall asleep",
         desc: "Breathing + muscle relaxation",
-        time: "~5 min",
+        time: "~3 min",
       },
       {
         id: "woke-up" as Mode,
         title: "Woke up anxious",
         desc: "Grounding + affirmations",
-        time: "~3 min",
+        time: "~2 min",
       },
       {
         id: "racing" as Mode,
         title: "Racing thoughts",
         desc: "Extended exhale + body scan",
-        time: "~4 min",
+        time: "~3 min",
       },
     ];
 

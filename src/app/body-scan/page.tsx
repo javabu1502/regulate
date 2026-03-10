@@ -161,6 +161,13 @@ export default function BodyScanPage() {
 
   // ─── Voice guidance ────────────────────────────────────────────
 
+  // Stop voice on unmount (e.g. browser back navigation)
+  useEffect(() => {
+    return () => {
+      voiceGuidance.stop();
+    };
+  }, []);
+
   useEffect(() => {
     if (screen === "session" && voiceOn) {
       voiceGuidance.speak(`${region.name}. ${region.instruction}`);

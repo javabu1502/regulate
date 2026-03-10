@@ -91,6 +91,28 @@ const GENTLE_ALTERNATIVES: Record<string, { label: string; href: string }> = {
   Affirmations: { label: "Body Scan", href: "/body-scan" },
 };
 
+// ─── Repeated "harder" detection ──────────────────────────────────────
+
+/**
+ * Count aftercare "harder" responses within the last 7 days from journal.
+ * Includes the current response (already written to localStorage by handleFeeling).
+ */
+function getRecentHarderCount(): number {
+  try {
+    const raw = localStorage.getItem("regulate-journal");
+    if (!raw) return 0;
+    const entries = JSON.parse(raw) as { type?: string; aftercareResponse?: string; date?: string }[];
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return entries.filter((e) => {
+      if (e.type !== "aftercare" || e.aftercareResponse !== "harder") return false;
+      const ts = e.date ? new Date(e.date).getTime() : 0;
+      return ts >= sevenDaysAgo;
+    }).length;
+  } catch {
+    return 0;
+  }
+}
+
 // ─── Quick-journal component ──────────────────────────────────────────
 
 function QuickJournal({ technique }: { technique: string }) {
@@ -176,6 +198,7 @@ export default function AftercareFlow({
   const resolvedCategory = category || inferCategory(technique);
   const [feeling, setFeeling] = useState<Feeling | null>(null);
   const [showSafetyCheck, setShowSafetyCheck] = useState(false);
+  const [repeatedHarder, setRepeatedHarder] = useState(false);
 
   const complementary = getComplementary(resolvedCategory);
   const resolvedLearnLink = getLearnLink(resolvedCategory, learnLink);
@@ -200,6 +223,11 @@ export default function AftercareFlow({
 
     // Show safety check before the "heavier" result screen
     if (f === "harder") {
+      // Check for repeated "harder" responses (3+ in 7 days)
+      const count = getRecentHarderCount();
+      if (count >= 3) {
+        setRepeatedHarder(true);
+      }
       setShowSafetyCheck(true);
     }
   }
@@ -383,7 +411,7 @@ export default function AftercareFlow({
         </>
       )}
 
-      {feeling === "harder" && (
+      {feeling === "harder" && !repeatedHarder && (
         <>
           <h2 className="text-xl font-light text-cream">Thank you for being honest.</h2>
           <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
@@ -403,8 +431,38 @@ export default function AftercareFlow({
         </>
       )}
 
+      {feeling === "harder" && repeatedHarder && (
+        <div className="w-full max-w-sm rounded-2xl bg-candle/10 border border-candle/20 p-6 text-left">
+          <h2 className="text-lg font-light text-cream">
+            Exercises aren&apos;t always the right fit for what you&apos;re going through right now.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-cream-dim">
+            Talking to a therapist could help you understand what&apos;s happening in your nervous system.
+          </p>
+          <div className="mt-5 flex flex-col gap-2.5">
+            <a
+              href="https://www.psychologytoday.com/us/therapists"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full rounded-xl bg-teal/15 px-5 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
+            >
+              Find a therapist
+            </a>
+            <Link
+              href="/crisis"
+              className="w-full rounded-xl bg-candle/15 px-5 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"
+            >
+              Crisis resources
+            </Link>
+          </div>
+          <p className="mt-5 text-sm leading-relaxed text-cream-dim">
+            This doesn&apos;t mean you&apos;re broken — it means your body might need different support right now.
+          </p>
+        </div>
+      )}
+
       <div className="mt-10 flex flex-col items-center gap-3">
-        {feeling === "harder" && (
+        {feeling === "harder" && !repeatedHarder && (
           <Link
             href="/crisis"
             className="w-56 rounded-xl bg-candle/15 px-8 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"

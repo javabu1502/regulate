@@ -21,6 +21,7 @@ import {
   type TopTechnique,
 } from "@/lib/recommendations";
 import PremiumGate from "@/components/PremiumGate";
+import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
 
 // ─── Body state options ─────────────────────────────────────────────
 
@@ -105,7 +106,7 @@ const dailyPractices = [
     id: "breathing",
     name: "Physiological Sigh",
     desc: "Double inhale, long exhale \u2014 the fastest nervous system reset.",
-    time: "2 min",
+    time: "~1 min",
     href: "/breathing",
   },
   {
@@ -120,27 +121,27 @@ const dailyPractices = [
     name: "Orienting",
     desc: "Slowly look around to signal safety to your nervous system.",
     time: "2 min",
-    href: "/somatic?start=orienting",
+    href: "/somatic?exercise=orienting",
   },
   {
     id: "pendulation",
     name: "Pendulation",
     desc: "Shift attention between tension and comfort \u2014 build resilience.",
     time: "3 min",
-    href: "/somatic?start=pendulation",
+    href: "/somatic?exercise=pendulation",
   },
   {
     id: "havening",
     name: "Self-Havening",
     desc: "Gentle arm and face strokes to produce deep calm.",
     time: "3 min",
-    href: "/somatic?start=havening",
+    href: "/somatic?exercise=havening",
   },
   {
     id: "extended",
     name: "Coherence Breathing",
-    desc: "4 seconds in, 8 seconds out \u2014 slows everything down.",
-    time: "3 min",
+    desc: "5 seconds in, 5 seconds out \u2014 synchronize heart and breath.",
+    time: "~1 min",
     href: "/breathing",
   },
   {
@@ -447,12 +448,17 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e);
+    // Check if an install prompt is already captured by RegisterSW
+    const existing = getInstallPrompt();
+    if (existing) setInstallPrompt(existing);
+
+    // Listen for future install-ready events from RegisterSW
+    const handler = () => {
+      const prompt = getInstallPrompt();
+      if (prompt) setInstallPrompt(prompt);
     };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    window.addEventListener("regulate-install-ready", handler);
+    return () => window.removeEventListener("regulate-install-ready", handler);
   }, []);
 
   const [dashData, setDashData] = useState<{
@@ -576,6 +582,11 @@ export default function Home() {
     } catch {}
   }
 
+  // Diagnostic quiz state
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const [diagnosticStep, setDiagnosticStep] = useState(0);
+  const [diagnosticFading, setDiagnosticFading] = useState(false);
+
   const [checkBack, setCheckBack] = useState<{
     ts: number;
     tool: string;
@@ -619,7 +630,7 @@ export default function Home() {
           id: "somatic",
           name: "Somatic Movement",
           desc: "Shaking, humming, vagus nerve work",
-          time: "3 min",
+          time: "2-5 min",
           href: "/somatic",
         },
         {
@@ -640,14 +651,14 @@ export default function Home() {
           id: "breathing",
           name: "Guided Breathing",
           desc: "Patterns to calm your nervous system",
-          time: "3 min",
+          time: "1-2 min",
           href: "/breathing",
         },
         {
           id: "sleep",
           name: "Sleep Sequence",
           desc: "Breathing + relaxation for restless nights",
-          time: "5 min",
+          time: "3-5 min",
           href: "/sleep",
         },
       ];
@@ -705,8 +716,19 @@ export default function Home() {
   const handleInstall = useCallback(async () => {
     if (!installPrompt) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (installPrompt as any).prompt();
+    const prompt = installPrompt as any;
+    prompt.prompt();
+    try {
+      const result = await prompt.userChoice;
+      if (result?.outcome === "accepted") {
+        clearInstallPrompt();
+      }
+    } catch {
+      // userChoice may not be available on all browsers
+    }
+    // Hide the banner regardless of outcome
     dismissInstall();
+    setInstallPrompt(null);
   }, [installPrompt, dismissInstall]);
 
   // Daily suggested practice (rotates on a 7-day cycle)
@@ -867,6 +889,118 @@ export default function Home() {
           >
             I don&apos;t know &mdash; just help me
           </button>
+
+          {/* "Not sure what you're feeling?" diagnostic trigger */}
+          {!showDiagnostic && (
+            <button
+              onClick={() => {
+                setShowDiagnostic(true);
+                setDiagnosticStep(0);
+                setDiagnosticFading(false);
+              }}
+              className="mt-3 w-full text-center text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
+            >
+              Not sure what you&apos;re feeling?
+            </button>
+          )}
+
+          {/* Inline diagnostic quiz */}
+          {showDiagnostic && (
+            <div className="relative mt-4 rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              {/* Close button */}
+              <button
+                onClick={() => setShowDiagnostic(false)}
+                className="absolute right-3 top-3 text-cream-dim/30 transition-colors hover:text-cream-dim/60"
+                aria-label="Close diagnostic"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M4 4L12 12M12 4L4 12" />
+                </svg>
+              </button>
+
+              {/* Questions (one at a time with fade) */}
+              {diagnosticStep <= 2 && (
+                <div
+                  className={`transition-opacity duration-300 ${diagnosticFading ? "opacity-0" : "opacity-100"}`}
+                >
+                  <p className="pr-6 text-sm font-medium text-cream">
+                    {diagnosticStep === 0 &&
+                      "Is your heart racing or are you breathing fast?"}
+                    {diagnosticStep === 1 &&
+                      "Do you feel numb, frozen, or disconnected?"}
+                    {diagnosticStep === 2 &&
+                      "Is there a background hum of worry or tension?"}
+                  </p>
+                  <div className="mt-4 flex gap-3">
+                    <button
+                      onClick={() => {
+                        if (diagnosticStep === 0) {
+                          router.push("/sos?state=panicking");
+                        } else if (diagnosticStep === 1) {
+                          router.push("/sos?state=shutdown");
+                        } else {
+                          router.push("/sos?state=anxious");
+                        }
+                      }}
+                      className="flex-1 rounded-xl bg-teal/15 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/25"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (diagnosticStep < 2) {
+                          setDiagnosticFading(true);
+                          setTimeout(() => {
+                            setDiagnosticStep((s) => s + 1);
+                            setDiagnosticFading(false);
+                          }, 300);
+                        } else {
+                          // All No — show window of tolerance message
+                          setDiagnosticFading(true);
+                          setTimeout(() => {
+                            setDiagnosticStep(3);
+                            setDiagnosticFading(false);
+                          }, 300);
+                        }
+                      }}
+                      className="flex-1 rounded-xl border border-slate-blue/30 py-2.5 text-sm text-cream-dim transition-colors hover:border-slate-blue/50"
+                    >
+                      No
+                    </button>
+                  </div>
+                  {/* Progress dots */}
+                  <div className="mt-3 flex justify-center gap-1.5">
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-1 w-1 rounded-full ${i === diagnosticStep ? "bg-teal-soft/60" : "bg-slate-blue/20"}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* All No result */}
+              {diagnosticStep === 3 && (
+                <div
+                  className={`text-center transition-opacity duration-300 ${diagnosticFading ? "opacity-0" : "opacity-100"}`}
+                >
+                  <p className="text-sm font-medium text-cream">
+                    You seem to be in your window of tolerance right now.
+                  </p>
+                  <p className="mt-1 text-xs text-cream-dim/50">
+                    That&apos;s good.
+                  </p>
+                  <Link
+                    href="/somatic"
+                    className="mt-4 inline-block rounded-xl bg-teal/15 px-5 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/25"
+                  >
+                    Practice somatic tools
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Crisis line */}
           <div className="mt-10 flex justify-center">
@@ -1265,20 +1399,25 @@ export default function Home() {
 
         {/* Install banner */}
         {installPrompt && !installDismissed && (
-          <div className="mt-6 flex items-center justify-between rounded-xl border border-teal/15 bg-deep/40 px-4 py-3">
-            <p className="text-xs text-cream-dim/50">Add to home screen</p>
-            <div className="flex items-center gap-2">
+          <div className="mt-6 flex items-center justify-between rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3">
+            <p className="text-sm text-cream-dim/60">
+              Add Regulate to your home screen for instant access
+            </p>
+            <div className="flex shrink-0 items-center gap-2">
               <button
                 onClick={handleInstall}
-                className="rounded-lg bg-teal/20 px-3 py-1.5 text-xs text-teal-soft hover:bg-teal/30"
+                className="rounded-lg bg-teal/15 px-3 py-1.5 text-xs text-teal-soft hover:bg-teal/25"
               >
                 Install
               </button>
               <button
                 onClick={dismissInstall}
-                className="text-xs text-cream-dim/30 hover:text-cream-dim"
+                className="text-cream-dim/30 hover:text-cream-dim"
+                aria-label="Dismiss install banner"
               >
-                Dismiss
+                <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M4 4l8 8M12 4l-8 8" />
+                </svg>
               </button>
             </div>
           </div>
