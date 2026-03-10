@@ -167,7 +167,7 @@ function OnboardingPageInner() {
       </div>
 
       <div className={`w-full max-w-md transition-opacity duration-200 ${fadingOut ? "opacity-0" : "opacity-100"}`}>
-        {/* STEP 1 — Welcome */}
+        {/* STEP 1 - Welcome */}
         {step === 1 && (
           <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
             <div className="animate-float mb-6">
@@ -200,7 +200,7 @@ function OnboardingPageInner() {
           </div>
         )}
 
-        {/* STEP 2 — What brings you here */}
+        {/* STEP 2 - What brings you here */}
         {step === 2 && (
           <div>
             <h2 className="text-center text-xl font-light text-cream">What are you navigating right now?</h2>
@@ -229,7 +229,7 @@ function OnboardingPageInner() {
           </div>
         )}
 
-        {/* STEP 3 — What has helped */}
+        {/* STEP 3 - What has helped */}
         {step === 3 && (
           <div>
             <h2 className="text-center text-xl font-light text-cream">Has anything helped, even a little?</h2>
@@ -258,7 +258,7 @@ function OnboardingPageInner() {
           </div>
         )}
 
-        {/* STEP 4 — Triggers */}
+        {/* STEP 4 - Triggers */}
         {step === 4 && (
           <div>
             <h2 className="text-center text-xl font-light text-cream">What tends to activate your nervous system?</h2>
@@ -287,7 +287,7 @@ function OnboardingPageInner() {
           </div>
         )}
 
-        {/* STEP 5 — Pick go-to tools */}
+        {/* STEP 5 - Pick go-to tools */}
         {step === 5 && (
           <div>
             <h2 className="text-center text-xl font-light text-cream">Which tools do you want quick access to?</h2>
@@ -327,7 +327,7 @@ function OnboardingPageInner() {
           </div>
         )}
 
-        {/* STEP 6 — Ready */}
+        {/* STEP 6 - Ready */}
         {step === 6 && (
           <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
             <div className="animate-pulse-soft mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
@@ -338,10 +338,10 @@ function OnboardingPageInner() {
             </h2>
             <p className="mx-auto mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
               Come back anytime. Even at 3am.<br />
-              You don&apos;t have to be in crisis to use it — regular practice builds resilience over time.
+              You don&apos;t have to be in crisis to use it - regular practice builds resilience over time.
             </p>
             <p className="mx-auto mt-3 max-w-[280px] text-xs text-cream-dim/50">
-              Audio guidance is available for every exercise — look for the voice toggle during sessions.
+              Audio guidance is available for every exercise - look for the voice toggle during sessions.
             </p>
             <button
               onClick={finish}

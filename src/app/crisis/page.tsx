@@ -131,7 +131,7 @@ export default function CrisisPage() {
               className="rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
             >
               <h3 className="text-sm font-medium text-cream">Open Path Collective</h3>
-              <p className="mt-1 text-xs text-cream-dim/60">Affordable therapy — sessions from $30 to $80.</p>
+              <p className="mt-1 text-xs text-cream-dim/60">Affordable therapy - sessions from $30 to $80.</p>
             </a>
             <a
               href="https://www.betterhelp.com"

@@ -66,7 +66,7 @@ function playTapTone(ctx: AudioContext, pan: number) {
 }
 
 // ─── Location context filtering ─────────────────────────────────────
-// "Where are you?" — filters exercises to what's appropriate for the setting
+// "Where are you?" - filters exercises to what's appropriate for the setting
 
 type LocationContext = "anywhere" | "home" | "work" | "bed" | "people" | "driving";
 
@@ -178,11 +178,11 @@ function SOSPageInner() {
   const bodyState = searchParams.get("state"); // "panicking" | "anxious" | "shutdown"
   useWakeLock(true);
 
-  // Core state — auto-start immediately when body state is provided, skip context
+  // Core state - auto-start immediately when body state is provided, skip context
   const [step, setStep] = useState<SOSStep>(() => bodyState ? "auto-start" : "recommend");
   const [activeTool, setActiveTool] = useState("breathing");
 
-  // Location context — defaults to "anywhere" (no filter)
+  // Location context - defaults to "anywhere" (no filter)
   const [locationContext, setLocationContext] = useState<LocationContext>("anywhere");
 
   // Breathing state
@@ -246,7 +246,7 @@ function SOSPageInner() {
   }, []);
 
   // After context is selected, auto-start the #1 recommended exercise when a body state is provided.
-  // During panic the prefrontal cortex is offline — don't make users read and choose.
+  // During panic the prefrontal cortex is offline - don't make users read and choose.
   const autoStarted = useRef(false);
   useEffect(() => {
     if (step !== "auto-start" || autoStarted.current) return;
@@ -568,7 +568,10 @@ function SOSPageInner() {
   function TrySomethingElse() {
     return (
       <button
-        onClick={() => setStep("recommend")}
+        onClick={() => {
+          recordPartialSession();
+          setStep("pick-tool");
+        }}
         className="min-h-[44px] text-xs text-cream-dim/50 underline underline-offset-2 transition-colors hover:text-cream-dim/70"
       >
         Try something else
@@ -585,7 +588,7 @@ function SOSPageInner() {
     );
   }
 
-  // Context badge — small indicator showing current location filter with change option
+  // Context badge - small indicator showing current location filter with change option
   function ContextBadge() {
     if (locationContext === "anywhere") return null;
     return (
@@ -642,7 +645,7 @@ function SOSPageInner() {
             onClick={() => selectContext("anywhere")}
             className="mt-5 w-full min-h-[44px] text-center text-sm text-cream-dim/60 transition-colors hover:text-cream-dim"
           >
-            Skip — show everything
+            Skip - show everything
           </button>
 
           {/* Crisis line */}
@@ -814,7 +817,7 @@ function SOSPageInner() {
     );
   }
 
-  // ─── BREATHING (the default — starts immediately) ──────────────────
+  // ─── BREATHING (the default - starts immediately) ──────────────────
 
   if (step === "breathing" && currentBreathStep) {
     return (
@@ -847,7 +850,7 @@ function SOSPageInner() {
           <p className="mt-3 font-mono text-5xl font-extralight tabular-nums text-cream/70" role="timer" aria-label={`${secondsLeft} seconds remaining`}>{secondsLeft}</p>
         </div>
 
-        {/* Try something else + Call person + Crisis line — always visible, never distracting */}
+        {/* Try something else + Call person + Crisis line - always visible, never distracting */}
         <div className="fixed bottom-12 left-0 right-0 flex flex-col items-center gap-3">
           <CallDuringExercise />
           <TrySomethingElse />
@@ -973,7 +976,7 @@ function SOSPageInner() {
 
           <h2 className="text-2xl font-light text-cream">Let&apos;s wake your body up gently</h2>
           <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-cream-dim">
-            Wiggle your fingers and toes. Roll your shoulders slowly. Rock side to side. Small movements — just enough to feel something.
+            Wiggle your fingers and toes. Roll your shoulders slowly. Rock side to side. Small movements - just enough to feel something.
           </p>
         </div>
 
@@ -1101,7 +1104,7 @@ function SOSPageInner() {
 
     return (
       <div key="pick-tool" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
-        <BackButton onClick={() => setStep("check-in")} />
+        <BackButton onClick={() => setStep("recommend")} />
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">Let&apos;s try something different</h2>
           <p className="mt-2 text-center text-xs text-cream-dim/50">Pick one. We&apos;ll start right away.</p>
@@ -1184,7 +1187,7 @@ function SOSPageInner() {
                     if ("Notification" in window && "serviceWorker" in navigator) {
                       let permission = Notification.permission;
 
-                      // Only ask if not yet decided — never ask proactively
+                      // Only ask if not yet decided - never ask proactively
                       if (permission === "default") {
                         permission = await Notification.requestPermission();
                       }

@@ -26,7 +26,7 @@ export default function OnboardingGate({ children }: { children: React.ReactNode
   }, [pathname, router]);
 
   if (!checked && pathname !== "/onboarding" && pathname !== "/refer" && pathname !== "/clinicians" && !pathname?.startsWith("/programs")) {
-    // Show nothing while checking — prevents flash
+    // Show nothing while checking - prevents flash
     return <div className="min-h-screen bg-midnight" />;
   }
 

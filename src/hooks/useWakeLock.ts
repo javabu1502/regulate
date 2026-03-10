@@ -34,7 +34,7 @@ export function useWakeLock(active: boolean) {
           wakeLockRef.current = sentinel;
         }
       } catch {
-        // Wake lock request failed — not supported or permission denied
+        // Wake lock request failed - not supported or permission denied
       }
     }
 

@@ -50,7 +50,7 @@ export function useAudioGuide(module: string) {
 
       audio.addEventListener("canplaythrough", () => {
         audio.play().catch(() => {
-          // Audio file doesn't exist or can't play — silently fail
+          // Audio file doesn't exist or can't play - silently fail
         });
         setIsPlaying(true);
       });
@@ -61,7 +61,7 @@ export function useAudioGuide(module: string) {
       });
 
       audio.addEventListener("error", () => {
-        // File doesn't exist — silently fall back
+        // File doesn't exist - silently fall back
         setIsPlaying(false);
         audioRef.current = null;
       });

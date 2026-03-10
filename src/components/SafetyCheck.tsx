@@ -34,7 +34,7 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
           </button>
         </div>
 
-        {/* Crisis resources — always visible */}
+        {/* Crisis resources - always visible */}
         <div className="mt-8 rounded-2xl border border-slate-blue/20 bg-deep/40 p-4">
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/40">
             If you need to talk to someone
@@ -89,7 +89,7 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
             >
               <div>
                 <p className="text-sm font-medium text-cream">Affordable therapy</p>
-                <p className="text-xs text-cream-dim/50">Open Path Collective — $30-$80/session</p>
+                <p className="text-xs text-cream-dim/50">Open Path Collective - $30-$80/session</p>
               </div>
               <span className="text-xs text-teal-soft">Open</span>
             </a>

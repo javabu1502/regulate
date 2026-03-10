@@ -20,7 +20,7 @@ export function pruneOldEntries(key: string, maxEntries: number): void {
 
     localStorage.setItem(key, JSON.stringify(sorted.slice(0, maxEntries)));
   } catch {
-    // Silently fail — pruning is an enhancement
+    // Silently fail - pruning is an enhancement
   }
 }
 

@@ -47,7 +47,7 @@ const sections: Section[] = [
         </p>
         <div className="rounded-xl bg-teal/8 p-4">
           <p className="text-cream">
-            Your body is doing exactly what it was designed to do — responding to a perceived threat. The problem isn&apos;t
+            Your body is doing exactly what it was designed to do - responding to a perceived threat. The problem isn&apos;t
             your body. It&apos;s that the alarm is going off when there&apos;s no fire.
           </p>
         </div>
@@ -69,24 +69,24 @@ const sections: Section[] = [
         </p>
         <div className="grid gap-3">
           <div className="rounded-xl border border-candle/15 bg-candle/5 p-4">
-            <p className="mb-1 font-medium text-candle">Sympathetic — the &quot;gas pedal&quot;</p>
+            <p className="mb-1 font-medium text-candle">Sympathetic - the &quot;gas pedal&quot;</p>
             <p>Activates your fight-or-flight response. Increases heart rate, dilates pupils, floods your body with adrenaline. Designed to help you survive danger.</p>
           </div>
           <div className="rounded-xl border border-teal/15 bg-teal/5 p-4">
-            <p className="mb-1 font-medium text-teal-soft">Parasympathetic — the &quot;brake&quot;</p>
+            <p className="mb-1 font-medium text-teal-soft">Parasympathetic - the &quot;brake&quot;</p>
             <p>Slows heart rate, deepens breathing, promotes calm and recovery. This is the state the tools in this app help you access.</p>
           </div>
         </div>
         <p className="font-medium text-cream">Your body has different survival modes:</p>
         <p className="mt-1 text-xs text-cream-dim/50">Based on polyvagal theory (Stephen Porges)</p>
         <ul className="ml-4 space-y-2 list-disc">
-          <li><span className="text-cream">Fight:</span> Anger, tension, urge to confront — your sympathetic nervous system mobilizing energy</li>
-          <li><span className="text-cream">Flight:</span> Urge to escape, restlessness, panic — also sympathetic activation</li>
-          <li><span className="text-cream">Shutdown / freeze:</span> Numbness, disconnection, dissociation — a <span className="text-cream">different pathway</span> (dorsal vagal), where your body conserves energy by going still. This is why shutdown needs gentle <em>activation</em>, not more calming</li>
-          <li><span className="text-cream">Fawn:</span> People-pleasing, losing your own boundaries — a learned survival pattern often layered on top of other states</li>
+          <li><span className="text-cream">Fight:</span> Anger, tension, urge to confront - your sympathetic nervous system mobilizing energy</li>
+          <li><span className="text-cream">Flight:</span> Urge to escape, restlessness, panic - also sympathetic activation</li>
+          <li><span className="text-cream">Shutdown / freeze:</span> Numbness, disconnection, dissociation - a <span className="text-cream">different pathway</span> (dorsal vagal), where your body conserves energy by going still. This is why shutdown needs gentle <em>activation</em>, not more calming</li>
+          <li><span className="text-cream">Fawn:</span> People-pleasing, losing your own boundaries - a learned survival pattern often layered on top of other states</li>
         </ul>
         <p>
-          All of these are <span className="text-cream">normal survival responses</span>. Fight and flight are your body mobilizing to protect you. Shutdown is your body protecting you by going still. Regulate helps you recognize which state you&apos;re in and uses <span className="text-cream">different tools for different states</span> — because what calms panic can deepen shutdown, and what activates shutdown can overwhelm panic.
+          All of these are <span className="text-cream">normal survival responses</span>. Fight and flight are your body mobilizing to protect you. Shutdown is your body protecting you by going still. Regulate helps you recognize which state you&apos;re in and uses <span className="text-cream">different tools for different states</span> - because what calms panic can deepen shutdown, and what activates shutdown can overwhelm panic.
         </p>
       </div>
     ),
@@ -171,7 +171,7 @@ const sections: Section[] = [
         </div>
 
         <p>
-          Trauma, chronic stress, and anxiety can <span className="text-cream">narrow your window</span> — meaning it takes less to push you out of it. Every tool in this app is designed to help you <span className="text-cream">widen your window</span> over time.
+          Trauma, chronic stress, and anxiety can <span className="text-cream">narrow your window</span> - meaning it takes less to push you out of it. Every tool in this app is designed to help you <span className="text-cream">widen your window</span> over time.
         </p>
         <div className="rounded-xl bg-teal/8 p-4">
           <p className="text-cream">
@@ -296,7 +296,7 @@ export default function LearnPage() {
               But when you&apos;re ready, understanding what&apos;s happening in your body can be part of healing.
             </p>
             <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-cream-dim/50">
-              These aren&apos;t just concepts — they&apos;re maps that help you find your way back to yourself.
+              These aren&apos;t just concepts - they&apos;re maps that help you find your way back to yourself.
             </p>
             <button
               onClick={dismissIntro}

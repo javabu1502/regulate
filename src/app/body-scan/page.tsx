@@ -317,7 +317,7 @@ export default function BodyScanPage() {
             <p className="mt-4 font-mono text-sm text-cream-dim/40">{regionRemaining}s</p>
           </div>
 
-          {/* Advance region — large, bottom-reachable */}
+          {/* Advance region - large, bottom-reachable */}
           <button
             onClick={advanceRegion}
             className="mt-6 w-full max-w-[200px] rounded-2xl border border-teal/20 bg-deep/60 py-4 text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream active:scale-[0.98]"

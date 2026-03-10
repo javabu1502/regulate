@@ -28,7 +28,7 @@ const days: DayInfo[] = [
     day: 1,
     title: "Breathing Basics",
     description:
-      "Your breath is the fastest way to signal safety to your nervous system. The physiological sigh — a double inhale through the nose followed by a long exhale — activates your vagus nerve and shifts you out of fight-or-flight. Today, you will try it for yourself.",
+      "Your breath is the fastest way to signal safety to your nervous system. The physiological sigh - a double inhale through the nose followed by a long exhale - activates your vagus nerve and shifts you out of fight-or-flight. Today, you will try it for yourself.",
     href: "/breathing?pattern=sigh",
     linkLabel: "Open breathing exercises",
   },
@@ -36,7 +36,7 @@ const days: DayInfo[] = [
     day: 2,
     title: "Grounding Your Senses",
     description:
-      "When anxiety takes over, your brain loses track of where you actually are. The 5-4-3-2-1 technique uses your senses to anchor you in the present moment — not the story your mind is telling, but what is real and here right now.",
+      "When anxiety takes over, your brain loses track of where you actually are. The 5-4-3-2-1 technique uses your senses to anchor you in the present moment - not the story your mind is telling, but what is real and here right now.",
     href: "/grounding",
     linkLabel: "Open grounding exercise",
   },
@@ -44,7 +44,7 @@ const days: DayInfo[] = [
     day: 3,
     title: "Your Body Knows",
     description:
-      "Stress and emotions live in the body before they reach conscious thought. A body scan helps you notice where you are holding tension — your jaw, shoulders, chest — so you can gently release what you have been carrying without even realizing it.",
+      "Stress and emotions live in the body before they reach conscious thought. A body scan helps you notice where you are holding tension - your jaw, shoulders, chest - so you can gently release what you have been carrying without even realizing it.",
     href: "/body-scan",
     linkLabel: "Open body scan",
   },
@@ -52,7 +52,7 @@ const days: DayInfo[] = [
     day: 4,
     title: "Bilateral Tapping",
     description:
-      "Alternating left-right stimulation — like the butterfly hug — calms the amygdala, your brain's alarm system. This is the same principle behind EMDR therapy. Crossing your arms over your chest and tapping gently tells your nervous system that you are safe enough to settle.",
+      "Alternating left-right stimulation - like the butterfly hug - calms the amygdala, your brain's alarm system. This is the same principle behind EMDR therapy. Crossing your arms over your chest and tapping gently tells your nervous system that you are safe enough to settle.",
     href: "/somatic?exercise=bilateral-tapping",
     linkLabel: "Open Bilateral Tapping",
   },
@@ -60,7 +60,7 @@ const days: DayInfo[] = [
     day: 5,
     title: "Self-Havening",
     description:
-      "Gentle, repetitive touch on your face, arms, and palms produces delta waves in the brain — the same waves present in deep sleep. Havening was developed to help process distressing memories, but it is also a beautiful way to soothe yourself in any difficult moment.",
+      "Gentle, repetitive touch on your face, arms, and palms produces delta waves in the brain - the same waves present in deep sleep. Havening was developed to help process distressing memories, but it is also a beautiful way to soothe yourself in any difficult moment.",
     href: "/somatic?exercise=havening",
     linkLabel: "Open Self-Havening",
   },
@@ -68,7 +68,7 @@ const days: DayInfo[] = [
     day: 6,
     title: "Orienting & Safety",
     description:
-      "When your nervous system is stuck in threat-detection mode, it scans internally — racing thoughts, worst-case scenarios. Orienting redirects that scanning outward. Slowly turning your head and noticing your surroundings tells your brainstem: I have looked around, and I am safe here.",
+      "When your nervous system is stuck in threat-detection mode, it scans internally - racing thoughts, worst-case scenarios. Orienting redirects that scanning outward. Slowly turning your head and noticing your surroundings tells your brainstem: I have looked around, and I am safe here.",
     href: "/somatic?exercise=orienting",
     linkLabel: "Open Orienting",
   },
@@ -76,7 +76,7 @@ const days: DayInfo[] = [
     day: 7,
     title: "Your Regulation Toolkit",
     description:
-      "You have spent six days meeting different parts of your nervous system's language. Today is about noticing which tools felt most natural to you. There is no right answer — your body already knows what helps. Trust what you felt this week.",
+      "You have spent six days meeting different parts of your nervous system's language. Today is about noticing which tools felt most natural to you. There is no right answer - your body already knows what helps. Trust what you felt this week.",
     href: "",
     linkLabel: "",
   },
@@ -239,7 +239,7 @@ export default function FirstWeekPage() {
             Your First Week with Regulate
           </h1>
           <p className="mt-2 text-sm text-cream-dim/50">
-            One practice a day. No deadlines, no streaks — just getting to know
+            One practice a day. No deadlines, no streaks - just getting to know
             what helps your body.
           </p>
         </header>
@@ -447,7 +447,7 @@ export default function FirstWeekPage() {
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-cream-dim/60">
                 Seven days. Six techniques. Your nervous system has been
-                listening the whole time — and now you have a set of tools you
+                listening the whole time - and now you have a set of tools you
                 can reach for whenever you need them.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-cream-dim/50">

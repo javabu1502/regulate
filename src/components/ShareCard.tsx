@@ -61,7 +61,7 @@ export default function ShareCard({ technique, category }: ShareCardProps) {
         });
         return;
       } catch {
-        // User cancelled or share failed — fall through to clipboard
+        // User cancelled or share failed - fall through to clipboard
       }
     }
 

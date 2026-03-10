@@ -165,7 +165,7 @@ function BreathingPageInner() {
   const lastHapticRef = useRef<number>(0);
   const prevStepKeyRef = useRef<string>("");
 
-  // Wake lock — active during session
+  // Wake lock - active during session
   useWakeLock(screen === "session" && !isPaused);
 
   const currentStep = selectedPattern?.steps[currentStepIndex] ?? null;
@@ -286,7 +286,7 @@ function BreathingPageInner() {
     if (phase === "inhale") intervalMs = 350;
     else if (phase === "hold") intervalMs = 2000;
     else if (phase === "exhale") intervalMs = 1000;
-    else return; // rest — no vibration
+    else return; // rest - no vibration
 
     const fire = () => {
       const now = performance.now();

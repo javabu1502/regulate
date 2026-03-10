@@ -38,14 +38,14 @@ class VoiceGuidance {
     // Samantha (macOS) is the best browser TTS voice for calm/soothing
     // Zarvox/Alex/etc are robotic and should be avoided
     const preferredNames = [
-      "Samantha",        // macOS — warm, natural female
-      "Moira",           // macOS — soft Irish female
-      "Tessa",           // macOS — gentle South African female
-      "Fiona",           // macOS — warm Scottish female
-      "Google US English", // Chrome — decent female
-      "Karen",           // macOS — Australian female
-      "Victoria",        // macOS — US female
-      "Allison",         // macOS — US female
+      "Samantha",        // macOS - warm, natural female
+      "Moira",           // macOS - soft Irish female
+      "Tessa",           // macOS - gentle South African female
+      "Fiona",           // macOS - warm Scottish female
+      "Google US English", // Chrome - decent female
+      "Karen",           // macOS - Australian female
+      "Victoria",        // macOS - US female
+      "Allison",         // macOS - US female
     ];
 
     for (const name of preferredNames) {

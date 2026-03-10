@@ -34,7 +34,7 @@ function loadContacts(): ContactData[] {
       return parsed as ContactData[];
     }
 
-    // Old format: single { name, phone } — migrate
+    // Old format: single { name, phone } - migrate
     if (parsed && typeof parsed === "object" && parsed.name && parsed.phone) {
       const migrated: ContactData[] = [
         { name: parsed.name, phone: parsed.phone, label: "other" },

@@ -37,7 +37,7 @@ const categories: { id: Category; label: string; desc: string }[] = [
 ];
 
 const builtInAffirmations: Affirmation[] = [
-  // Panic — body-first, no toxic positivity
+  // Panic - body-first, no toxic positivity
   { text: "My body is protecting me. This will pass.", category: "panic" },
   { text: "I have survived every panic attack before this one. This one is no different.", category: "panic" },
   { text: "I don't need to fight this. I can let it move through me like a wave.", category: "panic" },
@@ -47,7 +47,7 @@ const builtInAffirmations: Affirmation[] = [
   { text: "My body knows how to come back from this. It has done it every time.", category: "panic" },
   { text: "I let my shoulders drop. I unclench my jaw. I am safe enough right now.", category: "panic" },
 
-  // Safety — when hypervigilance is running
+  // Safety - when hypervigilance is running
   { text: "Right now, in this moment, I am safe.", category: "safety" },
   { text: "The danger has passed. My body just needs time to catch up.", category: "safety" },
   { text: "I am allowed to feel safe even if my body says otherwise.", category: "safety" },
@@ -56,7 +56,7 @@ const builtInAffirmations: Affirmation[] = [
   { text: "I can create safety within myself, one breath at a time.", category: "safety" },
   { text: "Safety isn't the absence of fear. It's knowing I can hold myself through it.", category: "safety" },
 
-  // Grounding — when dissociated or floating
+  // Grounding - when dissociated or floating
   { text: "I feel my feet on the ground. I am here.", category: "grounding" },
   { text: "I come back to my body. It's waiting for me.", category: "grounding" },
   { text: "Right here. Right now. This is where I am. That's enough.", category: "grounding" },
@@ -74,7 +74,7 @@ const builtInAffirmations: Affirmation[] = [
   { text: "Being kind to myself is not selfish. It's necessary.", category: "self-worth" },
   { text: "I matter, even on the days I can't feel it.", category: "self-worth" },
 
-  // Strength — when depleted
+  // Strength - when depleted
   { text: "I have gotten through hard things before. I will get through this.", category: "strength" },
   { text: "I am stronger than my anxiety knows.", category: "strength" },
   { text: "Asking for help is a sign of strength, not weakness.", category: "strength" },
@@ -264,7 +264,7 @@ function AffirmationsPageInner() {
     }
   }
 
-  // ─── HOME — pick what you need ────────────────────────────────────
+  // ─── HOME - pick what you need ────────────────────────────────────
 
   if (view === "home") {
     return (
@@ -347,7 +347,7 @@ function AffirmationsPageInner() {
     );
   }
 
-  // ─── FLOW — focused affirmation experience ────────────────────────
+  // ─── FLOW - focused affirmation experience ────────────────────────
 
   if (view === "flow") {
     const catLabel = categories.find((c) => c.id === activeCategory)?.label || "";

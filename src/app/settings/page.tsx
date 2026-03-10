@@ -436,7 +436,7 @@ export default function SettingsPage() {
                       Processing...
                     </span>
                   ) : (
-                    `Unlock — ${PRICE} one-time, yours forever`
+                    `Unlock - ${PRICE} one-time, yours forever`
                   )}
                 </button>
 

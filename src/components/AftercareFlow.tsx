@@ -232,7 +232,7 @@ export default function AftercareFlow({
     }
   }
 
-  // Step 1: Ask how they feel — body-based cards for accessibility in distress
+  // Step 1: Ask how they feel - body-based cards for accessibility in distress
   if (!feeling) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
@@ -318,13 +318,13 @@ export default function AftercareFlow({
           onClick={() => handleFeeling("skipped")}
           className="mt-6 text-xs text-cream-dim/50 underline underline-offset-2 transition-colors hover:text-cream-dim/80"
         >
-          Skip — I can&apos;t tell right now
+          Skip - I can&apos;t tell right now
         </button>
       </div>
     );
   }
 
-  // Safety check screen — shown before the "heavier" result screen
+  // Safety check screen - shown before the "heavier" result screen
   if (showSafetyCheck) {
     return <SafetyCheck onSafe={() => setShowSafetyCheck(false)} />;
   }
@@ -347,7 +347,7 @@ export default function AftercareFlow({
           {/* Complementary technique suggestion */}
           <div className="mt-6 flex flex-col items-center gap-2">
             <p className="text-xs text-cream-dim/60">
-              {resolvedCategory} pairs well with {complementary[0].label.toLowerCase()} — try it next?
+              {resolvedCategory} pairs well with {complementary[0].label.toLowerCase()} - try it next?
             </p>
             <Link
               href={complementary[0].href}
@@ -377,7 +377,7 @@ export default function AftercareFlow({
           {/* Suggest a different category */}
           <div className="mt-6 flex flex-col items-center gap-2">
             <p className="text-xs text-cream-dim/60">
-              Sometimes combining techniques helps — try {complementary[0].label.toLowerCase()} next?
+              Sometimes combining techniques helps - try {complementary[0].label.toLowerCase()} next?
             </p>
             <div className="flex gap-2">
               {complementary.map((alt) => (
@@ -415,7 +415,7 @@ export default function AftercareFlow({
         <>
           <h2 className="text-xl font-light text-cream">Thank you for being honest.</h2>
           <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
-            Sometimes exercises bring things to the surface. That&apos;s not failure — it means your body is processing. Be gentle with yourself right now.
+            Sometimes exercises bring things to the surface. That&apos;s not failure - it means your body is processing. Be gentle with yourself right now.
           </p>
 
           {/* Gentle alternative */}
@@ -456,7 +456,7 @@ export default function AftercareFlow({
             </Link>
           </div>
           <p className="mt-5 text-sm leading-relaxed text-cream-dim">
-            This doesn&apos;t mean you&apos;re broken — it means your body might need different support right now.
+            This doesn&apos;t mean you&apos;re broken - it means your body might need different support right now.
           </p>
         </div>
       )}

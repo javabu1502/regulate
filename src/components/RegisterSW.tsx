@@ -31,7 +31,7 @@ function checkScheduledNotification(registration: ServiceWorkerRegistration) {
     // Check if the user already dismissed the check-back (opened the app since scheduling)
     const checkBack = localStorage.getItem("regulate-check-back");
     if (!checkBack) {
-      // Check-back was already dismissed — user opened the app. Don't notify.
+      // Check-back was already dismissed - user opened the app. Don't notify.
       localStorage.removeItem("regulate-notification-scheduled");
       return;
     }
@@ -57,10 +57,10 @@ function checkScheduledNotification(registration: ServiceWorkerRegistration) {
       });
     }
 
-    // Clear the schedule — one notification only
+    // Clear the schedule - one notification only
     localStorage.removeItem("regulate-notification-scheduled");
   } catch {
-    // Silently fail — notifications are an enhancement
+    // Silently fail - notifications are an enhancement
   }
 }
 
@@ -116,14 +116,14 @@ export default function RegisterSW() {
                 newWorker.state === "installed" &&
                 navigator.serviceWorker.controller
               ) {
-                // New version available — activate it on next navigation
+                // New version available - activate it on next navigation
                 // No disruptive reload; the user gets the new version next time
               }
             });
           });
         })
         .catch(() => {
-          // Service worker registration failed — app still works without it
+          // Service worker registration failed - app still works without it
         });
     }
   }, []);

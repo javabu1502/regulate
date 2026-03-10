@@ -424,7 +424,7 @@ class AmbientAudio {
         }
       }, FADE_DURATION * 1000 + 50);
     } else {
-      // No context or suspended — hard stop
+      // No context or suspended - hard stop
       for (const s of this.sources) {
         try { s.stop(); } catch { /* */ }
       }

@@ -86,7 +86,7 @@ describe("getRecommendations", () => {
   it("requires at least 2 uses of a technique to include it", () => {
     setJournal([
       { technique: "Breathing", aftercareResponse: "better" },
-      // Only 1 use — should not appear
+      // Only 1 use - should not appear
     ]);
 
     const recs = getRecommendations();

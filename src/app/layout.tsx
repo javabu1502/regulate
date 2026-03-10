@@ -11,7 +11,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Regulate — Nervous System Support",
+  title: "Regulate - Nervous System Support",
   description:
     "Gentle tools for panic attacks, anxiety, and nervous system regulation.",
   manifest: "/manifest.json",

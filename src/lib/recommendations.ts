@@ -288,7 +288,7 @@ export function getPersonalizedRecommendations(bodyState: string): string[] {
   try {
     const scores = getToolScores();
 
-    // No data at all — return defaults
+    // No data at all - return defaults
     if (scores.size === 0) return defaults;
 
     // Get tools that have been used and have a positive success rate

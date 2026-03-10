@@ -20,7 +20,7 @@ export default function MicroExplanation({ text, isOpen, onToggle }: MicroExplan
 
   return (
     <>
-      {/* "?" button — positioned at top-right of parent (parent must be relative) */}
+      {/* "?" button - positioned at top-right of parent (parent must be relative) */}
       <button
         onClick={(e) => {
           e.stopPropagation();

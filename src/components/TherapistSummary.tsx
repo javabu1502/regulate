@@ -184,7 +184,7 @@ export default function TherapistSummary() {
               : "Share summary with therapist"}
       </h3>
       <p className="mt-1 text-xs text-cream-dim/60">
-        Generate a text summary of your practice — no personal data shared.
+        Generate a text summary of your practice - no personal data shared.
       </p>
     </button>
   );

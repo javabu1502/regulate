@@ -106,7 +106,7 @@ export default function SleepPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const stepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Wake lock — active during any active phase
+  // Wake lock - active during any active phase
   useWakeLock(screen !== "select" && screen !== "complete");
 
   // Stop ambient audio on unmount or when exercise completes
@@ -142,7 +142,7 @@ export default function SleepPage() {
         setSecondsLeft(breathSteps[0].duration);
         elapsedRef.current = 0;
       } else {
-        // Breathing done — advance to next phase based on mode
+        // Breathing done - advance to next phase based on mode
         setStepIndex(0);
         if (mode === "cant-sleep") {
           setScreen("relaxation");

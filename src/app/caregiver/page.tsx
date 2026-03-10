@@ -31,7 +31,7 @@ const ongoingSteps: Step[] = [
 ];
 
 const afterSteps: Step[] = [
-  { instruction: "Say: \"You made it through.\"", detail: "Acknowledge what just happened. They may feel embarrassed — reassure them." },
+  { instruction: "Say: \"You made it through.\"", detail: "Acknowledge what just happened. They may feel embarrassed - reassure them." },
   { instruction: "Don't immediately debrief.", detail: "Give them space to recover. They'll talk about it when they're ready." },
   { instruction: "Offer water or comfort.", detail: "Physical needs first: water, a blanket, a quiet space." },
   { instruction: "Ask: \"What helped?\"", detail: "This helps them learn their own patterns. Listen to the answer." },
@@ -143,7 +143,7 @@ export default function CaregiverPage() {
               className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-all hover:border-teal/35 active:scale-[0.98]"
             >
               <h3 className="text-base font-medium text-cream">After an episode</h3>
-              <p className="mt-1 text-sm text-cream-dim">It&apos;s over — what to do now</p>
+              <p className="mt-1 text-sm text-cream-dim">It&apos;s over - what to do now</p>
             </button>
           </div>
         </div>

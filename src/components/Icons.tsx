@@ -1,5 +1,5 @@
 // Shared SVG icons for the Regulate app.
-// Minimal, organic line icons — no emojis.
+// Minimal, organic line icons - no emojis.
 
 const base = "shrink-0";
 
@@ -127,9 +127,9 @@ export function SOSIcon({ className = "h-6 w-6" }: { className?: string }) {
 export function WaveIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg className={`${base} ${className}`} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-      {/* Brainstem — small oval at top */}
+      {/* Brainstem - small oval at top */}
       <ellipse cx="12" cy="2.5" rx="2" ry="1.2" strokeWidth="1" />
-      {/* Left vagus trunk — wandering S-curve */}
+      {/* Left vagus trunk - wandering S-curve */}
       <path d="M10.5 3.5C9.5 5.5 10.5 7.5 10 10C9.5 12.5 10.5 15 10 17.5C9.7 19 10 21 10 22" strokeWidth="1.3" />
       {/* Right vagus trunk */}
       <path d="M13.5 3.5C14.5 5.5 13.5 7.5 14 10C14.5 12.5 13.5 15 14 17.5C14.3 19 14 21 14 22" strokeWidth="1.3" />

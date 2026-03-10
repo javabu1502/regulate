@@ -878,7 +878,7 @@ export default function Home() {
                   const route = sosToRoute[recs[0]] || "/breathing";
                   router.push(route);
                 } else {
-                  // No history — default to physiological sigh
+                  // No history - default to physiological sigh
                   router.push("/breathing");
                 }
               } catch {
@@ -955,7 +955,7 @@ export default function Home() {
                             setDiagnosticFading(false);
                           }, 300);
                         } else {
-                          // All No — show window of tolerance message
+                          // All No - show window of tolerance message
                           setDiagnosticFading(true);
                           setTimeout(() => {
                             setDiagnosticStep(3);
@@ -1320,7 +1320,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── What works for you — insight card ── */}
+        {/* ── What works for you - insight card ── */}
         {topTechniques && topTechniques.length > 0 && (
           <div className="mb-5">
             <PremiumGate feature="See which exercises help you most, based on your own practice history.">

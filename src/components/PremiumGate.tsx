@@ -85,7 +85,7 @@ export default function PremiumGate({ feature, children }: PremiumGateProps) {
               Processing...
             </span>
           ) : (
-            `Unlock — ${PRICE} one-time, yours forever`
+            `Unlock - ${PRICE} one-time, yours forever`
           )}
         </button>
         <p className="text-center text-[11px] leading-relaxed text-cream-dim/30">

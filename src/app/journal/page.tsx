@@ -161,7 +161,7 @@ function computeInsights(allEntries: JournalEntry[]) {
     const tod = getTimeOfDay(e.timestamp);
     todCounts[tod] = (todCounts[tod] || 0) + 1;
   });
-  const mostCommonTime = Object.entries(todCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+  const mostCommonTime = Object.entries(todCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
 
   // Top triggers
   const triggerCounts: Record<string, number> = {};
@@ -171,7 +171,7 @@ function computeInsights(allEntries: JournalEntry[]) {
   // Most helpful technique
   const techCounts: Record<string, number> = {};
   entries.forEach((e) => e.techniques.forEach((t) => { techCounts[t] = (techCounts[t] || 0) + 1; }));
-  const topTechnique = Object.entries(techCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+  const topTechnique = Object.entries(techCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
 
   // Intensity trend (last 10 vs previous 10)
   const sorted = [...entries].sort((a, b) => b.timestamp - a.timestamp);
@@ -253,7 +253,7 @@ function computeInsights(allEntries: JournalEntry[]) {
   const longCount = recentDurations.filter((d) => d === "30+ min" || d === "15–30 min").length;
   const shortCount = recentDurations.filter((d) => d === "Under 5 min" || d === "5–15 min").length;
   if (shortCount > longCount + 2) {
-    correlations.push("Your episodes are getting shorter — that's real progress");
+    correlations.push("Your episodes are getting shorter - that's real progress");
   }
 
   return {
@@ -463,11 +463,11 @@ function JournalPageInner() {
 
   const avgIntensity = sessionEntries.length
     ? (sessionEntries.reduce((s, e) => s + e.intensity, 0) / sessionEntries.length).toFixed(1)
-    : "—";
+    : "-";
 
   const techniqueCounts: Record<string, number> = {};
   sessionEntries.forEach((e) => e.techniques.forEach((t) => { techniqueCounts[t] = (techniqueCounts[t] || 0) + 1; }));
-  const topTechnique = Object.entries(techniqueCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+  const topTechnique = Object.entries(techniqueCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
 
   const insights = computeInsights(entries);
   const dashboard = useMemo(() => computeDashboard(entries), [entries]);
@@ -477,7 +477,7 @@ function JournalPageInner() {
   function shareInsights() {
     if (!insights) return;
     const text = [
-      "Regulate — Panic Tracker Summary",
+      "Regulate - Panic Tracker Summary",
       "",
       `Total episodes logged: ${entries.length}`,
       `Average intensity: ${insights.recentAvg}/10 (trend: ${insights.trend})`,
@@ -800,7 +800,7 @@ function JournalPageInner() {
 
               {/* Insights dashboard */}
               {dashboard && entries.length >= 3 && (
-                <PremiumGate feature="See patterns in your practice — what helps, when you show up, and what your body is telling you.">
+                <PremiumGate feature="See patterns in your practice - what helps, when you show up, and what your body is telling you.">
                   <div className="mb-6 rounded-2xl border border-teal/15 bg-deep/60 p-5">
                     <p className="mb-4 text-xs leading-relaxed text-cream-dim/60">
                       Here&apos;s what your body has been telling you
@@ -1156,7 +1156,7 @@ function JournalPageInner() {
 
               {/* Correlations */}
               {insights.correlations && insights.correlations.length > 0 && (
-                <PremiumGate feature="Personal pattern insights — correlations between your triggers, timing, and what helps most.">
+                <PremiumGate feature="Personal pattern insights - correlations between your triggers, timing, and what helps most.">
                   <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
                     <h3 className="mb-3 text-sm font-medium text-cream">Patterns we noticed</h3>
                     <div className="space-y-2.5">
@@ -1376,7 +1376,7 @@ function JournalPageInner() {
                 rows={3}
                 className="w-full resize-none rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
-              <p className="mt-2 text-xs text-cream-dim/40">Private to you — stored only on this device</p>
+              <p className="mt-2 text-xs text-cream-dim/40">Private to you - stored only on this device</p>
             </div>
 
             {/* Journaling prompts */}
@@ -1487,7 +1487,7 @@ function JournalPageInner() {
                 className="w-full resize-none rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-purple-400/30 focus:outline-none"
                 autoFocus
               />
-              <p className="mt-2 text-xs text-cream-dim/40">Private to you — stored only on this device</p>
+              <p className="mt-2 text-xs text-cream-dim/40">Private to you - stored only on this device</p>
             </div>
 
             {/* Save */}
