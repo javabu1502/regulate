@@ -99,9 +99,9 @@ export async function restorePurchases(): Promise<boolean> {
 // --- Feature lists ---
 
 export const PREMIUM_FEATURES = [
+  "Journal and session history",
   "Personalized exercise recommendations",
   "What works for you insights",
-  "Session history",
   "Therapist summary export",
   "Weekly reflection prompts",
 ] as const;
@@ -116,5 +116,4 @@ export const FREE_FEATURES = [
   "Sleep tools",
   "Safety plan",
   "Crisis resources",
-  "Journal",
 ] as const;

@@ -627,6 +627,31 @@ function JournalPageInner() {
     );
   }
 
+  // ─── Premium gate ────────────────────────────────────────────
+
+  if (!isPremium()) {
+    return (
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+        <div className="w-full max-w-md">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            Home
+          </Link>
+          <header className="mb-6 mt-6 text-center">
+            <div className="mb-3 flex justify-center"><JournalIcon className="h-8 w-8 text-candle-soft" /></div>
+            <h1 className="text-xl font-semibold tracking-tight text-cream">Journal</h1>
+            <p className="mt-2 text-sm leading-relaxed text-cream-dim">
+              Track episodes. Notice patterns. Witness your healing.
+            </p>
+          </header>
+          <PremiumGate feature="Track your practice, spot patterns, and see what works for you over time." >
+            <div />
+          </PremiumGate>
+        </div>
+      </div>
+    );
+  }
+
   // ─── LIST SCREEN ──────────────────────────────────────────────
 
   if (screen === "list") {

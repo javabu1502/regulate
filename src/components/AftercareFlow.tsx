@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import SafetyCheck from "@/components/SafetyCheck";
 import ShareCard from "@/components/ShareCard";
+import { isPremium } from "@/lib/premium";
 
 type Feeling = "better" | "same" | "harder" | "skipped";
 
@@ -121,7 +122,7 @@ function QuickJournal({ technique }: { technique: string }) {
   const [saved, setSaved] = useState(false);
 
   function save() {
-    if (!text.trim()) return;
+    if (!text.trim() || !isPremium()) return;
     try {
       const raw = localStorage.getItem("regulate-journal");
       const entries = raw ? JSON.parse(raw) : [];
@@ -207,19 +208,21 @@ export default function AftercareFlow({
   function handleFeeling(f: Feeling) {
     setFeeling(f);
 
-    // Auto-log to journal
-    try {
-      const raw = localStorage.getItem("regulate-journal");
-      const entries = raw ? JSON.parse(raw) : [];
-      entries.push({
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        type: "aftercare",
-        technique,
-        aftercareResponse: f,
-      });
-      localStorage.setItem("regulate-journal", JSON.stringify(entries));
-    } catch { /* */ }
+    // Auto-log to journal (premium only)
+    if (isPremium()) {
+      try {
+        const raw = localStorage.getItem("regulate-journal");
+        const entries = raw ? JSON.parse(raw) : [];
+        entries.push({
+          id: Date.now().toString(),
+          date: new Date().toISOString(),
+          type: "aftercare",
+          technique,
+          aftercareResponse: f,
+        });
+        localStorage.setItem("regulate-journal", JSON.stringify(entries));
+      } catch { /* */ }
+    }
 
     // Show safety check before the "heavier" result screen
     if (f === "harder") {
@@ -339,10 +342,12 @@ export default function AftercareFlow({
             {completionSubtext}
           </p>
 
-          {/* Quick journal */}
-          <div className="mt-5">
-            <QuickJournal technique={technique} />
-          </div>
+          {/* Quick journal (premium only) */}
+          {isPremium() && (
+            <div className="mt-5">
+              <QuickJournal technique={technique} />
+            </div>
+          )}
 
           {/* Complementary technique suggestion */}
           <div className="mt-6 flex flex-col items-center gap-2">
