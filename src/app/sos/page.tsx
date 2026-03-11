@@ -584,7 +584,7 @@ function SOSPageInner() {
           <button
             key={s}
             onClick={() => {
-              if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+              if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
               else { ambientAudio.start(s); setAmbientSound(s); }
             }}
             className={`rounded-full px-2.5 py-2 text-[10px] transition-all ${
