@@ -156,14 +156,14 @@ export default function CliniciansPage() {
             <p>
               When the prefrontal cortex goes offline during panic, cognitive
               interventions fail. Regulate provides body-based interventions your
-              clients can access between sessions &mdash; tools that work
+              clients can access between sessions - tools that work
               precisely because they don&apos;t require the thinking brain.
             </p>
             <div className="rounded-xl border border-teal/12 bg-teal/5 px-5 py-4">
               <p className="text-sm leading-relaxed text-cream-dim">
                 An app cannot replace the therapeutic relationship. Regulate is
                 designed to <span className="text-cream">extend</span>{" "}
-                therapeutic work &mdash; giving clients a structured, somatic
+                therapeutic work - giving clients a structured, somatic
                 toolkit they can reach for between sessions when dysregulation
                 arises.
               </p>
@@ -183,7 +183,7 @@ export default function CliniciansPage() {
               </p>
               <p className="text-xs text-cream-dim/50">Stephen Porges</p>
               <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-                Regulate maps body states to the autonomic ladder &mdash;
+                Regulate maps body states to the autonomic ladder -
                 ventral vagal (safe/social), sympathetic (fight/flight), and
                 dorsal vagal (shutdown/collapse). The app&apos;s state-check
                 asks clients to identify their current position on this ladder
@@ -220,9 +220,9 @@ export default function CliniciansPage() {
               </p>
               <p className="text-xs text-cream-dim/50">Daniel Siegel</p>
               <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-                Exercises are designed to target specific arousal states &mdash;
+                Exercises are designed to target specific arousal states -
                 hyperarousal (sympathetic activation) and hypoarousal (dorsal
-                vagal collapse) &mdash; with the goal of returning clients to
+                vagal collapse) - with the goal of returning clients to
                 their window of tolerance.
               </p>
             </div>
@@ -268,7 +268,7 @@ export default function CliniciansPage() {
                 Sympathetic hyperarousal
               </p>
               <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-                Rapid parasympathetic activation &mdash; physiological sigh,
+                Rapid parasympathetic activation - physiological sigh,
                 extended exhale, bilateral stimulation. The goal is immediate
                 downregulation.
               </p>
@@ -281,7 +281,7 @@ export default function CliniciansPage() {
                 Mild sympathetic activation
               </p>
               <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-                Sustained calming with interoceptive engagement &mdash;
+                Sustained calming with interoceptive engagement -
                 coherence breathing, body scan, grounding. Building awareness
                 alongside regulation.
               </p>
@@ -292,7 +292,7 @@ export default function CliniciansPage() {
               </p>
               <p className="text-xs text-cream-dim/50">Dorsal vagal</p>
               <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-                Gentle activation &mdash; orienting, pendulation, light
+                Gentle activation - orienting, pendulation, light
                 movement. Critically,{" "}
                 <span className="text-cream">not further calming</span>, which
                 would deepen the dorsal state.
@@ -301,8 +301,8 @@ export default function CliniciansPage() {
           </div>
           <div className="mt-5 rounded-xl bg-teal/8 px-5 py-4">
             <p className="text-sm leading-relaxed text-cream">
-              This distinction &mdash; that shutdown needs different
-              intervention than panic &mdash; is what makes Regulate clinically
+              This distinction - that shutdown needs different
+              intervention than panic - is what makes Regulate clinically
               sound.
             </p>
           </div>
@@ -408,7 +408,7 @@ export default function CliniciansPage() {
               </p>
               <p className="mt-2 text-sm text-cream-dim">
                 Clients can download a pattern summary from the app to share in
-                sessions &mdash; showing which exercises they used, how
+                sessions - showing which exercises they used, how
                 frequently, and their self-reported state before and after.
               </p>
             </div>

@@ -106,14 +106,14 @@ const dailyPractices = [
   {
     id: "breathing",
     name: "Physiological Sigh",
-    desc: "Double inhale, long exhale \u2014 the fastest nervous system reset.",
+    desc: "Double inhale, long exhale - the fastest nervous system reset.",
     time: "~1 min",
     href: "/breathing",
   },
   {
     id: "body-scan",
     name: "Quick Body Scan",
-    desc: "Move attention through your body \u2014 notice without fixing.",
+    desc: "Move attention through your body - notice without fixing.",
     time: "5 min",
     href: "/body-scan",
   },
@@ -127,7 +127,7 @@ const dailyPractices = [
   {
     id: "pendulation",
     name: "Pendulation",
-    desc: "Shift attention between tension and comfort \u2014 build resilience.",
+    desc: "Shift attention between tension and comfort - build resilience.",
     time: "3 min",
     href: "/somatic?exercise=pendulation",
   },
@@ -141,7 +141,7 @@ const dailyPractices = [
   {
     id: "extended",
     name: "Coherence Breathing",
-    desc: "5 seconds in, 5 seconds out \u2014 synchronize heart and breath.",
+    desc: "5 seconds in, 5 seconds out - synchronize heart and breath.",
     time: "~1 min",
     href: "/breathing",
   },
@@ -623,7 +623,7 @@ export default function Home() {
         {
           id: "body-scan",
           name: "Body Scan",
-          desc: "Move attention through your body \u2014 progressive release",
+          desc: "Move attention through your body - progressive release",
           time: "5 min",
           href: "/body-scan",
         },
@@ -736,7 +736,7 @@ export default function Home() {
   const todaysPractice =
     dailyPractices[getDayOfYear() % dailyPractices.length];
 
-  // ─── CHECK-IN VIEW (default \u2014 the triage) ────────────────────────
+  // ─── CHECK-IN VIEW (default - the triage) ────────────────────────
 
   if (view === "check-in") {
     return (
@@ -747,7 +747,7 @@ export default function Home() {
               <p className="text-sm font-medium text-cream">
                 How are you holding up?
               </p>
-              <p className="mt-1 text-xs text-cream-dim/50">
+              <p className="mt-1 text-xs text-cream-dim/60">
                 You had a tough moment earlier.
               </p>
               <div className="mt-4 flex flex-col gap-2">
@@ -766,11 +766,11 @@ export default function Home() {
                   }}
                   className="rounded-xl border border-candle/15 bg-candle/5 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10"
                 >
-                  Still shaky &mdash; I need support
+                  Still shaky - I need support
                 </button>
                 <button
                   onClick={dismissCheckBack}
-                  className="text-xs text-cream-dim/30 hover:text-cream-dim/50"
+                  className="text-xs text-cream-dim/30 hover:text-cream-dim/60"
                 >
                   Dismiss
                 </button>
@@ -785,7 +785,7 @@ export default function Home() {
                 : "How is your body right now?"}
             </h1>
             {welcomeBack && (
-              <p className="mt-2 text-sm text-cream-dim/50">
+              <p className="mt-2 text-sm text-cream-dim/60">
                 {welcomeBack === "30day"
                   ? "However long it\u2019s been, you\u2019re here now. That\u2019s what matters."
                   : "No pressure. Take your time."}
@@ -799,8 +799,8 @@ export default function Home() {
               <p className="text-sm font-medium text-cream">
                 Ready to try {firstSessionNudge.label}?
               </p>
-              <p className="mt-1 text-xs text-cream-dim/50">
-                No pressure &mdash; just seeing how it feels.
+              <p className="mt-1 text-xs text-cream-dim/60">
+                No pressure - just seeing how it feels.
               </p>
               <div className="mt-4 flex flex-col gap-2">
                 <Link
@@ -812,7 +812,7 @@ export default function Home() {
                 </Link>
                 <button
                   onClick={dismissFirstSession}
-                  className="text-xs text-cream-dim/30 hover:text-cream-dim/50"
+                  className="text-xs text-cream-dim/30 hover:text-cream-dim/60"
                 >
                   Skip for now
                 </button>
@@ -888,7 +888,7 @@ export default function Home() {
             }}
             className="mt-4 w-full rounded-2xl border border-teal/20 bg-teal/10 px-4 py-3 text-sm text-cream-dim transition-all hover:border-teal/30 hover:bg-teal/15 active:scale-[0.98]"
           >
-            I don&apos;t know &mdash; just help me
+            I don&apos;t know - just help me
           </button>
 
           {/* "Not sure what you're feeling?" diagnostic trigger */}
@@ -989,7 +989,7 @@ export default function Home() {
                   <p className="text-sm font-medium text-cream">
                     You seem to be in your window of tolerance right now.
                   </p>
-                  <p className="mt-1 text-xs text-cream-dim/50">
+                  <p className="mt-1 text-xs text-cream-dim/60">
                     That&apos;s good.
                   </p>
                   <Link
@@ -1007,7 +1007,7 @@ export default function Home() {
           <div className="mt-10 flex justify-center">
             <a
               href="tel:988"
-              className="text-[11px] text-cream-dim/50 underline underline-offset-2 hover:text-cream-dim/70"
+              className="text-[11px] text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim/70"
             >
               988 Suicide &amp; Crisis Lifeline
             </a>
@@ -1028,7 +1028,7 @@ export default function Home() {
           <h1 className="text-xl font-light tracking-tight text-cream">
             Regulate
           </h1>
-          <p className="mt-1.5 text-xs text-cream-dim/50">
+          <p className="mt-1.5 text-xs text-cream-dim/60">
             Tools for your nervous system.
           </p>
         </header>
@@ -1087,7 +1087,7 @@ export default function Home() {
             <Link
               key={link.href}
               href={link.href}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/50 transition-colors hover:border-teal/20 hover:text-cream-dim"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/60 transition-colors hover:border-teal/20 hover:text-cream-dim"
             >
               {link.icon}
               {link.title}
@@ -1119,7 +1119,7 @@ export default function Home() {
                 <p className="text-sm font-medium text-cream">
                   Start your first week
                 </p>
-                <p className="mt-1 text-xs text-cream-dim/50">
+                <p className="mt-1 text-xs text-cream-dim/60">
                   7 days of guided practice - one technique a day.
                 </p>
                 <span className="mt-2 inline-block text-xs font-medium text-teal-soft">
@@ -1159,7 +1159,7 @@ export default function Home() {
               <p className="mt-1.5 text-sm font-medium text-cream">
                 {todaysPractice.name}
               </p>
-              <p className="mt-0.5 text-xs text-cream-dim/50">
+              <p className="mt-0.5 text-xs text-cream-dim/60">
                 {todaysPractice.desc}
               </p>
               <div className="mt-3 flex items-center justify-between">
@@ -1184,7 +1184,7 @@ export default function Home() {
                       <p className="text-lg font-medium text-teal-soft">
                         {dashData.calmDays}
                       </p>
-                      <p className="text-[10px] text-cream-dim/50">calm days</p>
+                      <p className="text-[10px] text-cream-dim/60">calm days</p>
                     </div>
                   )}
                   {dashData.totalSessions > 0 && (
@@ -1192,7 +1192,7 @@ export default function Home() {
                       <p className="text-lg font-medium text-cream">
                         {dashData.totalSessions}
                       </p>
-                      <p className="text-[10px] text-cream-dim/50">sessions</p>
+                      <p className="text-[10px] text-cream-dim/60">sessions</p>
                     </div>
                   )}
                   {dashData.trend && (
@@ -1206,7 +1206,7 @@ export default function Home() {
                             ? "\u2191"
                             : "\u2192"}
                       </p>
-                      <p className="text-[10px] text-cream-dim/50">
+                      <p className="text-[10px] text-cream-dim/60">
                         {dashData.trend}
                       </p>
                     </div>
@@ -1302,7 +1302,7 @@ export default function Home() {
                   >
                     Open journal
                   </Link>
-                  <button onClick={dismissReflection} className="text-xs text-cream-dim/30 hover:text-cream-dim/50">
+                  <button onClick={dismissReflection} className="text-xs text-cream-dim/30 hover:text-cream-dim/60">
                     Not now
                   </button>
                 </div>
@@ -1320,7 +1320,7 @@ export default function Home() {
                     <p className="mt-1 text-sm font-medium text-cream">
                       {discovery.name}
                     </p>
-                    <p className="mt-0.5 text-xs text-cream-dim/50">
+                    <p className="mt-0.5 text-xs text-cream-dim/60">
                       {discovery.desc}
                     </p>
                   </div>
@@ -1366,7 +1366,7 @@ export default function Home() {
           are in crisis, please contact the{" "}
           <a
             href="tel:988"
-            className="text-cream-dim/50 underline underline-offset-2"
+            className="text-cream-dim/60 underline underline-offset-2"
           >
             988 Lifeline
           </a>
@@ -1401,13 +1401,13 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="mt-6 flex justify-center gap-4 text-[11px] text-cream-dim/25">
-          <Link href="/caregiver" className="hover:text-cream-dim/50">
+          <Link href="/caregiver" className="hover:text-cream-dim/60">
             Helping someone?
           </Link>
-          <Link href="/safety-plan" className="hover:text-cream-dim/50">
+          <Link href="/safety-plan" className="hover:text-cream-dim/60">
             Safety Plan
           </Link>
-          <Link href="/crisis" className="hover:text-cream-dim/50">
+          <Link href="/crisis" className="hover:text-cream-dim/60">
             Crisis Resources
           </Link>
         </footer>

@@ -175,13 +175,13 @@ function OnboardingPageInner() {
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-cream">
               {isTherapistRef
-                ? "Welcome \u2014 your therapist sent you to the right place"
+                ? "Welcome - your therapist sent you to the right place"
                 : "Welcome to Regulate"}
             </h1>
             <p className="mx-auto mt-3 max-w-[300px] text-sm leading-relaxed text-cream-dim">
               {isTherapistRef
-                ? "Regulate gives you somatic tools to use between sessions. Everything your therapist would guide you through \u2014 in your pocket."
-                : "When panic hits, your thinking brain goes offline. Regulate works with your body \u2014 because that\u2019s what actually helps."}
+                ? "Regulate gives you somatic tools to use between sessions. Everything your therapist would guide you through - in your pocket."
+                : "When panic hits, your thinking brain goes offline. Regulate works with your body - because that\u2019s what actually helps."}
             </p>
             {!isTherapistRef && (
             <p className="mx-auto mt-3 max-w-[300px] text-xs leading-relaxed text-cream-dim/70">

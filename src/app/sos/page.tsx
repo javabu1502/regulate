@@ -236,8 +236,8 @@ function SOSPageInner() {
   // Local body state - set by URL param or user selection in body-check step
   const [selectedBodyState, setSelectedBodyState] = useState<string | null>(bodyStateParam);
 
-  // Core state - if body state provided via URL, auto-start; otherwise ask
-  const [step, setStep] = useState<SOSStep>(() => bodyStateParam ? "auto-start" : "body-check");
+  // Core state - if body state provided via URL, show recommendations; otherwise ask
+  const [step, setStep] = useState<SOSStep>(() => bodyStateParam ? "recommend" : "body-check");
   const [activeTool, setActiveTool] = useState("breathing");
 
   // Location context - defaults to "anywhere" (no filter)
@@ -590,7 +590,7 @@ function SOSPageInner() {
             className={`rounded-full px-2.5 py-2 text-[10px] transition-all ${
               ambientSound === s
                 ? "bg-teal/20 text-teal-soft"
-                : "text-cream-dim/50 hover:text-cream-dim/70"
+                : "text-cream-dim/60 hover:text-cream-dim/70"
             }`}
             aria-label={`${s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"} ambient sound`}
             aria-pressed={ambientSound === s}
@@ -611,7 +611,7 @@ function SOSPageInner() {
           <a
             key={i}
             href={`tel:${c.phone}`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-blue/20 px-3 py-2 text-xs text-cream-dim/50 transition-colors hover:border-teal/30 hover:text-cream-dim"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-blue/20 px-3 py-2 text-xs text-cream-dim/60 transition-colors hover:border-teal/30 hover:text-cream-dim"
           >
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M3 2.5C3 2.5 4.5 2 5.5 3.5L6.5 5.5C6.5 5.5 5.5 6.5 6.5 8C7.5 9.5 8.5 9 8.5 9L10.5 10C12 11 11.5 12.5 11.5 12.5C10.5 14 8 13.5 6 11.5C4 9.5 2.5 7 3 5C3 5 3 3.5 3 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -631,7 +631,7 @@ function SOSPageInner() {
           recordPartialSession();
           setStep("pick-tool");
         }}
-        className="min-h-[44px] text-xs text-cream-dim/50 underline underline-offset-2 transition-colors hover:text-cream-dim/70"
+        className="min-h-[44px] text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim/70"
       >
         Try something else
       </button>
@@ -675,7 +675,7 @@ function SOSPageInner() {
         <div className="w-full max-w-sm">
           <PresenceCue active />
           <h2 className="mt-4 text-center text-xl font-light text-cream">How is your body right now?</h2>
-          <p className="mt-2 text-center text-xs text-cream-dim/50">
+          <p className="mt-2 text-center text-xs text-cream-dim/60">
             This helps us pick the right tool for you.
           </p>
 
@@ -690,14 +690,14 @@ function SOSPageInner() {
                 className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 px-5 py-5 text-left transition-all hover:border-teal/30 active:scale-[0.98]"
               >
                 <span className="block text-base font-medium text-cream">{opt.label}</span>
-                <span className="mt-1 block text-xs text-cream-dim/50">{opt.sub}</span>
+                <span className="mt-1 block text-xs text-cream-dim/60">{opt.sub}</span>
               </button>
             ))}
           </div>
 
           {/* Crisis line */}
           <div className="mt-10 flex justify-center">
-            <a href="tel:988" className="text-[10px] text-cream-dim/50 underline underline-offset-2 hover:text-cream-dim/70">
+            <a href="tel:988" className="text-[10px] text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim/70">
               988 Suicide &amp; Crisis Lifeline
             </a>
           </div>
@@ -721,7 +721,7 @@ function SOSPageInner() {
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">Where are you right now?</h2>
-          <p className="mt-2 text-center text-xs text-cream-dim/50">
+          <p className="mt-2 text-center text-xs text-cream-dim/60">
             We&apos;ll show what works for where you are.
           </p>
 
@@ -750,7 +750,7 @@ function SOSPageInner() {
 
           {/* Crisis line */}
           <div className="mt-8 flex justify-center">
-            <a href="tel:988" className="text-[10px] text-cream-dim/50 underline underline-offset-2 hover:text-cream-dim/70">
+            <a href="tel:988" className="text-[10px] text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim/70">
               988 Suicide &amp; Crisis Lifeline
             </a>
           </div>
@@ -845,7 +845,7 @@ function SOSPageInner() {
 
           <button
             onClick={() => setStep("all-tools")}
-            className="mt-5 flex min-h-[44px] items-center justify-center gap-1 w-full text-xs text-cream-dim/50 transition-colors hover:text-cream-dim/70"
+            className="mt-5 flex min-h-[44px] items-center justify-center gap-1 w-full text-xs text-cream-dim/60 transition-colors hover:text-cream-dim/70"
           >
             See all exercises
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -853,7 +853,7 @@ function SOSPageInner() {
 
           {/* Crisis line */}
           <div className="mt-8 flex justify-center">
-            <a href="tel:988" className="text-[10px] text-cream-dim/50 underline underline-offset-2 hover:text-cream-dim/70">
+            <a href="tel:988" className="text-[10px] text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim/70">
               988 Suicide &amp; Crisis Lifeline
             </a>
           </div>
@@ -878,7 +878,7 @@ function SOSPageInner() {
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">All exercises</h2>
-          <p className="mt-2 text-center text-xs text-cream-dim/50">Pick any one to start.</p>
+          <p className="mt-2 text-center text-xs text-cream-dim/60">Pick any one to start.</p>
           <div className="mt-1.5">
             <ContextBadge />
           </div>
@@ -924,7 +924,7 @@ function SOSPageInner() {
                       <span className="text-sm font-medium text-cream">{ex.label}</span>
                       <span className="text-[10px] text-cream-dim/40">{ex.time}</span>
                     </div>
-                    <span className="mt-0.5 block text-xs text-cream-dim/50">{ex.desc}</span>
+                    <span className="mt-0.5 block text-xs text-cream-dim/60">{ex.desc}</span>
                   </button>
                 ))}
               </div>
@@ -973,9 +973,9 @@ function SOSPageInner() {
           <CallDuringExercise />
           <TrySomethingElse />
           <div className="flex items-center gap-3">
-            <a href="tel:988" className="text-[10px] text-cream-dim/50 underline underline-offset-2">988 Lifeline</a>
+            <a href="tel:988" className="text-[10px] text-cream-dim/60 underline underline-offset-2">988 Lifeline</a>
             <span className="text-[10px] text-cream-dim/30" aria-hidden="true">|</span>
-            <span className="text-[10px] text-cream-dim/50">Text HOME to 741741</span>
+            <span className="text-[10px] text-cream-dim/60">Text HOME to 741741</span>
           </div>
         </div>
       </div>
@@ -1196,7 +1196,7 @@ function SOSPageInner() {
                 recordPartialSession();
                 setStep("final");
               }}
-              className="mt-1 min-h-[44px] text-xs text-cream-dim/50 hover:text-cream-dim"
+              className="mt-1 min-h-[44px] text-xs text-cream-dim/60 hover:text-cream-dim"
             >
               I&apos;m done for now
             </button>
@@ -1205,7 +1205,7 @@ function SOSPageInner() {
           {/* Crisis line always visible */}
           <div className="mt-8 flex flex-col items-center gap-1">
             <a href="tel:988" className="text-xs text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim">988 Suicide &amp; Crisis Lifeline</a>
-            <span className="text-[10px] text-cream-dim/50">Text HOME to 741741</span>
+            <span className="text-[10px] text-cream-dim/60">Text HOME to 741741</span>
           </div>
         </div>
       </div>
@@ -1225,7 +1225,7 @@ function SOSPageInner() {
         <BackButton onClick={() => setStep("recommend")} />
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">Let&apos;s try something different</h2>
-          <p className="mt-2 text-center text-xs text-cream-dim/50">Pick one. We&apos;ll start right away.</p>
+          <p className="mt-2 text-center text-xs text-cream-dim/60">Pick one. We&apos;ll start right away.</p>
           <div className="mt-1.5">
             <ContextBadge />
           </div>
@@ -1241,14 +1241,14 @@ function SOSPageInner() {
                   <span className="text-sm font-medium text-cream">{ex.label}</span>
                   <span className="text-[10px] text-cream-dim/40">{ex.time}</span>
                 </div>
-                <span className="mt-0.5 block text-xs text-cream-dim/50">{ex.desc}</span>
+                <span className="mt-0.5 block text-xs text-cream-dim/60">{ex.desc}</span>
               </button>
             ))}
           </div>
 
           {others.length === 0 && (
             <div className="mt-8 text-center">
-              <p className="text-sm text-cream-dim/50">No other exercises match this setting.</p>
+              <p className="text-sm text-cream-dim/60">No other exercises match this setting.</p>
               <button
                 onClick={() => setStep("context")}
                 className="mt-3 text-sm text-teal-soft/60 underline underline-offset-2 hover:text-teal-soft"
@@ -1258,7 +1258,7 @@ function SOSPageInner() {
             </div>
           )}
 
-          <button onClick={goHome} className="mt-5 w-full min-h-[44px] text-center text-xs text-cream-dim/50 hover:text-cream-dim">
+          <button onClick={goHome} className="mt-5 w-full min-h-[44px] text-center text-xs text-cream-dim/60 hover:text-cream-dim">
             Exit
           </button>
         </div>

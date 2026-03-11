@@ -50,7 +50,7 @@ export default function ShareCard({ technique, category }: ShareCardProps) {
 
   const route = getRoute(category);
   const shareUrl = `${APP_URL}${route}`;
-  const shareText = `${technique} helped me today. Try it: ${shareUrl}. Regulate \u2014 somatic tools for your nervous system.`;
+  const shareText = `${technique} helped me today. Try it: ${shareUrl}. Regulate - somatic tools for your nervous system.`;
 
   async function handleShare() {
     // Try native share first

@@ -24,7 +24,7 @@ export default function ReferPage() {
             Why somatic tools?
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-cream-dim">
-            When panic hits, your thinking brain goes offline. Regulate works with your body &mdash; bilateral tapping, breathing, grounding, and somatic techniques that work when thinking can&apos;t.
+            When panic hits, your thinking brain goes offline. Regulate works with your body - bilateral tapping, breathing, grounding, and somatic techniques that work when thinking can&apos;t.
           </p>
         </div>
 
