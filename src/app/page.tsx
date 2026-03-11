@@ -902,85 +902,72 @@ export default function Home() {
                 </svg>
               </button>
 
-              {/* Questions (one at a time with fade) */}
-              {diagnosticStep <= 2 && (
+              {/* Body-based questions to help identify state */}
+              {diagnosticStep <= 4 && (
                 <div
                   className={`transition-opacity duration-300 ${diagnosticFading ? "opacity-0" : "opacity-100"}`}
                 >
-                  <p className="pr-6 text-sm font-medium text-cream">
-                    {diagnosticStep === 0 &&
-                      "Is your heart racing or are you breathing fast?"}
-                    {diagnosticStep === 1 &&
-                      "Do you feel numb, frozen, or disconnected?"}
-                    {diagnosticStep === 2 &&
-                      "Is there a background hum of worry or tension?"}
+                  <p className="pr-6 text-sm text-cream-dim/70 mb-3">
+                    Let&apos;s figure it out. What do you notice in your body?
                   </p>
-                  <div className="mt-4 flex gap-3">
-                    <button
-                      onClick={() => {
-                        if (diagnosticStep === 0) {
-                          router.push("/sos?state=panicking");
-                        } else if (diagnosticStep === 1) {
-                          router.push("/sos?state=shutdown");
-                        } else {
-                          router.push("/sos?state=anxious");
-                        }
-                      }}
-                      className="flex-1 rounded-xl bg-teal/15 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/25"
-                    >
-                      Yes
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (diagnosticStep < 2) {
-                          setDiagnosticFading(true);
-                          setTimeout(() => {
-                            setDiagnosticStep((s) => s + 1);
-                            setDiagnosticFading(false);
-                          }, 300);
-                        } else {
-                          // All No - show window of tolerance message
-                          setDiagnosticFading(true);
-                          setTimeout(() => {
-                            setDiagnosticStep(3);
-                            setDiagnosticFading(false);
-                          }, 300);
-                        }
-                      }}
-                      className="flex-1 rounded-xl border border-slate-blue/30 py-2.5 text-sm text-cream-dim transition-colors hover:border-slate-blue/50"
-                    >
-                      No
-                    </button>
-                  </div>
-                  {/* Progress dots */}
-                  <div className="mt-3 flex justify-center gap-1.5">
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-1 w-1 rounded-full ${i === diagnosticStep ? "bg-teal-soft/60" : "bg-slate-blue/20"}`}
-                      />
+                  <div className="flex flex-col gap-2">
+                    {[
+                      { label: "Chest is tight, hard to breathe", state: "panicking" },
+                      { label: "Muscles are clenched, can't sit still", state: "anxious" },
+                      { label: "Stomach is churning or nauseous", state: "anxious" },
+                      { label: "Everything feels heavy or far away", state: "shutdown" },
+                      { label: "I can't feel much of anything", state: "shutdown" },
+                      { label: "My thoughts won't stop", state: "anxious" },
+                      { label: "I feel like I might explode or scream", state: "panicking" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.label}
+                        onClick={() => {
+                          try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
+                          router.push(`/sos?state=${opt.state}`);
+                        }}
+                        className="w-full rounded-xl border border-slate-blue/20 bg-deep/40 px-4 py-3 text-left text-sm text-cream-dim transition-all hover:border-teal/25 active:scale-[0.98]"
+                      >
+                        {opt.label}
+                      </button>
                     ))}
+                    <button
+                      onClick={() => {
+                        setDiagnosticFading(true);
+                        setTimeout(() => {
+                          setDiagnosticStep(5);
+                          setDiagnosticFading(false);
+                        }, 300);
+                      }}
+                      className="mt-1 text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
+                    >
+                      None of these
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* All No result */}
-              {diagnosticStep === 3 && (
+              {/* None of these result */}
+              {diagnosticStep === 5 && (
                 <div
                   className={`text-center transition-opacity duration-300 ${diagnosticFading ? "opacity-0" : "opacity-100"}`}
                 >
                   <p className="text-sm font-medium text-cream">
-                    You seem to be in your window of tolerance right now.
+                    You might be in your window of tolerance right now.
                   </p>
-                  <p className="mt-1 text-xs text-cream-dim/60">
-                    That&apos;s good.
+                  <p className="mt-1.5 text-xs text-cream-dim/60">
+                    That means your nervous system is relatively settled. This is a great time to practice - it builds resilience for harder moments.
                   </p>
-                  <Link
-                    href="/somatic"
+                  <button
+                    onClick={() => {
+                      try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
+                      setShowDiagnostic(false);
+                      setView("feed");
+                    }}
                     className="mt-4 inline-block rounded-xl bg-teal/15 px-5 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/25"
                   >
-                    Practice somatic tools
-                  </Link>
+                    Browse exercises
+                  </button>
                 </div>
               )}
             </div>
