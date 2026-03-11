@@ -791,8 +791,8 @@ function SOSPageInner() {
 
     return (
       <div key="recommend" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
-        <BackButton onClick={() => setStep("body-check")} />
-        <HomeButton />
+        <BackButton onClick={() => bodyStateParam ? goHome() : setStep("body-check")} />
+        {!bodyStateParam && <HomeButton />}
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">{stateLabel}</h2>
