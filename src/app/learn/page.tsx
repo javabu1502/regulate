@@ -78,7 +78,7 @@ const sections: Section[] = [
           </div>
         </div>
         <p className="font-medium text-cream">Your body has different survival modes:</p>
-        <p className="mt-1 text-xs text-cream-dim/50">Based on polyvagal theory (Stephen Porges)</p>
+        <p className="mt-1 text-xs text-cream-dim/50">Informed by polyvagal theory (Stephen Porges) - one framework for understanding these responses</p>
         <ul className="ml-4 space-y-2 list-disc">
           <li><span className="text-cream">Fight:</span> Anger, tension, urge to confront - your sympathetic nervous system mobilizing energy</li>
           <li><span className="text-cream">Flight:</span> Urge to escape, restlessness, panic - also sympathetic activation</li>
@@ -129,7 +129,7 @@ const sections: Section[] = [
         <div id="physiological-sigh" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Physiological sigh</p>
           <p>
-            A double inhale followed by an extended exhale. Stanford researchers found this is the fastest known way to calm your nervous system in real time.
+            A double inhale followed by an extended exhale. A Stanford study found this was more effective than other breathing techniques at reducing stress in real time.
           </p>
         </div>
       </div>

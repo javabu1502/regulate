@@ -70,7 +70,7 @@ const bodyScanSteps = [
 ];
 
 const sleepExplanations: Record<string, string> = {
-  "cant-sleep": "Extended exhale breathing plus muscle relaxation lower your cortisol and prepare your body for sleep.",
+  "cant-sleep": "Extended exhale breathing plus muscle relaxation may help lower cortisol and prepare your body for sleep.",
   "woke-up": "Grounding reorients you to the present, while affirmations counter the negative thought spiral.",
   "racing": "Longer exhales slow your heart rate while body awareness redirects attention away from racing thoughts.",
 };

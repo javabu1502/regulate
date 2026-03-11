@@ -85,7 +85,7 @@ const TOTAL_CYCLES = 5;
 const breathingExplanations: Record<string, string> = {
   box: "Equal intervals create a predictable rhythm that tells your nervous system it\u2019s safe to slow down.",
   "478": "The extended exhale activates your parasympathetic nervous system, triggering your body\u2019s natural relaxation response.",
-  sigh: "The double inhale fully inflates your lung\u2019s air sacs, and the long exhale maximizes CO2 release - the fastest known way to calm down.",
+  sigh: "The double inhale helps inflate your lung\u2019s air sacs, and the long exhale promotes CO2 release - research suggests this may be one of the most effective real-time calming techniques.",
   coherence: "Breathing at ~6 breaths per minute synchronizes your heart rate with your breath, maximizing heart rate variability.",
 };
 

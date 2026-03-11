@@ -150,7 +150,7 @@ type BodyStateKey = "panicking" | "anxious" | "shutdown";
 
 const exerciseWhyMap: Record<BodyStateKey, Record<string, string>> = {
   panicking: {
-    breathing: "The double inhale triggers your vagus nerve, which tells your nervous system to slow down. It's the fastest known way to reduce a panic response.",
+    breathing: "The double inhale stimulates your vagus nerve, which helps tell your nervous system to slow down. Research suggests it may be one of the most effective ways to reduce a panic response.",
     extended: "Long exhales activate your parasympathetic nervous system, the brake pedal for panic. Your heart rate drops within seconds.",
     tapping: "Alternating left-right stimulation helps your brain process the overwhelm. It gives your nervous system something rhythmic to lock onto instead of spiraling.",
     grounding: "Your senses pull you out of your head and into the present moment. Panic lives in the future - your senses live right now.",
