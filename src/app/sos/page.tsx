@@ -857,7 +857,10 @@ function SOSPageInner() {
             onClick={() => setStep("all-tools")}
             className="mt-5 flex min-h-[44px] items-center justify-center gap-1 w-full text-xs text-cream-dim/60 transition-colors hover:text-cream-dim/70"
           >
-            See all exercises
+            {selectedBodyState === "panicking" ? "All exercises for panic" :
+             selectedBodyState === "anxious" ? "All exercises for anxiety" :
+             selectedBodyState === "shutdown" ? "All exercises for shutdown" :
+             "See all exercises"}
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
 
@@ -888,8 +891,18 @@ function SOSPageInner() {
         <HomeButton />
 
         <div className="w-full max-w-sm">
-          <h2 className="text-center text-xl font-light text-cream">All exercises</h2>
-          <p className="mt-2 text-center text-xs text-cream-dim/60">Pick any one to start.</p>
+          <h2 className="text-center text-xl font-light text-cream">
+            {selectedBodyState === "panicking" ? "Exercises for panic" :
+             selectedBodyState === "anxious" ? "Exercises for anxiety" :
+             selectedBodyState === "shutdown" ? "Exercises for shutdown" :
+             "All exercises"}
+          </h2>
+          <p className="mt-2 text-center text-xs text-cream-dim/60">
+            {selectedBodyState === "panicking" ? "Tools to slow your system down and interrupt the panic cycle." :
+             selectedBodyState === "anxious" ? "Tools to settle your nervous system and release tension." :
+             selectedBodyState === "shutdown" ? "Gentle tools to bring your body back online without overwhelming it." :
+             "Pick any one to start."}
+          </p>
           <div className="mt-1.5">
             <ContextBadge />
           </div>
