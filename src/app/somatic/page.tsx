@@ -336,30 +336,6 @@ function regulationColor(r: Regulation): string {
   return "bg-purple-400/10 text-purple-300";
 }
 
-function getRecommendations(nsState: NSState | null): { ids: Set<Technique>; reason: string } {
-  if (nsState === "hyperactivated") {
-    const downTechniques = techniques.filter((t) => t.regulation === "down");
-    // Ensure return-to-safety is in the top 3 for hyperactivated state
-    const top = downTechniques.slice(0, 3).map((t) => t.id);
-    if (!top.includes("return-to-safety")) {
-      top[2] = "return-to-safety";
-    }
-    const ids = new Set(top);
-    return { ids, reason: "Helps your body remember it's safe after a difficult moment" };
-  }
-  if (nsState === "activated") {
-    const downTechniques = techniques.filter((t) => t.regulation === "down");
-    const ids = new Set(downTechniques.slice(0, 3).map((t) => t.id));
-    return { ids, reason: "Helps calm an activated nervous system" };
-  }
-  if (nsState === "hypoactivated") {
-    const upTechniques = techniques.filter((t) => t.regulation === "up");
-    const ids = new Set(upTechniques.slice(0, 3).map((t) => t.id));
-    return { ids, reason: "Helps gently activate a shut-down system" };
-  }
-  return { ids: new Set(), reason: "" };
-}
-
 function getSortedTechniques(nsState: NSState | null): ExerciseInfo[] {
   if (nsState === "hyperactivated" || nsState === "activated") {
     return [
@@ -438,7 +414,6 @@ function SomaticPageInner() {
 
   const totalSeconds = duration * 60;
   const currentExercise = techniques.find((t) => t.id === technique)!;
-  const recommendations = getRecommendations(nsState);
   const sortedTechniques = getSortedTechniques(nsState);
 
   // ─── Load NS state on mount ─────────────────────────────────────
@@ -774,17 +749,14 @@ function SomaticPageInner() {
           <div className="flex flex-col gap-6">
             {/* Group exercises by regulation type */}
             {(() => {
-              const recommended = sortedTechniques.filter((ex) => recommendations.ids.has(ex.id));
-              const calming = sortedTechniques.filter((ex) => ex.regulation === "down" && !recommendations.ids.has(ex.id));
-              const energizing = sortedTechniques.filter((ex) => ex.regulation === "up" && !recommendations.ids.has(ex.id));
-              const both = sortedTechniques.filter((ex) => ex.regulation === "both" && !recommendations.ids.has(ex.id));
+              const calming = sortedTechniques.filter((ex) => ex.regulation === "down");
+              const energizing = sortedTechniques.filter((ex) => ex.regulation === "up");
+              const both = sortedTechniques.filter((ex) => ex.regulation === "both");
 
-              const renderCard = (ex: ExerciseInfo, isRecommended = false) => (
+              const renderCard = (ex: ExerciseInfo) => (
                 <div
                   key={ex.id}
-                  className={`relative w-full rounded-2xl border ${
-                    isRecommended ? "border-teal/40" : "border-teal/15"
-                  } bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]`}
+                  className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]"
                 >
                   <button
                     onClick={() => selectTechnique(ex.id)}
@@ -814,18 +786,6 @@ function SomaticPageInner() {
 
               return (
                 <>
-                  {recommended.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-teal-soft/60">
-                        Recommended for you
-                      </p>
-                      <p className="mb-3 text-xs text-cream-dim/40">{recommendations.reason}</p>
-                      <div className="flex flex-col gap-2">
-                        {recommended.map((ex) => renderCard(ex, true))}
-                      </div>
-                    </div>
-                  )}
-
                   {calming.length > 0 && (
                     <div>
                       <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-teal-soft/60">

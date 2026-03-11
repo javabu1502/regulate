@@ -2,11 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { HomeIcon, JournalIcon, SettingsIcon } from "@/components/Icons";
+import { HomeIcon, LearnIcon, SettingsIcon } from "@/components/Icons";
 
 const tabs = [
   { href: "/", label: "Home", icon: HomeIcon },
-  { href: "/journal", label: "Journal", icon: JournalIcon },
+  { href: "/learn", label: "Learn", icon: LearnIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
@@ -25,19 +25,20 @@ export default function BottomNav() {
 
         {/* SOS Button - center */}
         <div className="flex flex-1 items-center justify-center py-1.5">
-          <Link
-            href="/sos"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-candle/15 border border-candle/30 text-candle transition-all active:scale-95 hover:bg-candle/25 focus:outline-none focus:ring-2 focus:ring-candle/50"
+          <button
+            onClick={() => {
+              try { sessionStorage.removeItem("regulate-checked-in"); } catch {}
+              window.location.href = "/";
+            }}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-candle/20 border-2 border-candle/40 text-candle transition-all active:scale-95 hover:bg-candle/30 focus:outline-none focus:ring-2 focus:ring-candle/50"
             aria-label="I need help right now"
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 12H8L10 7L12 17L14 10L16 12H20" />
-            </svg>
-          </Link>
+            <span className="text-xs font-bold leading-none" aria-hidden="true">SOS</span>
+          </button>
         </div>
 
-        {/* Journal */}
-        <NavTab href="/journal" label="Journal" icon={JournalIcon} active={pathname === "/journal"} />
+        {/* Learn */}
+        <NavTab href="/learn" label="Learn" icon={LearnIcon} active={pathname === "/learn"} />
 
         {/* Settings */}
         <NavTab href="/settings" label="Settings" icon={SettingsIcon} active={pathname.startsWith("/settings")} />
