@@ -172,17 +172,6 @@ const ALL_SOMATIC_TOOLS = [
   "body-shaking",
 ];
 
-// Icon map for quick-access toolbar
-const quickAccessIconMap: Record<string, React.ReactNode> = {
-  "/breathing": <BreathingIcon className="h-5 w-5 text-teal-soft" />,
-  "/grounding": <GroundingIcon className="h-5 w-5 text-teal-soft" />,
-  "/somatic": <SomaticIcon className="h-5 w-5 text-teal-soft" />,
-  "/body-scan": <BodyScanIcon className="h-5 w-5 text-teal-soft" />,
-  "/affirmations": <AffirmationsIcon className="h-5 w-5 text-teal-soft" />,
-  "/journal": <JournalIcon className="h-5 w-5 text-teal-soft" />,
-  "/sleep": <LearnIcon className="h-5 w-5 text-teal-soft" />,
-};
-
 // ─── Practice modules ───────────────────────────────────────────────
 
 const modules = [
@@ -261,7 +250,14 @@ function getDayOfYear(): number {
 
 export default function Home() {
   const router = useRouter();
-  const [view, setView] = useState<"check-in" | "feed">("check-in");
+  const [view, setView] = useState<"check-in" | "feed">(() => {
+    try {
+      if (typeof window !== "undefined" && sessionStorage.getItem("regulate-checked-in")) {
+        return "feed";
+      }
+    } catch {}
+    return "check-in";
+  });
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [installDismissed, setInstallDismissed] = useState(true);
   const [discovery, setDiscovery] = useState<{
@@ -289,10 +285,6 @@ export default function Home() {
     dayTitle: string;
   } | null>(null);
 
-  // New state for calm toolkit features
-  const [quickAccess, setQuickAccess] = useState<
-    { href: string; title: string }[] | null
-  >(null);
   const [toolsExplored, setToolsExplored] = useState<{
     count: number;
     total: number;
@@ -345,19 +337,6 @@ export default function Home() {
           completedCount: 0,
           dayTitle: "Breathing Basics",
         });
-      }
-    } catch {}
-  }, []);
-
-  // Quick-access toolbar: load go-to tools from onboarding
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("quick_access");
-      if (raw) {
-        const tools = JSON.parse(raw) as { href: string; title: string }[];
-        if (tools.length > 0) {
-          setQuickAccess(tools.slice(0, 3));
-        }
       }
     } catch {}
   }, []);
@@ -824,11 +803,14 @@ export default function Home() {
             {bodyStates.map((state) => (
               <button
                 key={state.id}
-                onClick={() =>
-                  state.id === "okay"
-                    ? setView("feed")
-                    : router.push(state.route)
-                }
+                onClick={() => {
+                  try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
+                  if (state.id === "okay") {
+                    setView("feed");
+                  } else {
+                    router.push(state.route);
+                  }
+                }}
                 className={`flex w-full items-center gap-4 overflow-hidden rounded-2xl transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-teal/50 ${state.bgColor}`}
               >
                 {/* Left color bar */}
@@ -855,6 +837,7 @@ export default function Home() {
           {/* "Just help me" escape hatch */}
           <button
             onClick={() => {
+              try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
               try {
                 const journal = JSON.parse(
                   localStorage.getItem("regulate-journal") || "[]",
@@ -1032,28 +1015,6 @@ export default function Home() {
             Tools for your nervous system.
           </p>
         </header>
-
-        {/* ── Quick-access toolbar (if user set go-to tools) ── */}
-        {quickAccess && quickAccess.length > 0 && (
-          <div className="mb-5 flex justify-center gap-4">
-            {quickAccess.map((tool) => (
-              <Link
-                key={tool.href}
-                href={tool.href}
-                className="flex w-20 flex-col items-center gap-1.5 rounded-2xl border border-teal/12 bg-teal/5 px-2 py-3 transition-all hover:border-teal/25 hover:bg-teal/10 active:scale-[0.96]"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal/10">
-                  {quickAccessIconMap[tool.href] || (
-                    <WaveIcon className="h-5 w-5 text-teal-soft" />
-                  )}
-                </div>
-                <span className="text-[10px] leading-tight text-cream-dim/60">
-                  {tool.title}
-                </span>
-              </Link>
-            ))}
-          </div>
-        )}
 
         {/* ── Module cards grid ── */}
         <div className="flex flex-col gap-2">
