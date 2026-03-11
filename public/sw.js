@@ -1,10 +1,10 @@
 // Regulate — Service Worker
 // Cache-first for static assets, network-first for pages, offline fallback
 
-const CACHE_VERSION = "regulate-v2";
-const STATIC_CACHE = "regulate-static-v2";
-const PAGES_CACHE = "regulate-pages-v2";
-const AUDIO_CACHE = "regulate-audio-v2";
+const CACHE_VERSION = "regulate-v3";
+const STATIC_CACHE = "regulate-static-v3";
+const PAGES_CACHE = "regulate-pages-v3";
+const AUDIO_CACHE = "regulate-audio-v3";
 
 // App shell — precached on install
 const APP_SHELL = [
@@ -218,8 +218,12 @@ async function networkFirst(request, cacheName) {
 
 // ─── Push Notification Handling ────────────────────────────────────
 
-// Listen for messages from the client to show notifications
+// Listen for messages from the client
 self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+    return;
+  }
   if (event.data && event.data.type === "SHOW_NOTIFICATION") {
     const { title, body, icon, tag, data } = event.data.payload;
     event.waitUntil(
@@ -315,11 +319,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Navigation requests (HTML pages) — stale-while-revalidate
-  // Serves cached page instantly, fetches fresh version in background
+  // Navigation requests (HTML pages) — network-first
+  // Always fetches latest version; falls back to cache when offline
   if (isNavigationRequest(request)) {
     event.respondWith(
-      staleWhileRevalidate(request, PAGES_CACHE).then(async (response) => {
+      networkFirst(request, PAGES_CACHE).then(async (response) => {
         if (response) return response;
         // Nothing in cache and network failed — show offline page
         const offlinePage = await caches.match("/_offline");

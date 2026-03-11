@@ -91,6 +91,11 @@ export default function RegisterSW() {
     });
 
     if ("serviceWorker" in navigator) {
+      // When a new SW takes over, reload to get fresh code
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        window.location.reload();
+      });
+
       navigator.serviceWorker
         .register("/sw.js", { scope: "/" })
         .then((registration) => {
@@ -116,8 +121,8 @@ export default function RegisterSW() {
                 newWorker.state === "installed" &&
                 navigator.serviceWorker.controller
               ) {
-                // New version available - activate it on next navigation
-                // No disruptive reload; the user gets the new version next time
+                // New version available - skip waiting so it activates now
+                newWorker.postMessage({ type: "SKIP_WAITING" });
               }
             });
           });

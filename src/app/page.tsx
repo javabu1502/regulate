@@ -1055,25 +1055,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── "I need support right now" button ── */}
-        <button
-          onClick={() => setView("check-in")}
-          className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-candle/20 bg-candle/5 px-4 py-3.5 text-sm text-candle transition-all hover:border-candle/35 active:scale-[0.98]"
-        >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M2 12H7L9 6L12 18L15 9L17 12H22" />
-          </svg>
-          I need support right now
-        </button>
-
         {/* ── Module cards grid ── */}
         <div className="flex flex-col gap-2">
           {modules.map((mod) => (
@@ -1081,24 +1062,10 @@ export default function Home() {
           ))}
         </div>
 
-        {/* ── Secondary links ── */}
-        <div className="mt-3 flex gap-2">
-          {secondaryLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/60 transition-colors hover:border-teal/20 hover:text-cream-dim"
-            >
-              {link.icon}
-              {link.title}
-            </Link>
-          ))}
-        </div>
-
         {/* ── Learn link ── */}
         <Link
           href="/learn"
-          className="mt-3 block text-center text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
+          className="mt-4 block text-center text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
         >
           Understanding your nervous system &rarr;
         </Link>

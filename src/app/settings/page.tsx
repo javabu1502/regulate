@@ -87,13 +87,6 @@ export default function SettingsPage() {
     setShowCommonLines(false);
   }
 
-  function redoOnboarding() {
-    localStorage.removeItem("onboarding_complete");
-    localStorage.removeItem("quick_access");
-    localStorage.removeItem("onboarding_data");
-    router.push("/onboarding");
-  }
-
   function clearJournal() {
     localStorage.removeItem("regulate-journal");
     setConfirmClear(null);
@@ -250,7 +243,7 @@ export default function SettingsPage() {
     ];
     keys.forEach((k) => localStorage.removeItem(k));
     setConfirmClear(null);
-    router.push("/onboarding");
+    router.push("/");
   }
 
   return (
@@ -581,14 +574,14 @@ export default function SettingsPage() {
 
           <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Your data</p>
 
-          {/* Redo onboarding */}
-          <button
-            onClick={redoOnboarding}
-            className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30"
+          {/* About */}
+          <Link
+            href="/about"
+            className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30 block"
           >
-            <h3 className="text-sm font-medium text-cream">Redo onboarding</h3>
-            <p className="mt-1 text-xs text-cream-dim/60">Re-pick your go-to tools and preferences</p>
-          </button>
+            <h3 className="text-sm font-medium text-cream">About Regulate</h3>
+            <p className="mt-1 text-xs text-cream-dim/60">What this app is and how it works</p>
+          </Link>
 
           {/* Review preferences */}
           <Link
