@@ -647,6 +647,15 @@ function SOSPageInner() {
     );
   }
 
+  // Home button - exits SOS flow entirely
+  function HomeButton() {
+    return (
+      <button onClick={goHome} className="fixed right-4 top-6 z-10 flex h-11 w-11 items-center justify-center text-cream-dim/40 hover:text-cream-dim focus:outline-none focus:ring-2 focus:ring-teal/50 rounded-lg" aria-label="Go home">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 10L10 3L17 10M5 8.5V16H8.5V12H11.5V16H15V8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+    );
+  }
+
   // Context badge - small indicator showing current location filter with change option
   function ContextBadge() {
     if (locationContext === "anywhere") return null;
@@ -783,6 +792,7 @@ function SOSPageInner() {
     return (
       <div key="recommend" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
         <BackButton onClick={() => setStep("body-check")} />
+        <HomeButton />
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">{stateLabel}</h2>
@@ -875,6 +885,7 @@ function SOSPageInner() {
     return (
       <div key="all-tools" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
         <BackButton onClick={() => setStep("recommend")} />
+        <HomeButton />
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">All exercises</h2>

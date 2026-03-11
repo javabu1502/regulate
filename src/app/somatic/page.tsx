@@ -784,20 +784,20 @@ function SomaticPageInner() {
                   key={ex.id}
                   className={`relative w-full rounded-2xl border ${
                     isRecommended ? "border-teal/40" : "border-teal/15"
-                  } bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8 active:scale-[0.98]`}
+                  } bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]`}
                 >
                   <button
                     onClick={() => selectTechnique(ex.id)}
                     className="group w-full text-left"
                   >
-                    <div className="flex items-start gap-4 pr-6">
-                      <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/80">
+                    <div className="flex items-start gap-3 pr-7">
+                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-blue/80">
                         <ExerciseIcon id={ex.id} />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-base font-medium text-cream">{ex.name}</h3>
-                        <p className="mt-0.5 text-sm text-cream-dim">{ex.description}</p>
-                        <span className="mt-1.5 inline-block text-xs text-cream-dim/50">{ex.duration} min</span>
+                        <h3 className="text-sm font-medium text-cream">{ex.name}</h3>
+                        <p className="mt-0.5 text-xs text-cream-dim/70">{ex.description}</p>
+                        <span className="mt-1 inline-block text-[10px] text-cream-dim/50">{ex.duration} min</span>
                         {ex.position && ex.position !== "any" && (
                           <span className="text-xs text-cream-dim/40"> · {ex.position === "seated" ? "Seated" : "Standing"}</span>
                         )}

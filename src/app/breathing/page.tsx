@@ -374,28 +374,28 @@ function BreathingPageInner() {
               return (
                 <div
                   key={p.id}
-                  className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8 active:scale-[0.98]"
+                  className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]"
                 >
                   <button
                     onClick={() => selectAndStart(p)}
                     className="group w-full text-left"
                   >
-                    <div className="flex items-start gap-4 pr-6">
-                      <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/80">
+                    <div className="flex items-start gap-3 pr-7">
+                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-blue/80">
                         <PatternIcon id={p.id} />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-base font-medium text-cream">
+                        <h3 className="text-sm font-medium text-cream">
                           {p.name}
                         </h3>
-                        <p className="mt-0.5 text-sm text-cream-dim">
+                        <p className="mt-0.5 text-xs text-cream-dim/70">
                           {p.description}
                         </p>
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <span className="inline-block rounded-full bg-teal/10 px-2.5 py-0.5 text-xs text-teal-soft">
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className="inline-block rounded-full bg-teal/10 px-2 py-0.5 text-[10px] text-teal-soft">
                             {p.useCase}
                           </span>
-                          <span className="text-xs text-cream-dim/40">
+                          <span className="text-[10px] text-cream-dim/40">
                             ~{totalMin} min
                           </span>
                         </div>

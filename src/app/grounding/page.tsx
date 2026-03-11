@@ -216,13 +216,13 @@ export default function GroundingPage() {
           </header>
 
           <div className="flex flex-col gap-3">
-            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8">
+            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
               <button
                 onClick={() => selectType("sensory")}
                 className="group w-full text-left pr-6"
               >
-                <h3 className="text-base font-medium text-cream">5-4-3-2-1 Senses</h3>
-                <p className="mt-1 text-sm text-cream-dim">Engage all five senses</p>
+                <h3 className="text-sm font-medium text-cream">5-4-3-2-1 Senses</h3>
+                <p className="mt-0.5 text-xs text-cream-dim/70">Engage all five senses</p>
               </button>
               <MicroExplanation
                 text={groundingExplanations.sensory}
@@ -231,13 +231,13 @@ export default function GroundingPage() {
               />
             </div>
 
-            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8">
+            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
               <button
                 onClick={() => selectType("body")}
                 className="group w-full text-left pr-6"
               >
-                <h3 className="text-base font-medium text-cream">Body Grounding</h3>
-                <p className="mt-1 text-sm text-cream-dim">Feel your body in space</p>
+                <h3 className="text-sm font-medium text-cream">Body Grounding</h3>
+                <p className="mt-0.5 text-xs text-cream-dim/70">Feel your body in space</p>
               </button>
               <MicroExplanation
                 text={groundingExplanations.body}
@@ -246,13 +246,13 @@ export default function GroundingPage() {
               />
             </div>
 
-            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left backdrop-blur-sm transition-all duration-300 hover:translate-y-[-2px] hover:border-teal/35 hover:shadow-lg hover:shadow-teal/8">
+            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
               <button
                 onClick={() => selectType("object")}
                 className="group w-full text-left pr-6"
               >
-                <h3 className="text-base font-medium text-cream">Object Grounding</h3>
-                <p className="mt-1 text-sm text-cream-dim">Focus on a single object</p>
+                <h3 className="text-sm font-medium text-cream">Object Grounding</h3>
+                <p className="mt-0.5 text-xs text-cream-dim/70">Focus on a single object</p>
               </button>
               <MicroExplanation
                 text={groundingExplanations.object}

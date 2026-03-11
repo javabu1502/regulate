@@ -13,7 +13,7 @@ export default function MicroExplanation({ text, isOpen, onToggle }: MicroExplan
   const [height, setHeight] = useState(0);
 
   useEffect(() => {
-    if (contentRef.current) {
+    if (isOpen && contentRef.current) {
       setHeight(contentRef.current.scrollHeight);
     }
   }, [text, isOpen]);
@@ -27,12 +27,13 @@ export default function MicroExplanation({ text, isOpen, onToggle }: MicroExplan
           e.preventDefault();
           onToggle(e);
         }}
-        className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full border text-[11px] font-medium transition-all duration-200 ${
+        className={`absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-medium transition-all duration-200 ${
           isOpen
             ? "border-teal/40 bg-teal/15 text-teal-soft/70"
             : "border-cream-dim/15 text-cream-dim/30 hover:border-cream-dim/30 hover:text-cream-dim/60"
         }`}
         aria-label="Why this works"
+        aria-expanded={isOpen}
       >
         ?
       </button>
@@ -40,7 +41,7 @@ export default function MicroExplanation({ text, isOpen, onToggle }: MicroExplan
       {/* Expandable explanation */}
       <div
         className="overflow-hidden transition-all duration-300 ease-out"
-        style={{ maxHeight: isOpen ? height : 0, opacity: isOpen ? 1 : 0 }}
+        style={{ maxHeight: isOpen ? `${height}px` : "0px", opacity: isOpen ? 1 : 0 }}
       >
         <div ref={contentRef} className="border-t border-cream-dim/10 pt-2.5 mt-2.5">
           <p className="text-xs leading-relaxed text-cream-dim/70">{text}</p>
