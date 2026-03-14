@@ -103,8 +103,8 @@ function playSlideSound() {
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function randomStoneShape(): number[] {
-  // More variation — some lumpy, some smooth
-  const roughness = 0.15 + Math.random() * 0.25;
+  // Big variation — lumpy, angular, smooth, wobbly
+  const roughness = 0.2 + Math.random() * 0.4;
   return Array.from({ length: 8 }, () => (Math.random() - 0.5) * roughness * 2);
 }
 
@@ -112,10 +112,10 @@ function createStone(x: number, y: number, level: number): Stone {
   // Stones get slightly smaller as you go up, but all are big
   const baseW = 120 - level * 4;
   const baseH = 55 - level * 2;
-  // Vary the aspect ratio — some round, some flat, some tall
-  const aspectVariance = 0.7 + Math.random() * 0.6; // 0.7x to 1.3x
-  const width = Math.max(70, (baseW + (Math.random() - 0.5) * 30) * aspectVariance);
-  const height = Math.max(30, (baseH + (Math.random() - 0.5) * 15) / aspectVariance);
+  // Wide range of shapes — flat slabs, chunky rounds, tall ovals
+  const aspectVariance = 0.5 + Math.random() * 1.0; // 0.5x to 1.5x
+  const width = Math.max(60, (baseW + (Math.random() - 0.5) * 40) * aspectVariance);
+  const height = Math.max(25, (baseH + (Math.random() - 0.5) * 20) / aspectVariance);
   return {
     x,
     y,
@@ -218,7 +218,7 @@ export default function StoneStackingPage() {
   const activeStoneRef = useRef<Stone | null>(null);
   const dustRef = useRef<DustParticle[]>([]);
   const stateRef = useRef<GameState>("idle");
-  const moveSpeedRef = useRef(0.6);
+  const moveSpeedRef = useRef(1.2);
   const moveDirRef = useRef(1);
 
   const [showHelp, setShowHelp] = useState(false);
@@ -409,8 +409,8 @@ export default function StoneStackingPage() {
               return newBest;
             });
 
-            // Speed increases very gently
-            moveSpeedRef.current = 0.6 + tower.length * 0.06;
+            // Speed increases as tower grows
+            moveSpeedRef.current = 1.2 + tower.length * 0.1;
 
             playPlaceSound();
             haptics.tap();

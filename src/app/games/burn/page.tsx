@@ -124,7 +124,7 @@ export default function BurnNotePage() {
     burnProgressRef.current = 0;
     crackleTimerRef.current = 0;
 
-    const BURN_DURATION = 240; // frames (~4 seconds for more drama)
+    const BURN_DURATION = 150; // frames (~2.5 seconds)
     // Note geometry matches the rendered paper note
     const noteLeft = (w - Math.min(w - 48, 448)) / 2;
     const noteRight = (w + Math.min(w - 48, 448)) / 2;
