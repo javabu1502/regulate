@@ -144,10 +144,14 @@ export default function BreathingGardenPage() {
 
       if (progress < 1) {
         animFrameRef.current = requestAnimationFrame(tick);
-      } else if (phase === "inhale" && isHoldingRef.current) {
-        // Inhale complete while still holding — just stay expanded
-        setCountdown(0);
-        setBreathProgress(1);
+      } else if (phase === "inhale") {
+        // Inhale complete — automatically start exhale
+        isHoldingRef.current = false;
+        phaseStartRef.current = Date.now();
+        setPhase("exhale");
+        setBreathProgress(0);
+        haptics.tap();
+        return;
       } else if (phase === "exhale") {
         // Exhale complete — plant the flower and go idle
         plantFlower();
@@ -259,10 +263,10 @@ export default function BreathingGardenPage() {
   let guideText = "Press and hold anywhere";
   let subText = "to breathe in";
   if (phase === "inhale") {
-    guideText = "Breathing in";
-    subText = countdown > 0 ? `${countdown}` : "Keep holding…";
+    guideText = "Breathe in";
+    subText = countdown > 0 ? `${countdown}` : "";
   } else if (phase === "exhale") {
-    guideText = "Breathing out";
+    guideText = "Breathe out";
     subText = countdown > 0 ? `${countdown}` : "";
   }
 

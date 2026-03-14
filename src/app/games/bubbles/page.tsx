@@ -77,21 +77,21 @@ function playPopSound() {
     osc.frequency.setValueAtTime(baseFreq, t);
     osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, t + 0.2);
 
-    gain.gain.setValueAtTime(0.08, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    gain.gain.setValueAtTime(0.25, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(t);
-    osc.stop(t + 0.2);
+    osc.stop(t + 0.25);
 
-    // Tiny shimmer overtone for softness
+    // Shimmer overtone
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = "sine";
     osc2.frequency.setValueAtTime(baseFreq * 2.5, t);
     osc2.frequency.exponentialRampToValueAtTime(baseFreq * 1.2, t + 0.15);
-    gain2.gain.setValueAtTime(0.03, t);
+    gain2.gain.setValueAtTime(0.1, t);
     gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
     osc2.connect(gain2);
     gain2.connect(ctx.destination);
