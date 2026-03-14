@@ -410,22 +410,45 @@ export default function RipplePoolPage() {
         </button>
       </div>
 
-      {/* Floating affirmation */}
+      {/* Floating affirmation — tappable to dismiss, with ripple animation */}
       {currentAffirmation && showAffirmations && (
         <div
-          className="pointer-events-none absolute inset-x-0 top-1/3 z-10 flex justify-center"
+          className="absolute inset-x-0 top-1/3 z-10 flex justify-center"
+          style={{ pointerEvents: affirmationVisible ? "auto" : "none" }}
         >
-          <p
-            className="max-w-[280px] text-center text-lg font-light tracking-wide text-teal-soft/50 transition-opacity duration-1500 ease-in-out select-none"
+          <button
+            onClick={() => {
+              setAffirmationVisible(false);
+              addRipple(window.innerWidth / 2, window.innerHeight / 3, true);
+            }}
+            className="max-w-[280px] text-center text-lg font-light tracking-wide text-teal-soft/50 select-none"
             style={{
               opacity: affirmationVisible ? 1 : 0,
-              transitionDuration: "1.5s",
+              transition: "opacity 1.5s ease-in-out, transform 1.5s ease-in-out",
+              transform: affirmationVisible ? "scale(1)" : "scale(0.8)",
+              animation: affirmationVisible ? "affirmationRipple 3s ease-in-out infinite" : "none",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
             }}
           >
             {currentAffirmation}
-          </p>
+          </button>
         </div>
       )}
+
+      <style>{`
+        @keyframes affirmationRipple {
+          0%, 100% {
+            text-shadow: 0 0 8px rgba(94, 234, 212, 0.15);
+            transform: scale(1);
+          }
+          50% {
+            text-shadow: 0 0 20px rgba(94, 234, 212, 0.3), 0 0 40px rgba(94, 234, 212, 0.1);
+            transform: scale(1.03);
+          }
+        }
+      `}</style>
 
       {/* How this helps */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center p-5">

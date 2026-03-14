@@ -125,6 +125,7 @@ export default function BreathingGardenPage() {
   const isHoldingRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const activeFlowerRef = useRef<{ x: number; y: number; color: string; variant: number } | null>(null);
+  const [activeFlower, setActiveFlower] = useState<{ x: number; y: number; color: string; variant: number } | null>(null);
 
   // ── Animate the breathing circle + countdown ─────────────────────
 
@@ -189,6 +190,7 @@ export default function BreathingGardenPage() {
     setCycleCount((c) => c + 1);
     haptics.tap();
     activeFlowerRef.current = null;
+    setActiveFlower(null);
   }, []);
 
   // ── Touch handlers ────────────────────────────────────────────────
@@ -207,12 +209,14 @@ export default function BreathingGardenPage() {
       const yPct = ((e.clientY - rect.top) / rect.height) * 100;
 
       // Store where the flower will go
-      activeFlowerRef.current = {
+      const flowerInfo = {
         x: xPct,
         y: yPct,
         color: FLOWER_COLORS[Math.floor(Math.random() * FLOWER_COLORS.length)],
         variant: Math.floor(Math.random() * FLOWER_VARIANTS.length),
       };
+      activeFlowerRef.current = flowerInfo;
+      setActiveFlower(flowerInfo);
 
       // Start inhale
       phaseStartRef.current = Date.now();
@@ -237,6 +241,7 @@ export default function BreathingGardenPage() {
       setBreathProgress(0);
       setCountdown(0);
       activeFlowerRef.current = null;
+      setActiveFlower(null);
       return;
     }
 
@@ -319,6 +324,33 @@ export default function BreathingGardenPage() {
           </div>
         ))}
       </div>
+
+      {/* ── Growing flower preview at touch location ─────────────────── */}
+      {activeFlower && phase !== "idle" && (
+        <div
+          className="pointer-events-none absolute z-15"
+          style={{
+            left: `${activeFlower.x}%`,
+            top: `${activeFlower.y}%`,
+            width: 48,
+            height: 48,
+            transform: `translate(-50%, -50%) scale(${phase === "inhale" ? 0.3 + breathProgress * 0.7 : 1})`,
+            opacity: phase === "inhale" ? 0.4 + breathProgress * 0.6 : 1,
+            transition: phase === "exhale" ? "opacity 0.5s" : undefined,
+          }}
+        >
+          {/* Glow ring */}
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `radial-gradient(circle, ${activeFlower.color}25 0%, transparent 70%)`,
+              transform: "scale(3)",
+              filter: "blur(6px)",
+            }}
+          />
+          {FLOWER_VARIANTS[activeFlower.variant](activeFlower.color)}
+        </div>
+      )}
 
       {/* ── Central breathing guide ──────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center">

@@ -192,19 +192,6 @@ const games = [
       </svg>
     ),
   },
-  {
-    href: "/games/circles",
-    title: "Breathing Circles",
-    description: "Hold to grow rings, release to settle.",
-    icon: (
-      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" opacity="0.7" />
-        <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.2" opacity="0.5" />
-        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1" opacity="0.35" />
-        <circle cx="12" cy="12" r="11.5" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
-      </svg>
-    ),
-  },
 ];
 
 export default function GamesPage() {
