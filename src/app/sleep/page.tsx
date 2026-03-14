@@ -70,9 +70,9 @@ const bodyScanSteps = [
 ];
 
 const sleepExplanations: Record<string, string> = {
-  "cant-sleep": "Extended exhale breathing plus muscle relaxation may help lower cortisol and prepare your body for sleep.",
-  "woke-up": "Grounding reorients you to the present, while affirmations counter the negative thought spiral.",
-  "racing": "Longer exhales slow your heart rate while body awareness redirects attention away from racing thoughts.",
+  "cant-sleep": "Long exhales plus tensing and releasing your muscles. It tells your body it\u2019s okay to let go, even when your mind hasn\u2019t gotten the memo yet.",
+  "woke-up": "When you wake up at 3am spiraling, grounding brings you back to right now, and gentle words give your mind something besides worry to hold onto.",
+  "racing": "Slow breathing brings your heart rate down while paying attention to your body gives your racing mind somewhere else to be.",
 };
 
 // ─── Screens per mode ──────────────────────────────────────────────
@@ -357,7 +357,7 @@ export default function SleepPage() {
             </div>
 
             <p className="mt-8 text-xs text-cream-dim/30">
-              Turn on binaural beats for deeper relaxation
+              Turn on calming tones for deeper relaxation
             </p>
           </div>
         </div>

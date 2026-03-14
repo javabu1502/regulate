@@ -1,17 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { HomeIcon, LearnIcon, SettingsIcon } from "@/components/Icons";
-
-const tabs = [
-  { href: "/", label: "Home", icon: HomeIcon },
-  { href: "/learn", label: "Learn", icon: LearnIcon },
-  { href: "/settings", label: "Settings", icon: SettingsIcon },
-] as const;
+import { HomeIcon, LearnIcon, SettingsIcon, PracticeIcon } from "@/components/Icons";
+import { isPremium } from "@/lib/premium";
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const [premium, setPremium] = useState(false);
+
+  useEffect(() => {
+    setPremium(isPremium());
+  }, []);
 
   // Hide nav on onboarding and during SOS
   const hidden = pathname.startsWith("/onboarding") || pathname.startsWith("/sos");
@@ -23,12 +24,16 @@ export default function BottomNav() {
         {/* Home */}
         <NavTab href="/" label="Home" icon={HomeIcon} active={pathname === "/"} />
 
+        {/* Practice (premium only) */}
+        {premium && (
+          <NavTab href="/practice" label="Practice" icon={PracticeIcon} active={pathname === "/practice"} />
+        )}
+
         {/* SOS Button - center */}
         <div className="flex flex-1 items-center justify-center py-1.5">
           <button
             onClick={() => {
-              try { sessionStorage.removeItem("regulate-checked-in"); } catch {}
-              window.location.href = "/";
+              window.location.href = "/sos";
             }}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-candle/20 border-2 border-candle/40 text-candle transition-all active:scale-95 hover:bg-candle/30 focus:outline-none focus:ring-2 focus:ring-candle/50"
             aria-label="I need help right now"

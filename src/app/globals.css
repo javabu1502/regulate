@@ -88,10 +88,10 @@ body {
     animation: none !important;
   }
 
-  * {
-    transition-duration: 0.01ms !important;
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -118,23 +118,50 @@ body {
   opacity: 0.9;
 }
 
-/* Accessibility: large text mode */
-.large-text {
+/* Accessibility: text size modes */
+body.text-size-large {
   font-size: 18px;
 }
-.large-text .text-xs {
+body.text-size-xl {
+  font-size: 20px;
+}
+
+.large-text,
+body.text-size-large {
+  font-size: 18px;
+}
+.large-text .text-xs,
+body.text-size-large .text-xs {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
-.large-text .text-sm {
+.large-text .text-sm,
+body.text-size-large .text-sm {
   font-size: 1rem;
   line-height: 1.5rem;
 }
-.large-text .text-\[10px\] {
+.large-text .text-\[10px\],
+body.text-size-large .text-\[10px\] {
   font-size: 0.75rem;
 }
-.large-text .text-\[11px\] {
+.large-text .text-\[11px\],
+body.text-size-large .text-\[11px\] {
   font-size: 0.8125rem;
+}
+
+body.text-size-xl .text-xs {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+body.text-size-xl .text-sm {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+body.text-size-xl .text-\[10px\] {
+  font-size: 0.8125rem;
+}
+body.text-size-xl .text-\[11px\] {
+  font-size: 0.875rem;
 }
 
 /* Night mode — auto-applied 10pm–6am */

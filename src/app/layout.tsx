@@ -40,8 +40,16 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <script dangerouslySetInnerHTML={{ __html: `
           try {
-            if (localStorage.getItem('regulate-font-size') === 'large') {
+            var ts = localStorage.getItem('regulate-text-size');
+            if (!ts) {
+              var oldFs = localStorage.getItem('regulate-font-size');
+              if (oldFs === 'large') ts = 'large';
+            }
+            if (ts === 'large') {
               document.documentElement.classList.add('large-text');
+              document.body && document.body.classList.add('text-size-large');
+            } else if (ts === 'xl') {
+              document.body && document.body.classList.add('text-size-xl');
             }
             var nm = localStorage.getItem('regulate-night-mode');
             if (nm === 'on') {

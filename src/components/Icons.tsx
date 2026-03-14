@@ -145,5 +145,14 @@ export function WaveIcon({ className = "h-6 w-6" }: { className?: string }) {
   );
 }
 
+export function PracticeIcon({ className = "h-6 w-6" }: { className?: string }) {
+  return (
+    <svg className={`${base} ${className}`} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19L8 15L12 17L16 11L20 7" />
+      <path d="M16 7H20V11" />
+    </svg>
+  );
+}
+
 /** @deprecated Use WaveIcon instead */
 export const CandleIcon = WaveIcon;

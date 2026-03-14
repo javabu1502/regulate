@@ -98,9 +98,9 @@ const objectSteps = [
 ];
 
 const groundingExplanations: Record<string, string> = {
-  sensory: "Engaging each sense pulls your attention into the present moment, interrupting the anxiety loop.",
-  body: "Focusing on physical contact points reminds your nervous system that you are safe and supported right now.",
-  object: "Detailed sensory focus on a single object anchors your attention and interrupts dissociation.",
+  sensory: "When you name what you can see, hear, and feel, it pulls you out of your head and into right now. Anxiety can't survive in the present moment.",
+  body: "Noticing where your body touches the chair, the floor, or your own hands reminds you that you're here. You're solid. You're not floating away.",
+  object: "Focusing on one thing in detail gives your mind a single anchor. Instead of spinning, you're just... looking. It works especially well when you feel disconnected.",
 };
 
 // ─── Component ──────────────────────────────────────────────────────

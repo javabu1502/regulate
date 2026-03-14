@@ -13,10 +13,18 @@ export default function MicroExplanation({ text, isOpen, onToggle }: MicroExplan
   const [height, setHeight] = useState(0);
 
   useEffect(() => {
-    if (isOpen && contentRef.current) {
-      setHeight(contentRef.current.scrollHeight);
-    }
-  }, [text, isOpen]);
+    if (!contentRef.current) return;
+    // Use ResizeObserver to always get the correct height
+    const observer = new ResizeObserver(() => {
+      if (contentRef.current) {
+        setHeight(contentRef.current.scrollHeight);
+      }
+    });
+    observer.observe(contentRef.current);
+    // Also measure immediately
+    setHeight(contentRef.current.scrollHeight);
+    return () => observer.disconnect();
+  }, [text]);
 
   return (
     <>
@@ -41,7 +49,10 @@ export default function MicroExplanation({ text, isOpen, onToggle }: MicroExplan
       {/* Expandable explanation */}
       <div
         className="overflow-hidden transition-all duration-300 ease-out"
-        style={{ maxHeight: isOpen ? `${height}px` : "0px", opacity: isOpen ? 1 : 0 }}
+        style={{
+          maxHeight: isOpen ? `${height + 24}px` : "0px",
+          opacity: isOpen ? 1 : 0,
+        }}
       >
         <div ref={contentRef} className="border-t border-cream-dim/10 pt-2.5 mt-2.5">
           <p className="text-xs leading-relaxed text-cream-dim/70">{text}</p>

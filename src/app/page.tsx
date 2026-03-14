@@ -3,372 +3,55 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import ModuleCard from "@/components/ModuleCard";
 import MyPersonSection from "@/components/MyPerson";
 import {
   BreathingIcon,
-  GroundingIcon,
-  BodyScanIcon,
-  SomaticIcon,
-  AffirmationsIcon,
-  JournalIcon,
-  LearnIcon,
   WaveIcon,
 } from "@/components/Icons";
-import {
-  getTopTechniques,
-  getPersonalizedRecommendations,
-  type TopTechnique,
-} from "@/lib/recommendations";
 import PremiumGate from "@/components/PremiumGate";
 import { isPremium } from "@/lib/premium";
 import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
-
-// ─── Body state options ─────────────────────────────────────────────
-
-const bodyStates = [
-  {
-    id: "panicking",
-    label: "Racing or panicking",
-    sub: "Heart pounding, can't breathe, spiraling",
-    route: "/sos?state=panicking",
-    barColor: "bg-coral",
-    bgColor: "bg-coral/6 hover:bg-coral/12",
-    textColor: "text-coral-soft",
-    icon: (
-      <svg className="h-5 w-5 text-coral-soft" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="4" fill="currentColor" className="animate-pulse-soft" />
-        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1" opacity="0.3" className="animate-pulse-soft" />
-      </svg>
-    ),
-  },
-  {
-    id: "anxious",
-    label: "Tense or anxious",
-    sub: "On edge, restless, can't settle",
-    route: "/sos?state=anxious",
-    barColor: "bg-candle",
-    bgColor: "bg-candle/6 hover:bg-candle/12",
-    textColor: "text-candle-soft",
-    icon: (
-      <svg className="h-5 w-5 text-candle-soft" viewBox="0 0 20 20" fill="none">
-        <path d="M2 10L5 7L8 12L11 6L14 11L17 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    id: "shutdown",
-    label: "Shut down or numb",
-    sub: "Frozen, disconnected, can't feel much",
-    route: "/sos?state=shutdown",
-    barColor: "bg-indigo",
-    bgColor: "bg-indigo/6 hover:bg-indigo/12",
-    textColor: "text-indigo-soft",
-    icon: (
-      <svg className="h-5 w-5 text-indigo-soft" viewBox="0 0 20 20" fill="none">
-        <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    id: "sleep",
-    label: "Can't sleep",
-    sub: "Restless, racing thoughts, wide awake",
-    route: "/sleep",
-    barColor: "bg-lavender",
-    bgColor: "bg-lavender/6 hover:bg-lavender/12",
-    textColor: "text-lavender",
-    icon: (
-      <svg className="h-5 w-5 text-lavender" viewBox="0 0 20 20" fill="none">
-        <path d="M15 10A7 7 0 1 1 8 3a5.5 5.5 0 0 0 7 7Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    id: "okay",
-    label: "I'm okay right now",
-    sub: "Just here to practice or explore",
-    route: "",
-    barColor: "bg-teal",
-    bgColor: "bg-teal/6 hover:bg-teal/12",
-    textColor: "text-teal-soft",
-    icon: (
-      <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 20 20" fill="none">
-        <path d="M3 10C3 10 6 6 10 6C14 6 17 10 17 10C17 10 14 14 10 14C6 14 3 10 3 10Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-];
-
-// ─── Daily practice rotation (7-day cycle) ─────────────────────────
-
-const dailyPractices = [
-  {
-    id: "breathing",
-    name: "Physiological Sigh",
-    desc: "Double inhale, long exhale - the fastest nervous system reset.",
-    time: "~1 min",
-    href: "/breathing",
-  },
-  {
-    id: "body-scan",
-    name: "Quick Body Scan",
-    desc: "Move attention through your body - notice without fixing.",
-    time: "5 min",
-    href: "/body-scan",
-  },
-  {
-    id: "orienting",
-    name: "Orienting",
-    desc: "Slowly look around to signal safety to your nervous system.",
-    time: "2 min",
-    href: "/somatic?exercise=orienting",
-  },
-  {
-    id: "pendulation",
-    name: "Pendulation",
-    desc: "Shift attention between tension and comfort - build resilience.",
-    time: "3 min",
-    href: "/somatic?exercise=pendulation",
-  },
-  {
-    id: "havening",
-    name: "Self-Havening",
-    desc: "Gentle arm and face strokes to produce deep calm.",
-    time: "3 min",
-    href: "/somatic?exercise=havening",
-  },
-  {
-    id: "extended",
-    name: "Coherence Breathing",
-    desc: "5 seconds in, 5 seconds out - synchronize heart and breath.",
-    time: "~1 min",
-    href: "/breathing",
-  },
-  {
-    id: "grounding",
-    name: "5-4-3-2-1 Grounding",
-    desc: "Use your senses to come back to the present moment.",
-    time: "3 min",
-    href: "/grounding",
-  },
-];
-
-// All trackable somatic tools (for "Build your window" progress)
-const ALL_SOMATIC_TOOLS = [
-  "breathing",
-  "extended",
-  "tapping",
-  "grounding",
-  "gentle-movement",
-  "body-scan",
-  "somatic",
-  "affirmations",
-  "sleep",
-  "orienting",
-  "havening",
-  "pendulation",
-  "humming",
-  "body-shaking",
-];
-
-// ─── Practice modules ───────────────────────────────────────────────
-
-const modules = [
-  {
-    href: "/breathing",
-    title: "Breathing",
-    description: "Slow your breath, calm your nervous system.",
-    icon: <BreathingIcon className="h-5 w-5 text-teal-soft" />,
-    accentColor: "teal" as const,
-  },
-  {
-    href: "/grounding",
-    title: "Grounding",
-    description: "Come back to your senses, right here.",
-    icon: <GroundingIcon className="h-5 w-5 text-teal-soft" />,
-    accentColor: "teal" as const,
-  },
-  {
-    href: "/somatic",
-    title: "Somatic",
-    description: "Release what your body is holding.",
-    icon: <SomaticIcon className="h-5 w-5 text-teal-soft" />,
-    accentColor: "teal" as const,
-  },
-  {
-    href: "/body-scan",
-    title: "Body Scan",
-    description: "Progressive relaxation, head to toe.",
-    icon: <BodyScanIcon className="h-5 w-5 text-teal-soft" />,
-    accentColor: "teal" as const,
-  },
-  {
-    href: "/affirmations",
-    title: "Affirmations",
-    description: "Words to hold you when things feel heavy.",
-    icon: <AffirmationsIcon className="h-5 w-5 text-teal-soft" />,
-    accentColor: "teal" as const,
-  },
-  {
-    href: "/sleep",
-    title: "Sleep",
-    description: "A calming sequence for restless nights.",
-    icon: <LearnIcon className="h-5 w-5 text-teal-soft" />,
-    accentColor: "teal" as const,
-  },
-];
-
-const secondaryLinks = [
-  {
-    href: "/journal",
-    title: "Journal",
-    icon: <JournalIcon className="h-4 w-4" />,
-  },
-  {
-    href: "/programs/first-week",
-    title: "Programs",
-    icon: <WaveIcon className="h-4 w-4" />,
-  },
-  {
-    href: "/learn",
-    title: "Learn",
-    icon: <LearnIcon className="h-4 w-4" />,
-  },
-];
-
-// ─── Helper: day-of-year ────────────────────────────────────────────
-
-function getDayOfYear(): number {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now.getTime() - start.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
-}
 
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function Home() {
   const router = useRouter();
-  const [view, setView] = useState<"check-in" | "feed">(() => {
-    try {
-      if (typeof window !== "undefined" && sessionStorage.getItem("regulate-checked-in")) {
-        return "feed";
-      }
-    } catch {}
-    return "check-in";
-  });
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [installDismissed, setInstallDismissed] = useState(true);
-  const [discovery, setDiscovery] = useState<{
-    id: string;
-    name: string;
-    desc: string;
-    time: string;
-    href: string;
-  } | null>(null);
-  const [topTechniques, setTopTechniques] = useState<TopTechnique[] | null>(
-    null,
-  );
   const [isNightTime, setIsNightTime] = useState(false);
-  const [welcomeBack, setWelcomeBack] = useState<"7day" | "30day" | null>(
-    null,
-  );
+  const [isFirstOpen, setIsFirstOpen] = useState(false);
+  const [firstOpenReady, setFirstOpenReady] = useState(false);
+  const [whatIsExpanded, setWhatIsExpanded] = useState(false);
   const [firstSessionNudge, setFirstSessionNudge] = useState<{
     label: string;
     href: string;
   } | null>(null);
-  const [programState, setProgramState] = useState<{
-    status: "not-started" | "in-progress" | "completed";
-    currentDay: number;
-    completedCount: number;
-    dayTitle: string;
+
+  const [checkBack, setCheckBack] = useState<{
+    ts: number;
+    tool: string;
+    state: string;
   } | null>(null);
 
-  const [toolsExplored, setToolsExplored] = useState<{
-    count: number;
-    total: number;
-  } | null>(null);
+  // First-open detection — runs before anything else
+  useEffect(() => {
+    try {
+      const hasOnboarding = localStorage.getItem("onboarding_complete");
+      const hasVisited = localStorage.getItem("regulate-last-visit");
+      const sosHistory = localStorage.getItem("regulate-sos-history");
+      const hasSosEntries =
+        sosHistory && JSON.parse(sosHistory).length > 0;
+
+      if (!hasOnboarding && !hasVisited && !hasSosEntries) {
+        setIsFirstOpen(true);
+      }
+    } catch {}
+    setFirstOpenReady(true);
+  }, []);
 
   useEffect(() => {
     const h = new Date().getHours();
     setIsNightTime(h >= 22 || h < 6);
-  }, []);
-
-  // Program progress
-  useEffect(() => {
-    try {
-      const onboarded = localStorage.getItem("onboarding_complete");
-      const raw = localStorage.getItem("regulate-program-first-week");
-      if (raw) {
-        const p = JSON.parse(raw) as {
-          currentDay: number;
-          completedDays: number[];
-          startDate: string;
-        };
-        const dayTitles = [
-          "Breathing Basics",
-          "Grounding Your Senses",
-          "Your Body Knows",
-          "Bilateral Tapping",
-          "Self-Havening",
-          "Orienting & Safety",
-          "Your Regulation Toolkit",
-        ];
-        if (p.completedDays?.length === 7) {
-          setProgramState({
-            status: "completed",
-            currentDay: 7,
-            completedCount: 7,
-            dayTitle: dayTitles[6],
-          });
-        } else {
-          setProgramState({
-            status: "in-progress",
-            currentDay: p.currentDay || 1,
-            completedCount: p.completedDays?.length || 0,
-            dayTitle: dayTitles[(p.currentDay || 1) - 1],
-          });
-        }
-      } else if (onboarded) {
-        setProgramState({
-          status: "not-started",
-          currentDay: 1,
-          completedCount: 0,
-          dayTitle: "Breathing Basics",
-        });
-      }
-    } catch {}
-  }, []);
-
-  // Build your window: count unique tools explored
-  useEffect(() => {
-    try {
-      const history = JSON.parse(
-        localStorage.getItem("regulate-sos-history") || "[]",
-      ) as { tool: string }[];
-      const journal = JSON.parse(
-        localStorage.getItem("regulate-journal") || "[]",
-      ) as { tool?: string; technique?: string }[];
-
-      const usedIds = new Set<string>();
-      for (const h of history) {
-        if (h.tool) usedIds.add(h.tool);
-      }
-      for (const j of journal) {
-        if (j.tool) usedIds.add(j.tool);
-        if (j.technique) usedIds.add(j.technique);
-      }
-
-      // Only count tools that are in our known list
-      const explored = ALL_SOMATIC_TOOLS.filter((t) => usedIds.has(t));
-      if (history.length > 0 || journal.length > 0) {
-        setToolsExplored({
-          count: explored.length,
-          total: ALL_SOMATIC_TOOLS.length,
-        });
-      }
-    } catch {}
   }, []);
 
   // First-session nudge: show once after onboarding
@@ -400,23 +83,13 @@ export default function Home() {
     } catch {}
   }, []);
 
-  // Track last visit and detect re-entry after absence
+  // Track last visit (skip if first-open screen is showing)
   useEffect(() => {
+    if (isFirstOpen) return;
     try {
-      const now = Date.now();
-      const lastVisit = localStorage.getItem("regulate-last-visit");
-      if (lastVisit) {
-        const elapsed = now - Number(lastVisit);
-        const dayMs = 24 * 60 * 60 * 1000;
-        if (elapsed >= 30 * dayMs) {
-          setWelcomeBack("30day");
-        } else if (elapsed >= 7 * dayMs) {
-          setWelcomeBack("7day");
-        }
-      }
-      localStorage.setItem("regulate-last-visit", String(now));
+      localStorage.setItem("regulate-last-visit", String(Date.now()));
     } catch {}
-  }, []);
+  }, [isFirstOpen]);
 
   useEffect(() => {
     try {
@@ -441,138 +114,6 @@ export default function Home() {
     return () => window.removeEventListener("regulate-install-ready", handler);
   }, []);
 
-  const [dashData, setDashData] = useState<{
-    calmDays: number;
-    lastHelped: string | null;
-    totalSessions: number;
-    trend: "improving" | "stable" | "worsening" | null;
-  } | null>(null);
-
-  useEffect(() => {
-    try {
-      // Calm days (from journal)
-      const journal = JSON.parse(
-        localStorage.getItem("regulate-journal") || "[]",
-      );
-      const lastEpisode =
-        journal.length > 0
-          ? Math.max(
-              ...journal.map(
-                (e: { timestamp?: number; date?: string }) =>
-                  e.timestamp ||
-                  (e.date ? new Date(e.date).getTime() : 0),
-              ),
-            )
-          : 0;
-      const calmDays =
-        lastEpisode > 0
-          ? Math.floor((Date.now() - lastEpisode) / (1000 * 60 * 60 * 24))
-          : -1;
-
-      // Last helped tool
-      const lastHelpedRaw = localStorage.getItem("regulate-last-helped");
-      const lastHelped = lastHelpedRaw
-        ? JSON.parse(lastHelpedRaw).label
-        : null;
-
-      // Total sessions from SOS history
-      const history = JSON.parse(
-        localStorage.getItem("regulate-sos-history") || "[]",
-      );
-      const totalSessions = history.length;
-
-      // Trend from journal (recent 5 vs previous 5)
-      let trend: "improving" | "stable" | "worsening" | null = null;
-      if (journal.length >= 6) {
-        const sorted = [...journal].sort(
-          (a: { timestamp: number }, b: { timestamp: number }) =>
-            b.timestamp - a.timestamp,
-        );
-        const recent = sorted.slice(0, 5);
-        const prev = sorted.slice(5, 10);
-        if (prev.length >= 3) {
-          const recentAvg =
-            recent.reduce(
-              (s: number, e: { intensity: number }) => s + e.intensity,
-              0,
-            ) / recent.length;
-          const prevAvg =
-            prev.reduce(
-              (s: number, e: { intensity: number }) => s + e.intensity,
-              0,
-            ) / prev.length;
-          trend =
-            recentAvg < prevAvg - 0.5
-              ? "improving"
-              : recentAvg > prevAvg + 0.5
-                ? "worsening"
-                : "stable";
-        }
-      }
-
-      if (totalSessions > 0 || journal.length > 0) {
-        setDashData({ calmDays, lastHelped, totalSessions, trend });
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      const techniques = getTopTechniques();
-      setTopTechniques(techniques);
-    } catch {
-      /* */
-    }
-  }, []);
-
-  // Reflection card state (for 10+ total sessions)
-  const [showReflection, setShowReflection] = useState(false);
-
-  useEffect(() => {
-    try {
-      const journal = JSON.parse(
-        localStorage.getItem("regulate-journal") || "[]",
-      );
-      const history = JSON.parse(
-        localStorage.getItem("regulate-sos-history") || "[]",
-      );
-      const totalSessions = journal.length + history.length;
-
-      if (totalSessions >= 10) {
-        const lastShown = localStorage.getItem(
-          "regulate-reflection-last-shown",
-        );
-        const weekMs = 7 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
-
-        if (!lastShown || now - Number(lastShown) >= weekMs) {
-          setShowReflection(true);
-        }
-      }
-    } catch {}
-  }, []);
-
-  function dismissReflection() {
-    setShowReflection(false);
-    try {
-      localStorage.setItem(
-        "regulate-reflection-last-shown",
-        String(Date.now()),
-      );
-    } catch {}
-  }
-
-  // Diagnostic quiz state
-  const [showDiagnostic, setShowDiagnostic] = useState(false);
-  const [diagnosticStep, setDiagnosticStep] = useState(0);
-  const [diagnosticFading, setDiagnosticFading] = useState(false);
-
-  const [checkBack, setCheckBack] = useState<{
-    ts: number;
-    tool: string;
-    state: string;
-  } | null>(null);
-
   useEffect(() => {
     try {
       const raw = localStorage.getItem("regulate-check-back");
@@ -592,89 +133,7 @@ export default function Home() {
   function dismissCheckBack() {
     setCheckBack(null);
     localStorage.removeItem("regulate-check-back");
-    // Also cancel any scheduled push notification
     localStorage.removeItem("regulate-notification-scheduled");
-  }
-
-  useEffect(() => {
-    try {
-      const allExercises = [
-        {
-          id: "body-scan",
-          name: "Body Scan",
-          desc: "Move attention through your body - progressive release",
-          time: "5 min",
-          href: "/body-scan",
-        },
-        {
-          id: "somatic",
-          name: "Somatic Movement",
-          desc: "Shaking, humming, vagus nerve work",
-          time: "2-5 min",
-          href: "/somatic",
-        },
-        {
-          id: "affirmations",
-          name: "Affirmations",
-          desc: "Words chosen for how you're feeling",
-          time: "2 min",
-          href: "/affirmations",
-        },
-        {
-          id: "grounding",
-          name: "Grounding",
-          desc: "Use your senses to come back to the present",
-          time: "3 min",
-          href: "/grounding",
-        },
-        {
-          id: "breathing",
-          name: "Guided Breathing",
-          desc: "Patterns to calm your nervous system",
-          time: "1-2 min",
-          href: "/breathing",
-        },
-        {
-          id: "sleep",
-          name: "Sleep Sequence",
-          desc: "Breathing + relaxation for restless nights",
-          time: "3-5 min",
-          href: "/sleep",
-        },
-      ];
-
-      const history = JSON.parse(
-        localStorage.getItem("regulate-sos-history") || "[]",
-      );
-      const dismissed = JSON.parse(
-        localStorage.getItem("regulate-discovery-dismissed") || "[]",
-      );
-      const usedIds = new Set(
-        history.map((h: { tool: string }) => h.tool),
-      );
-
-      const untried = allExercises.filter(
-        (e) => !usedIds.has(e.id) && !dismissed.includes(e.id),
-      );
-      if (untried.length > 0) {
-        setDiscovery(untried[Math.floor(Math.random() * untried.length)]);
-      }
-    } catch {}
-  }, []);
-
-  function dismissDiscovery() {
-    if (!discovery) return;
-    try {
-      const dismissed = JSON.parse(
-        localStorage.getItem("regulate-discovery-dismissed") || "[]",
-      );
-      dismissed.push(discovery.id);
-      localStorage.setItem(
-        "regulate-discovery-dismissed",
-        JSON.stringify(dismissed),
-      );
-    } catch {}
-    setDiscovery(null);
   }
 
   function dismissFirstSession() {
@@ -711,283 +170,84 @@ export default function Home() {
     setInstallPrompt(null);
   }, [installPrompt, dismissInstall]);
 
-  // Daily suggested practice (rotates on a 7-day cycle)
-  const todaysPractice =
-    dailyPractices[getDayOfYear() % dailyPractices.length];
+  function dismissFirstOpen() {
+    setIsFirstOpen(false);
+    try {
+      localStorage.setItem("regulate-last-visit", String(Date.now()));
+    } catch {}
+  }
 
-  // ─── CHECK-IN VIEW (default - the triage) ────────────────────────
+  // ─── FIRST-OPEN SCREEN ───────────────────────────────────────────
 
-  if (view === "check-in") {
+  // Don't render anything until we've checked localStorage
+  if (!firstOpenReady) return null;
+
+  if (isFirstOpen) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5 pb-24">
-        <main className="w-full max-w-sm">
-          {checkBack && (
-            <div className="mb-6 rounded-2xl border border-teal/20 bg-teal/5 p-5 text-center">
-              <p className="text-sm font-medium text-cream">
-                How are you holding up?
-              </p>
-              <p className="mt-1 text-xs text-cream-dim/60">
-                You had a tough moment earlier.
-              </p>
-              <div className="mt-4 flex flex-col gap-2">
-                <button
-                  onClick={dismissCheckBack}
-                  className="rounded-xl bg-teal/15 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/25"
-                >
-                  I&apos;m doing better
-                </button>
-                <button
-                  onClick={() => {
-                    dismissCheckBack();
-                    router.push(
-                      "/sos?state=" + (checkBack.state || "anxious"),
-                    );
-                  }}
-                  className="rounded-xl border border-candle/15 bg-candle/5 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10"
-                >
-                  Still shaky - I need support
-                </button>
-                <button
-                  onClick={dismissCheckBack}
-                  className="text-xs text-cream-dim/30 hover:text-cream-dim/60"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          )}
-          <div className="mb-10 text-center">
-            <WaveIcon className="mx-auto mb-4 h-8 w-8 text-teal-soft/60" />
-            <h1 className="text-xl font-light tracking-tight text-cream">
-              {welcomeBack
-                ? "Welcome back"
-                : "How is your body right now?"}
-            </h1>
-            {welcomeBack && (
-              <p className="mt-2 text-sm text-cream-dim/60">
-                {welcomeBack === "30day"
-                  ? "However long it\u2019s been, you\u2019re here now. That\u2019s what matters."
-                  : "No pressure. Take your time."}
+      <div className="flex min-h-screen flex-col items-center justify-center px-5">
+        <main className="w-full max-w-md text-center">
+          <WaveIcon className="mx-auto mb-4 h-8 w-8 text-teal-soft/60" />
+          <h1 className="text-2xl font-light tracking-tight text-cream">
+            Regulate
+          </h1>
+          <p className="mt-3 text-sm text-cream/80">
+            Are you okay right now?
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3">
+            <button
+              onClick={() => {
+                dismissFirstOpen();
+                router.push("/sos");
+              }}
+              className="rounded-2xl border border-candle/20 bg-candle/5 px-6 py-4 text-sm font-medium text-candle-soft transition-colors hover:bg-candle/10"
+            >
+              No — I need help
+            </button>
+            <button
+              onClick={() => {
+                dismissFirstOpen();
+                router.push("/onboarding");
+              }}
+              className="rounded-2xl border border-teal/20 bg-teal/5 px-6 py-4 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/10"
+            >
+              I&apos;m okay — show me around
+            </button>
+          </div>
+
+          <div className="mt-8">
+            <button
+              onClick={() => setWhatIsExpanded(!whatIsExpanded)}
+              className="text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
+            >
+              What is Regulate?
+            </button>
+            {whatIsExpanded && (
+              <p className="mt-3 text-xs leading-relaxed text-cream-dim/50">
+                Regulate is a set of tools for your nervous system. Breathing
+                exercises, grounding techniques, and movement practices — all
+                designed to help when you feel panicked, anxious, shut down, or
+                can&apos;t sleep. Everything works offline. Your data stays on
+                your device.
               </p>
             )}
           </div>
 
-          {/* First-session nudge */}
-          {firstSessionNudge && (
-            <div className="mb-6 rounded-2xl border border-teal/25 bg-teal/5 p-5 text-center">
-              <p className="text-sm font-medium text-cream">
-                Ready to try {firstSessionNudge.label}?
-              </p>
-              <p className="mt-1 text-xs text-cream-dim/60">
-                No pressure - just seeing how it feels.
-              </p>
-              <div className="mt-4 flex flex-col gap-2">
-                <Link
-                  href={firstSessionNudge.href}
-                  onClick={dismissFirstSession}
-                  className="rounded-xl bg-teal/15 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/25"
-                >
-                  Let&apos;s go
-                </Link>
-                <button
-                  onClick={dismissFirstSession}
-                  className="text-xs text-cream-dim/30 hover:text-cream-dim/60"
-                >
-                  Skip for now
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2.5">
-            {bodyStates.map((state) => (
-              <button
-                key={state.id}
-                onClick={() => {
-                  try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
-                  if (state.id === "okay") {
-                    setView("feed");
-                  } else {
-                    router.push(state.route);
-                  }
-                }}
-                className={`flex w-full items-center gap-4 overflow-hidden rounded-2xl transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-teal/50 ${state.bgColor}`}
-              >
-                {/* Left color bar */}
-                <div
-                  className={`w-1 self-stretch rounded-l-2xl ${state.barColor}`}
-                />
-                {/* Icon */}
-                <div className="shrink-0 py-4">{state.icon}</div>
-                {/* Text */}
-                <div className="min-w-0 py-4 pr-5 text-left">
-                  <span
-                    className={`block text-base font-medium ${state.textColor}`}
-                  >
-                    {state.label}
-                  </span>
-                  <span className="mt-0.5 block text-xs text-cream-dim/60">
-                    {state.sub}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* "Just help me" escape hatch */}
-          <button
-            onClick={() => {
-              try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
-              try {
-                const journal = JSON.parse(
-                  localStorage.getItem("regulate-journal") || "[]",
-                );
-                const history = JSON.parse(
-                  localStorage.getItem("regulate-sos-history") || "[]",
-                );
-                if (journal.length > 0 || history.length > 0) {
-                  // Use recommendation engine to pick best technique
-                  const recs = getPersonalizedRecommendations("anxious");
-                  const sosToRoute: Record<string, string> = {
-                    breathing: "/breathing",
-                    extended: "/breathing",
-                    tapping: "/somatic?start=tapping",
-                    grounding: "/grounding",
-                    "gentle-movement": "/somatic?start=gentle-movement",
-                    "body-scan": "/body-scan",
-                    somatic: "/somatic",
-                    affirmations: "/affirmations",
-                    sleep: "/sleep",
-                  };
-                  const route = sosToRoute[recs[0]] || "/breathing";
-                  router.push(route);
-                } else {
-                  // No history - default to physiological sigh
-                  router.push("/breathing");
-                }
-              } catch {
-                router.push("/breathing");
-              }
-            }}
-            className="mt-4 w-full rounded-2xl border border-teal/20 bg-teal/10 px-4 py-3 text-sm text-cream-dim transition-all hover:border-teal/30 hover:bg-teal/15 active:scale-[0.98]"
-          >
-            I don&apos;t know - just help me
-          </button>
-
-          {/* "Not sure what you're feeling?" diagnostic trigger */}
-          {!showDiagnostic && (
-            <button
-              onClick={() => {
-                setShowDiagnostic(true);
-                setDiagnosticStep(0);
-                setDiagnosticFading(false);
-              }}
-              className="mt-3 w-full text-center text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
-            >
-              Not sure what you&apos;re feeling?
-            </button>
-          )}
-
-          {/* Inline diagnostic quiz */}
-          {showDiagnostic && (
-            <div className="relative mt-4 rounded-2xl border border-teal/15 bg-deep/60 p-5">
-              {/* Close button */}
-              <button
-                onClick={() => setShowDiagnostic(false)}
-                className="absolute right-3 top-3 text-cream-dim/30 transition-colors hover:text-cream-dim/60"
-                aria-label="Close diagnostic"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                  <path d="M4 4L12 12M12 4L4 12" />
-                </svg>
-              </button>
-
-              {/* Body-based questions to help identify state */}
-              {diagnosticStep <= 4 && (
-                <div
-                  className={`transition-opacity duration-300 ${diagnosticFading ? "opacity-0" : "opacity-100"}`}
-                >
-                  <p className="pr-6 text-sm text-cream-dim/70 mb-3">
-                    Let&apos;s figure it out. What do you notice in your body?
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    {[
-                      { label: "Chest is tight, hard to breathe", state: "panicking" },
-                      { label: "Muscles are clenched, can't sit still", state: "anxious" },
-                      { label: "Stomach is churning or nauseous", state: "anxious" },
-                      { label: "Everything feels heavy or far away", state: "shutdown" },
-                      { label: "I can't feel much of anything", state: "shutdown" },
-                      { label: "My thoughts won't stop", state: "anxious" },
-                      { label: "I feel like I might explode or scream", state: "panicking" },
-                    ].map((opt) => (
-                      <button
-                        key={opt.label}
-                        onClick={() => {
-                          try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
-                          router.push(`/sos?state=${opt.state}`);
-                        }}
-                        className="w-full rounded-xl border border-slate-blue/20 bg-deep/40 px-4 py-3 text-left text-sm text-cream-dim transition-all hover:border-teal/25 active:scale-[0.98]"
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => {
-                        setDiagnosticFading(true);
-                        setTimeout(() => {
-                          setDiagnosticStep(5);
-                          setDiagnosticFading(false);
-                        }, 300);
-                      }}
-                      className="mt-1 text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
-                    >
-                      None of these
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* None of these result */}
-              {diagnosticStep === 5 && (
-                <div
-                  className={`text-center transition-opacity duration-300 ${diagnosticFading ? "opacity-0" : "opacity-100"}`}
-                >
-                  <p className="text-sm font-medium text-cream">
-                    You might be in your window of tolerance right now.
-                  </p>
-                  <p className="mt-1.5 text-xs text-cream-dim/60">
-                    That means your nervous system is relatively settled. This is a great time to practice - it builds resilience for harder moments.
-                  </p>
-                  <button
-                    onClick={() => {
-                      try { sessionStorage.setItem("regulate-checked-in", "1"); } catch {}
-                      setShowDiagnostic(false);
-                      setView("feed");
-                    }}
-                    className="mt-4 inline-block rounded-xl bg-teal/15 px-5 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/25"
-                  >
-                    Browse exercises
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Crisis line */}
-          <div className="mt-10 flex justify-center">
+          <p className="mt-10 text-[11px] text-cream-dim/30">
+            If you are in crisis, please contact the{" "}
             <a
               href="tel:988"
-              className="text-[11px] text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim/70"
+              className="text-cream-dim/60 underline underline-offset-2"
             >
               988 Suicide &amp; Crisis Lifeline
             </a>
-          </div>
+          </p>
         </main>
       </div>
     );
   }
 
-  // ─── FEED VIEW (practice tools) ──────────────────────────────────
+  // ─── FEED VIEW (always shown) ──────────────────────────────────
 
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
@@ -999,298 +259,218 @@ export default function Home() {
             Regulate
           </h1>
           <p className="mt-1.5 text-xs text-cream-dim/60">
-            Tools for your nervous system.
+            Pick something that feels right.
           </p>
         </header>
 
-        {/* ── Module cards grid ── */}
-        <div className="flex flex-col gap-2">
-          {modules.map((mod) => (
-            <ModuleCard key={mod.href} {...mod} />
-          ))}
-        </div>
-
-        {/* ── Learn link ── */}
-        <Link
-          href="/learn"
-          className="mt-4 block text-center text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
-        >
-          Understanding your nervous system &rarr;
-        </Link>
-
-        {/* ── Premium: Your Practice (program, daily practice, stats, insights) ── */}
-        {isPremium() && (
-          <div className="mt-6">
-            <p className="mb-3 text-[10px] font-medium uppercase tracking-widest text-teal-soft/40">
-              Your practice
+        {/* Check-back banner (after SOS use) */}
+        {checkBack && (
+          <div className="mb-4 rounded-2xl border border-teal/20 bg-teal/5 p-5 text-center">
+            <p className="text-sm font-medium text-cream">
+              How are you holding up?
             </p>
-
-            {/* Program card */}
-            {programState && programState.status === "not-started" && (
-              <Link
-                href="/programs/first-week"
-                className="mb-3 block rounded-2xl border border-teal/20 bg-teal/8 p-4 transition-colors hover:border-teal/30"
+            <p className="mt-1 text-xs text-cream-dim/60">
+              You had a tough moment earlier.
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <button
+                onClick={dismissCheckBack}
+                className="rounded-xl bg-teal/15 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/25"
               >
-                <p className="text-sm font-medium text-cream">
-                  Start your first week
-                </p>
-                <p className="mt-1 text-xs text-cream-dim/60">
-                  7 days of guided practice - one technique a day.
-                </p>
-                <span className="mt-2 inline-block text-xs font-medium text-teal-soft">
-                  Begin &rarr;
-                </span>
-              </Link>
-            )}
-            {programState && programState.status === "in-progress" && (
-              <Link
-                href="/programs/first-week"
-                className="mb-3 block rounded-2xl border border-teal/20 bg-teal/5 p-4 transition-colors hover:border-teal/30"
+                I&apos;m doing better
+              </button>
+              <button
+                onClick={() => {
+                  dismissCheckBack();
+                  router.push(
+                    "/sos?state=" + (checkBack.state || "anxious"),
+                  );
+                }}
+                className="rounded-xl border border-candle/15 bg-candle/5 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10"
               >
-                <p className="text-sm font-medium text-cream">
-                  Day {programState.currentDay}: {programState.dayTitle}
-                </p>
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-                      <div
-                        key={d}
-                        className={`h-1 w-4 rounded-full ${d <= programState.completedCount ? "bg-teal/60" : "bg-slate-blue/20"}`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs font-medium text-teal-soft">
-                    Continue &rarr;
-                  </span>
-                </div>
-              </Link>
-            )}
-
-            {/* Today's practice */}
-            <div className="mb-3 rounded-2xl border border-teal/15 bg-teal/5 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-teal-soft/50">
-                Today&apos;s practice
-              </p>
-              <p className="mt-1.5 text-sm font-medium text-cream">
-                {todaysPractice.name}
-              </p>
-              <p className="mt-0.5 text-xs text-cream-dim/60">
-                {todaysPractice.desc}
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-[11px] text-cream-dim/40">
-                  {todaysPractice.time}
-                </span>
-                <Link
-                  href={todaysPractice.href}
-                  className="rounded-xl bg-teal/20 px-5 py-2 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30 active:scale-[0.97]"
-                >
-                  Start
-                </Link>
-              </div>
+                Still shaky - I need support
+              </button>
+              <button
+                onClick={dismissCheckBack}
+                className="text-xs text-cream-dim/30 hover:text-cream-dim/60"
+              >
+                Dismiss
+              </button>
             </div>
-
-            {/* Dashboard stats */}
-            {dashData && (
-              <div className="mb-3 rounded-2xl border border-teal/15 bg-deep/60 p-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {dashData.calmDays >= 0 && (
-                    <div className="text-center">
-                      <p className="text-lg font-medium text-teal-soft">
-                        {dashData.calmDays}
-                      </p>
-                      <p className="text-[10px] text-cream-dim/60">calm days</p>
-                    </div>
-                  )}
-                  {dashData.totalSessions > 0 && (
-                    <div className="text-center">
-                      <p className="text-lg font-medium text-cream">
-                        {dashData.totalSessions}
-                      </p>
-                      <p className="text-[10px] text-cream-dim/60">sessions</p>
-                    </div>
-                  )}
-                  {dashData.trend && (
-                    <div className="text-center">
-                      <p
-                        className={`text-lg font-medium ${dashData.trend === "improving" ? "text-teal-soft" : dashData.trend === "worsening" ? "text-candle" : "text-cream-dim"}`}
-                      >
-                        {dashData.trend === "improving"
-                          ? "\u2193"
-                          : dashData.trend === "worsening"
-                            ? "\u2191"
-                            : "\u2192"}
-                      </p>
-                      <p className="text-[10px] text-cream-dim/60">
-                        {dashData.trend}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                {dashData.lastHelped && (
-                  <p className="mt-3 text-center text-xs text-cream-dim/40">
-                    Last time,{" "}
-                    <span className="text-teal-soft/70">
-                      {dashData.lastHelped}
-                    </span>{" "}
-                    helped
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* What works for you */}
-            {topTechniques && topTechniques.length > 0 && (
-              <div className="mb-3 rounded-2xl border border-teal/15 bg-deep/60 p-4">
-                <p className="text-[10px] uppercase tracking-widest text-teal-soft/50">
-                  What works for you
-                </p>
-                <div className="mt-3 flex flex-col gap-2">
-                  {topTechniques.map((t) => (
-                    <div
-                      key={t.id}
-                      className="flex items-center justify-between"
-                    >
-                      <span className="text-sm text-cream">{t.label}</span>
-                      <span className="text-xs text-teal-soft/70">
-                        {Math.round(t.successRate * 100)}% helped
-                        <span className="ml-1 text-cream-dim/30">
-                          ({t.totalSessions}x)
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Build your window */}
-            {toolsExplored && (
-              <div className="mb-3 rounded-2xl border border-teal/10 bg-deep/40 p-4">
-                <p className="text-[10px] uppercase tracking-widest text-teal-soft/40">
-                  Build your window
-                </p>
-                {toolsExplored.count >= toolsExplored.total ? (
-                  <p className="mt-2 text-sm text-cream">
-                    You&apos;ve explored every tool.
-                  </p>
-                ) : (
-                  <>
-                    <p className="mt-2 text-sm text-cream">
-                      {toolsExplored.count} of {toolsExplored.total} somatic tools explored
-                    </p>
-                    <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-blue/15">
-                      <div
-                        className="h-full rounded-full bg-teal/40 transition-all duration-500"
-                        style={{
-                          width: `${(toolsExplored.count / toolsExplored.total) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Reflection prompt */}
-            {showReflection && (
-              <div className="mb-3 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-4">
-                <div className="flex items-start justify-between">
-                  <p className="text-sm text-cream">
-                    A few minutes of reflection can deepen what you&apos;re learning.
-                  </p>
-                  <button
-                    onClick={dismissReflection}
-                    className="ml-3 shrink-0 p-1 text-cream-dim/30 hover:text-cream-dim/60"
-                    aria-label="Dismiss"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="mt-3 flex items-center gap-3">
-                  <Link
-                    href="/journal?reflect=1"
-                    onClick={dismissReflection}
-                    className="flex-1 rounded-xl bg-purple-400/15 py-2.5 text-center text-sm text-purple-200 transition-colors hover:bg-purple-400/25"
-                  >
-                    Open journal
-                  </Link>
-                  <button onClick={dismissReflection} className="text-xs text-cream-dim/30 hover:text-cream-dim/60">
-                    Not now
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Try something new */}
-            {discovery && (
-              <div className="mb-3 rounded-2xl border border-candle/15 bg-candle/5 p-4">
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] uppercase tracking-widest text-candle/50">
-                      Try something new
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-cream">
-                      {discovery.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-cream-dim/60">
-                      {discovery.desc}
-                    </p>
-                  </div>
-                  <button
-                    onClick={dismissDiscovery}
-                    className="ml-3 shrink-0 p-1 text-cream-dim/30 hover:text-cream-dim/60"
-                    aria-label="Dismiss"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </div>
-                <Link
-                  href={discovery.href}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-candle/15 py-2.5 text-sm text-candle transition-colors hover:bg-candle/25"
-                >
-                  Try it - {discovery.time}
-                </Link>
-              </div>
-            )}
           </div>
         )}
 
+        {/* First-session nudge */}
+        {firstSessionNudge && (
+          <div className="mb-4 rounded-2xl border border-teal/25 bg-teal/5 p-5 text-center">
+            <p className="text-sm font-medium text-cream">
+              Ready to try {firstSessionNudge.label}?
+            </p>
+            <p className="mt-1 text-xs text-cream-dim/60">
+              No pressure - just seeing how it feels.
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <Link
+                href={firstSessionNudge.href}
+                onClick={dismissFirstSession}
+                className="rounded-xl bg-teal/15 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/25"
+              >
+                Let&apos;s go
+              </Link>
+              <button
+                onClick={dismissFirstSession}
+                className="text-xs text-cream-dim/30 hover:text-cream-dim/60"
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Night-time sleep suggestion */}
+        {isNightTime && (
+          <Link
+            href="/sleep"
+            className="mb-4 block rounded-2xl border border-lavender/15 bg-lavender/5 px-5 py-4 text-center transition-all hover:border-lavender/25"
+          >
+            <p className="text-sm font-medium text-lavender">Can&apos;t sleep?</p>
+            <p className="mt-0.5 text-xs text-cream-dim/50">Try the sleep sequence</p>
+          </Link>
+        )}
+
+        {/* ── Main hub cards ── */}
+        <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/30">
+          What do you need?
+        </p>
+        <div className="flex flex-col gap-2">
+          <Link
+            href="/exercises"
+            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+              <BreathingIcon className="h-5 w-5 text-teal-soft" />
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-cream">Exercises</span>
+              <span className="block text-xs text-cream-dim/50">Breathing, grounding, somatic, and more</span>
+            </div>
+          </Link>
+          <Link
+            href="/meditations"
+            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="4" r="2" />
+                <path d="M12 6v4" />
+                <path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" />
+                <path d="M6 18l2-4" />
+                <path d="M18 18l-2-4" />
+                <path d="M9 22l1-4" />
+                <path d="M15 22l-1-4" />
+              </svg>
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-cream">Guided Meditations</span>
+              <span className="block text-xs text-cream-dim/50">Someone walks you through it</span>
+            </div>
+          </Link>
+          <Link
+            href="/games"
+            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none">
+                <circle cx="8" cy="10" r="4" stroke="currentColor" strokeWidth="1.3" />
+                <circle cx="16" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" />
+                <circle cx="14" cy="16" r="3.5" stroke="currentColor" strokeWidth="1.3" />
+              </svg>
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-cream">Mindful Games</span>
+              <span className="block text-xs text-cream-dim/50">Something to do with your hands</span>
+            </div>
+          </Link>
+          <Link
+            href="/toolkit"
+            className="flex items-center gap-3 rounded-2xl border border-candle/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-candle/25"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+              <svg className="h-5 w-5 text-candle/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" />
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+                <path d="M12 12v3" />
+              </svg>
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-cream">Emergency Toolkit</span>
+              <span className="block text-xs text-cream-dim/50">Your personal panic kit</span>
+            </div>
+          </Link>
+          <Link
+            href="/caregiver"
+            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-cream">Helping Someone</span>
+              <span className="block text-xs text-cream-dim/50">Step-by-step for someone with you</span>
+            </div>
+          </Link>
+          <Link
+            href="/safety-plan"
+            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+              </svg>
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-cream">Safety Plan</span>
+              <span className="block text-xs text-cream-dim/50">Know what to do before you need it</span>
+            </div>
+          </Link>
+          <Link
+            href="/crisis"
+            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z" />
+              </svg>
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-cream">Crisis Resources</span>
+              <span className="block text-xs text-cream-dim/50">Talk to someone right now</span>
+            </div>
+          </Link>
+        </div>
+
         {/* Premium upsell for free users */}
         {!isPremium() && (
-          <div className="mt-6">
-            <PremiumGate feature="Guided programs, daily practice suggestions, session history, insights, and more.">
+          <div className="mt-8">
+            <PremiumGate feature="Track what works for your body, get daily practice suggestions, and journal your progress.">
               <div />
             </PremiumGate>
           </div>
         )}
 
         {/* My person */}
-        <div className="mt-5">
+        <div className="mt-8">
           <MyPersonSection />
         </div>
 
-        {/* Trust statement */}
-        <p className="mt-6 text-center text-[11px] leading-relaxed text-cream-dim/30">
-          Regulate supports your nervous system between therapy sessions. It
-          is not a replacement for professional mental health care. If you
-          are in crisis, please contact the{" "}
-          <a
-            href="tel:988"
-            className="text-cream-dim/60 underline underline-offset-2"
-          >
-            988 Lifeline
-          </a>
-          .
-        </p>
-
         {/* Install banner */}
         {installPrompt && !installDismissed && (
-          <div className="mt-6 flex items-center justify-between rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3">
+          <div className="mt-8 flex items-center justify-between rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3">
             <p className="text-sm text-cream-dim/60">
               Add Regulate to your home screen for instant access
             </p>
@@ -1314,17 +494,20 @@ export default function Home() {
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="mt-6 flex justify-center gap-4 text-[11px] text-cream-dim/25">
-          <Link href="/caregiver" className="hover:text-cream-dim/60">
-            Helping someone?
-          </Link>
-          <Link href="/safety-plan" className="hover:text-cream-dim/60">
-            Safety Plan
-          </Link>
-          <Link href="/crisis" className="hover:text-cream-dim/60">
-            Crisis Resources
-          </Link>
+        {/* Footer — trust statement and 988 */}
+        <footer className="mt-8">
+          <p className="text-center text-[11px] leading-relaxed text-cream-dim/30">
+            Regulate supports your nervous system between therapy sessions. It
+            is not a replacement for professional mental health care. If you
+            are in crisis, please contact the{" "}
+            <a
+              href="tel:988"
+              className="text-cream-dim/60 underline underline-offset-2"
+            >
+              988 Lifeline
+            </a>
+            .
+          </p>
         </footer>
       </main>
     </div>

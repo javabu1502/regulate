@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import SafetyCheck from "@/components/SafetyCheck";
 import ShareCard from "@/components/ShareCard";
@@ -11,10 +11,14 @@ type Feeling = "better" | "same" | "harder" | "skipped";
 interface AftercareFlowProps {
   technique: string;
   onDone: () => void;
+  onRestart?: () => void;
+  exerciseType?: string;
   completionHeading?: string;
   completionSubtext?: string;
   learnLink?: string;
   category?: string;
+  exerciseId?: string;
+  exerciseHref?: string;
 }
 
 /**
@@ -114,7 +118,70 @@ function getRecentHarderCount(): number {
   }
 }
 
-// ─── Quick-journal component ──────────────────────────────────────────
+// ─── Micro-journal component (free for all users) ────────────────────
+
+function MicroJournal({ technique }: { technique: string }) {
+  const [text, setText] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  function save() {
+    if (!text.trim()) return;
+    try {
+      const raw = localStorage.getItem("regulate-journal");
+      const entries = raw ? JSON.parse(raw) : [];
+      entries.push({
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        date: new Date().toISOString(),
+        type: "micro",
+        technique,
+        content: text.trim(),
+        // Defaults so the journal page doesn't break on missing fields
+        intensity: 0,
+        duration: "",
+        triggers: [],
+        techniques: [technique],
+        reflection: text.trim(),
+      });
+      localStorage.setItem("regulate-journal", JSON.stringify(entries));
+      setSaved(true);
+    } catch { /* */ }
+  }
+
+  if (saved) {
+    return <p className="text-xs text-teal-soft/70">Saved.</p>;
+  }
+
+  return (
+    <div className="w-full max-w-xs flex flex-col items-center gap-2">
+      <p className="text-xs text-cream-dim/60">Anything you want to remember about this?</p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="One sentence about how that felt&#8230;"
+        rows={2}
+        className="w-full rounded-xl border border-teal/15 bg-midnight/60 px-4 py-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none resize-none"
+      />
+      <div className="flex items-center gap-3">
+        <button
+          onClick={save}
+          disabled={!text.trim()}
+          className="rounded-xl bg-teal/20 px-5 py-2 text-xs font-medium text-teal-soft transition-colors hover:bg-teal/30 disabled:opacity-40 disabled:cursor-default"
+        >
+          Save
+        </button>
+        <button
+          onClick={() => setSaved(true)}
+          className="text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
+        >
+          Skip
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Quick-journal component (premium) ───────────────────────────────
 
 function QuickJournal({ technique }: { technique: string }) {
   const [open, setOpen] = useState(false);
@@ -184,6 +251,70 @@ function QuickJournal({ technique }: { technique: string }) {
   );
 }
 
+// ─── Toolkit prompt component ─────────────────────────────────────
+
+function ToolkitPrompt({
+  technique,
+  exerciseId,
+  exerciseHref,
+  category,
+  onDone,
+}: {
+  technique: string;
+  exerciseId: string;
+  exerciseHref: string;
+  category: string;
+  onDone: () => void;
+}) {
+  const [added, setAdded] = useState(false);
+
+  function handleAdd() {
+    try {
+      const raw = localStorage.getItem("regulate-toolkit-exercises");
+      const exercises = raw ? JSON.parse(raw) : [];
+      exercises.push({
+        id: exerciseId,
+        label: technique,
+        href: exerciseHref,
+        category,
+      });
+      localStorage.setItem("regulate-toolkit-exercises", JSON.stringify(exercises));
+    } catch { /* */ }
+    setAdded(true);
+    setTimeout(onDone, 1200);
+  }
+
+  if (added) {
+    return (
+      <div className="flex items-center justify-center py-4 animate-screen-enter">
+        <p className="text-sm text-teal-soft/80">Added &#10003;</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-xs rounded-xl border border-candle/15 bg-candle/5 px-5 py-4 text-center animate-screen-enter">
+      <p className="text-sm text-cream-dim">
+        Add <span className="text-cream">{technique}</span> to your emergency toolkit?
+      </p>
+      <div className="mt-3 flex items-center justify-center gap-4">
+        <button
+          onClick={handleAdd}
+          className="rounded-lg bg-candle/20 px-5 py-2 text-xs font-medium text-candle transition-colors hover:bg-candle/30"
+        >
+          Add
+        </button>
+        <button
+          onClick={onDone}
+          className="text-xs text-cream-dim/40 transition-colors hover:text-cream-dim/60"
+        >
+          Skip
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Post-session aftercare flow shown after completing any module.
  * Asks how the user feels, responds appropriately, and logs to journal.
@@ -191,15 +322,34 @@ function QuickJournal({ technique }: { technique: string }) {
 export default function AftercareFlow({
   technique,
   onDone,
-  completionHeading = "Session complete",
-  completionSubtext = "You showed up for yourself.",
+  onRestart,
+  exerciseType,
+  completionHeading = "Done",
+  completionSubtext = "Nice work.",
   learnLink,
   category,
+  exerciseId,
+  exerciseHref,
 }: AftercareFlowProps) {
-  const resolvedCategory = category || inferCategory(technique);
+  const resolvedCategory = category || exerciseType || inferCategory(technique);
   const [feeling, setFeeling] = useState<Feeling | null>(null);
   const [showSafetyCheck, setShowSafetyCheck] = useState(false);
   const [repeatedHarder, setRepeatedHarder] = useState(false);
+  const [step, setStep] = useState<"feeling" | "response" | "toolkit-prompt" | "what-next">("feeling");
+  const [alreadyInToolkit, setAlreadyInToolkit] = useState(true);
+
+  // Check if exercise is already in toolkit
+  useEffect(() => {
+    if (!exerciseId) return;
+    try {
+      const raw = localStorage.getItem("regulate-toolkit-exercises");
+      if (!raw) { setAlreadyInToolkit(false); return; }
+      const exercises = JSON.parse(raw) as { id: string }[];
+      setAlreadyInToolkit(exercises.some((e) => e.id === exerciseId));
+    } catch {
+      setAlreadyInToolkit(false);
+    }
+  }, [exerciseId]);
 
   const complementary = getComplementary(resolvedCategory);
   const resolvedLearnLink = getLearnLink(resolvedCategory, learnLink);
@@ -207,6 +357,7 @@ export default function AftercareFlow({
 
   function handleFeeling(f: Feeling) {
     setFeeling(f);
+    setStep("response");
 
     // Auto-log to journal (premium only)
     if (isPremium()) {
@@ -236,7 +387,7 @@ export default function AftercareFlow({
   }
 
   // Step 1: Ask how they feel - body-based cards for accessibility in distress
-  if (!feeling) {
+  if (step === "feeling") {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
         <h2 className="text-xl font-light text-cream">How does your body feel?</h2>
@@ -332,161 +483,276 @@ export default function AftercareFlow({
     return <SafetyCheck onSafe={() => setShowSafetyCheck(false)} />;
   }
 
-  // Step 2: Respond based on feeling
+  // Step 2: Respond based on feeling (empathetic message + optional journal)
+  if (step === "response") {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
+        {feeling === "better" && (
+          <>
+            <h2 className="text-xl font-light text-cream">{completionHeading}</h2>
+            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
+              {completionSubtext}
+            </p>
+
+            {/* Quick journal (premium only) */}
+            {isPremium() && (
+              <div className="mt-5">
+                <QuickJournal technique={technique} />
+              </div>
+            )}
+
+            {/* Micro-journal (free users only — premium already has QuickJournal) */}
+            {!isPremium() && (
+              <div className="mt-5">
+                <MicroJournal technique={technique} />
+              </div>
+            )}
+
+            {/* Learn link */}
+            <Link
+              href={resolvedLearnLink}
+              className="mt-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
+            >
+              Why this works &rarr;
+            </Link>
+          </>
+        )}
+
+        {feeling === "same" && (
+          <>
+            <h2 className="text-xl font-light text-cream">{completionHeading}</h2>
+            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
+              That&apos;s normal. Sometimes it takes a bit for your body to catch up.
+            </p>
+
+            {/* Quick journal (premium only) */}
+            {isPremium() && (
+              <div className="mt-5">
+                <QuickJournal technique={technique} />
+              </div>
+            )}
+
+            {/* Micro-journal (free users only — premium already has QuickJournal) */}
+            {!isPremium() && (
+              <div className="mt-5">
+                <MicroJournal technique={technique} />
+              </div>
+            )}
+          </>
+        )}
+
+        {feeling === "skipped" && (
+          <>
+            <h2 className="text-xl font-light text-cream">{completionHeading}</h2>
+            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
+              That&apos;s fine. You don&apos;t have to know how you feel right now.
+            </p>
+
+            {/* Micro-journal (all users) */}
+            <div className="mt-5">
+              <MicroJournal technique={technique} />
+            </div>
+          </>
+        )}
+
+        {feeling === "harder" && !repeatedHarder && (
+          <>
+            <h2 className="text-xl font-light text-cream">Thank you for being honest.</h2>
+            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
+              That happens sometimes. It doesn&apos;t mean it didn&apos;t work — your body might just need something different right now.
+            </p>
+
+            {/* Micro-journal (all users) */}
+            <div className="mt-5">
+              <MicroJournal technique={technique} />
+            </div>
+          </>
+        )}
+
+        {feeling === "harder" && repeatedHarder && (
+          <div className="w-full max-w-sm rounded-2xl bg-candle/10 border border-candle/20 p-6 text-left">
+            <h2 className="text-lg font-light text-cream">
+              Exercises aren&apos;t always the right fit for what you&apos;re going through right now.
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-cream-dim">
+              Talking to a therapist could help you understand what&apos;s happening in your nervous system.
+            </p>
+            <div className="mt-5 flex flex-col gap-2.5">
+              <a
+                href="https://www.psychologytoday.com/us/therapists"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full rounded-xl bg-teal/15 px-5 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
+              >
+                Find a therapist
+              </a>
+              <Link
+                href="/crisis"
+                className="w-full rounded-xl bg-candle/15 px-5 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"
+              >
+                Crisis resources
+              </Link>
+            </div>
+            <p className="mt-5 text-sm leading-relaxed text-cream-dim">
+              There&apos;s nothing wrong with you. Sometimes you just need a real person to talk to.
+            </p>
+          </div>
+        )}
+
+        <div className="mt-10 flex flex-col items-center gap-3">
+          <button
+            onClick={() => {
+              const shouldShowToolkit =
+                feeling === "better" &&
+                exerciseId &&
+                exerciseHref &&
+                !alreadyInToolkit;
+              setStep(shouldShowToolkit ? "toolkit-prompt" : "what-next");
+            }}
+            className="w-56 rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2.5: Optional toolkit prompt (only for "better" + not already saved)
+  if (step === "toolkit-prompt" && exerciseId && exerciseHref) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
+        <ToolkitPrompt
+          technique={technique}
+          exerciseId={exerciseId}
+          exerciseHref={exerciseHref}
+          category={resolvedCategory}
+          onDone={() => setStep("what-next")}
+        />
+      </div>
+    );
+  }
+
+  // Step 3: What next? — actionable options based on feeling
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
       {feeling === "better" && (
         <>
-          <h2 className="text-xl font-light text-cream">{completionHeading}</h2>
+          <h2 className="text-xl font-light text-cream">What&apos;s next?</h2>
           <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
-            {completionSubtext}
+            You can come back to this one anytime.
           </p>
 
-          {/* Quick journal (premium only) */}
-          {isPremium() && (
-            <div className="mt-5">
-              <QuickJournal technique={technique} />
-            </div>
-          )}
-
-          {/* Complementary technique suggestion */}
-          <div className="mt-6 flex flex-col items-center gap-2">
-            <p className="text-xs text-cream-dim/60">
-              {resolvedCategory} pairs well with {complementary[0].label.toLowerCase()} - try it next?
-            </p>
-            <Link
-              href={complementary[0].href}
-              className="rounded-full border border-teal/15 bg-deep/60 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80 active:scale-[0.97]"
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <button
+              onClick={onDone}
+              className="w-56 rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
             >
-              {complementary[0].label}
+              Done
+            </button>
+            <Link
+              href={complementary[0]?.href ?? "/"}
+              className="text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim"
+            >
+              Want to try another exercise?
             </Link>
           </div>
 
-          {/* Learn link */}
-          <Link
-            href={resolvedLearnLink}
-            className="mt-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
-          >
-            Why this works &rarr;
-          </Link>
+          <div className="mt-4">
+            <ShareCard technique={technique} category={resolvedCategory} />
+          </div>
         </>
       )}
 
       {feeling === "same" && (
         <>
-          <h2 className="text-xl font-light text-cream">{completionHeading}</h2>
+          <h2 className="text-xl font-light text-cream">What&apos;s next?</h2>
           <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
-            Sometimes regulation is subtle. The fact that you tried is what matters. Your nervous system is learning even when it doesn&apos;t feel like it.
+            Might be worth trying something different, or giving this one another go.
           </p>
 
-          {/* Suggest a different category */}
-          <div className="mt-6 flex flex-col items-center gap-2">
-            <p className="text-xs text-cream-dim/60">
-              Sometimes combining techniques helps - try {complementary[0].label.toLowerCase()} next?
-            </p>
-            <div className="flex gap-2">
-              {complementary.map((alt) => (
-                <Link
-                  key={alt.href}
-                  href={alt.href}
-                  className="rounded-full border border-teal/15 bg-deep/60 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80 active:scale-[0.97]"
-                >
-                  {alt.label}
-                </Link>
-              ))}
-            </div>
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <Link
+              href="/"
+              className="w-56 rounded-xl bg-teal/15 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
+            >
+              Try something different
+            </Link>
+            {onRestart && (
+              <button
+                onClick={onRestart}
+                className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+              >
+                Try this one again
+              </button>
+            )}
+            <button
+              onClick={onDone}
+              className="text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim"
+            >
+              I&apos;m done for now
+            </button>
           </div>
 
-          {/* Learn link */}
-          <Link
-            href={resolvedLearnLink}
-            className="mt-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
-          >
-            Why this works &rarr;
-          </Link>
+          <div className="mt-4">
+            <ShareCard technique={technique} category={resolvedCategory} />
+          </div>
+        </>
+      )}
+
+      {feeling === "harder" && (
+        <>
+          <h2 className="text-xl font-light text-cream">What&apos;s next?</h2>
+          <p className="mt-3 max-w-[300px] text-sm leading-relaxed text-cream-dim">
+            Nothing wrong with that. Some exercises hit different depending on the day.
+          </p>
+
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <Link
+              href="/sos"
+              className="w-56 rounded-xl bg-candle/15 px-8 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"
+            >
+              I need more support
+            </Link>
+            <Link
+              href={gentle.href}
+              className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+            >
+              Try something gentler ({gentle.label})
+            </Link>
+            <button
+              onClick={onDone}
+              className="text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim"
+            >
+              I&apos;m done for now
+            </button>
+          </div>
         </>
       )}
 
       {feeling === "skipped" && (
         <>
-          <h2 className="text-xl font-light text-cream">{completionHeading}</h2>
+          <h2 className="text-xl font-light text-cream">What&apos;s next?</h2>
           <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
-            That&apos;s completely okay. You don&apos;t need to know how you feel right now. You still showed up, and that matters.
-          </p>
-        </>
-      )}
-
-      {feeling === "harder" && !repeatedHarder && (
-        <>
-          <h2 className="text-xl font-light text-cream">Thank you for being honest.</h2>
-          <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
-            Sometimes exercises bring things to the surface. That&apos;s not failure - it means your body is processing. Be gentle with yourself right now.
+            No pressure. You can come back whenever you&apos;re ready.
           </p>
 
-          {/* Gentle alternative */}
-          <div className="mt-6 flex flex-col items-center gap-2">
-            <p className="text-xs text-cream-dim/60">Would a gentler exercise help?</p>
-            <Link
-              href={gentle.href}
-              className="rounded-full border border-teal/15 bg-deep/60 px-4 py-1.5 text-xs font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80 active:scale-[0.97]"
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <button
+              onClick={onDone}
+              className="w-56 rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
             >
-              Try {gentle.label}
+              Done
+            </button>
+            <Link
+              href="/"
+              className="text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim"
+            >
+              Browse exercises
             </Link>
           </div>
         </>
       )}
-
-      {feeling === "harder" && repeatedHarder && (
-        <div className="w-full max-w-sm rounded-2xl bg-candle/10 border border-candle/20 p-6 text-left">
-          <h2 className="text-lg font-light text-cream">
-            Exercises aren&apos;t always the right fit for what you&apos;re going through right now.
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-cream-dim">
-            Talking to a therapist could help you understand what&apos;s happening in your nervous system.
-          </p>
-          <div className="mt-5 flex flex-col gap-2.5">
-            <a
-              href="https://www.psychologytoday.com/us/therapists"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full rounded-xl bg-teal/15 px-5 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
-            >
-              Find a therapist
-            </a>
-            <Link
-              href="/crisis"
-              className="w-full rounded-xl bg-candle/15 px-5 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"
-            >
-              Crisis resources
-            </Link>
-          </div>
-          <p className="mt-5 text-sm leading-relaxed text-cream-dim">
-            This doesn&apos;t mean you&apos;re broken - it means your body might need different support right now.
-          </p>
-        </div>
-      )}
-
-      <div className="mt-10 flex flex-col items-center gap-3">
-        {feeling === "harder" && !repeatedHarder && (
-          <Link
-            href="/crisis"
-            className="w-56 rounded-xl bg-candle/15 px-8 py-3 text-center text-sm font-medium text-candle transition-colors hover:bg-candle/25"
-          >
-            Crisis resources
-          </Link>
-        )}
-        <button
-          onClick={onDone}
-          className="w-56 rounded-xl bg-teal/15 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25"
-        >
-          Return home
-        </button>
-        {(feeling === "better" || feeling === "same") && (
-          <div className="mt-2">
-            <ShareCard technique={technique} category={resolvedCategory} />
-          </div>
-        )}
-      </div>
     </div>
   );
 }

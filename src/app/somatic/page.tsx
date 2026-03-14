@@ -65,7 +65,7 @@ const techniques: ExerciseInfo[] = [
     id: "bilateral-tapping",
     name: "Butterfly Hug",
     description: "Bilateral tapping, alternating left/right rhythm",
-    why: "Alternating stimulation across both sides of your body helps your brain process and integrate overwhelming experiences. It's the same mechanism used in EMDR therapy - it calms the alarm system by giving your brain something rhythmic and predictable to follow.",
+    why: "Bilateral stimulation - alternating left and right - gives your brain something steady to follow. Instead of spinning on whatever's overwhelming you, it can start to actually process it. People often feel a noticeable shift after just a couple of minutes.",
     regulation: "down",
     tags: ["processing", "calming"],
     duration: 5,
@@ -76,7 +76,7 @@ const techniques: ExerciseInfo[] = [
     id: "gentle-swaying",
     name: "Gentle Swaying",
     description: "Side-to-side rhythmic movement",
-    why: "Rocking and swaying mimics the motion that soothed you as an infant. It activates the vestibular system, which sends calming signals to your nervous system. This is why rocking chairs feel so comforting.",
+    why: "There's a reason rocking chairs feel so good. Gentle, rhythmic movement is one of the oldest ways humans soothe themselves. Your body knows what this means - it's safe, it's steady, it's okay.",
     regulation: "down",
     tags: ["soothing", "grounding"],
     duration: 5,
@@ -87,7 +87,7 @@ const techniques: ExerciseInfo[] = [
     id: "return-to-safety",
     name: "Return to Safety",
     description: "Gentle re-orienting after a panic attack or moment of feeling unsafe.",
-    why: "After a panic attack, your body stays on high alert - scanning for danger even though the threat has passed. This sequence gently tells your nervous system that the danger is over. We move slowly through orienting, grounding, and containment to help your body remember it's safe.",
+    why: "After a panic attack, your body can stay on high alert even when the danger has passed. This sequence helps you come down from that slowly. We move through looking around, feeling grounded, and settling back in - helping your body catch up to the fact that it's over.",
     regulation: "down" as const,
     tags: ["post-attack", "safety", "grounding"],
     duration: 5,
@@ -106,7 +106,7 @@ const techniques: ExerciseInfo[] = [
     id: "orienting",
     name: "Orienting",
     description: "Slowly look around to signal safety",
-    why: "When you're anxious or dissociating, your nervous system is scanning for danger - but doing it internally, through racing thoughts. Orienting redirects that scanning outward, toward your actual environment. Slowly turning your head and noticing what you see tells your brainstem: 'I've looked around, and there's no threat here.' This is one of the foundational techniques in Somatic Experiencing.",
+    why: "When you're anxious, your brain is scanning for danger but doing it internally - through racing thoughts. Orienting redirects that scanning outward, toward what's actually around you. Slowly looking around tells your body: I've checked, and I'm safe here.",
     regulation: "down",
     tags: ["somatic experiencing", "safety", "grounding"],
     duration: 2,
@@ -120,7 +120,7 @@ const techniques: ExerciseInfo[] = [
       { text: "Come back to center. Now look up - notice the ceiling, the sky, the space above you.", duration: 10 },
       { text: "Look down - notice the ground, your feet, what's supporting you.", duration: 10 },
       { text: "Let your gaze settle somewhere that feels comfortable. Take a slow breath.", duration: 12 },
-      { text: "Notice: your nervous system just scanned the environment and found no danger. You're safe here.", duration: 12 },
+      { text: "You just looked around and nothing was wrong. Let that land. You're safe here.", duration: 12 },
     ],
     position: "any",
   },
@@ -128,7 +128,7 @@ const techniques: ExerciseInfo[] = [
     id: "humming",
     name: "Humming / Voo Sound",
     description: "Deep humming or the 'voo' sound",
-    why: "The vibration of humming stimulates your vagus nerve - the main nerve that tells your body it's safe to relax. The longer the exhale through humming, the stronger the calming signal. The 'voo' sound specifically resonates in your chest and belly.",
+    why: "The vibration from humming stimulates your vagus nerve - the main nerve that tells your body it's safe to relax. The 'voo' sound resonates deep in your chest and belly. Try it - you'll feel it right away.",
     regulation: "down",
     tags: ["vagus nerve", "calming"],
     duration: 3,
@@ -139,7 +139,7 @@ const techniques: ExerciseInfo[] = [
     id: "vagus-nerve-massage",
     name: "Vagus Nerve Massage",
     description: "Gentle pressure on calming points",
-    why: "Your vagus nerve runs through your neck and behind your ears. Gentle pressure on these areas activates the parasympathetic nervous system - your body's built-in calming system. It's like pressing your own reset button.",
+    why: "Your vagus nerve runs behind your ears and along your neck. Gentle pressure here activates your body's calming response - it slows your heart rate and eases tension. Think of it like finding your body's off switch for stress.",
     regulation: "down",
     tags: ["vagus nerve", "hands-on"],
     duration: 3,
@@ -156,7 +156,7 @@ const techniques: ExerciseInfo[] = [
     id: "eye-press",
     name: "Eye Press Reset",
     description: "Gentle pressure on closed eyes",
-    why: "Pressing gently on your closed eyes activates the oculocardiac reflex, which can slow your heart rate through vagal stimulation. Use light pressure only - stop if you feel pain or discomfort.",
+    why: "Gentle pressure on your closed eyes can actually slow your heart rate down. It's one of those things that sounds odd but really works. Use light pressure only - stop if it doesn't feel right.",
     regulation: "down",
     tags: ["vagus nerve", "quick"],
     duration: 2,
@@ -173,15 +173,15 @@ const techniques: ExerciseInfo[] = [
   {
     id: "havening",
     name: "Self-Havening",
-    description: "Gentle arm and face strokes to calm your system",
-    why: "Havening uses gentle, repetitive touch that may help promote calming brain activity. The slow stroking motion on your arms and face activates C-tactile afferent nerves in your skin, which are thought to send safety signals that can help reduce the emotional charge of distressing experiences.",
+    description: "Soft, repetitive strokes on your arms and face",
+    why: "Slow, gentle stroking on your arms and face sends a strong safety signal to your brain. It's the kind of touch that naturally calms you down - like being soothed by someone who cares about you, except you're doing it for yourself.",
     regulation: "down",
     tags: ["touch", "calming", "soothing"],
     duration: 3,
     sessionSteps: [
       { text: "Sit comfortably. Cross your arms so each hand rests on the opposite shoulder.", duration: 10 },
       { text: "Slowly stroke your hands down your arms from shoulder to elbow. Gentle, even pressure. Like you're soothing yourself.", duration: 20 },
-      { text: "Continue stroking. Slow and steady. Each stroke sends a safety signal to your brain.", duration: 20 },
+      { text: "Continue stroking. Slow and steady. Let yourself feel the warmth of your own touch.", duration: 20 },
       { text: "Now bring your hands to your face. Place your palms on your forehead.", duration: 10 },
       { text: "Slowly stroke down from your forehead, across your cheeks, to your chin. Very gently.", duration: 20 },
       { text: "Continue the face strokes. Forehead to chin. Let your eyes close if they want to.", duration: 20 },
@@ -195,37 +195,37 @@ const techniques: ExerciseInfo[] = [
   {
     id: "body-shaking",
     name: "Body Shaking / TRE",
-    description: "Shake out tension and stored energy",
-    why: "Many animals shake after a threatening experience, which some researchers believe helps release stored tension. Shaking and tremoring exercises may help your body process incomplete stress responses and release muscle tension you've been holding.",
+    description: "Shake it ALL out — big, wild, whole-body",
+    why: "Animals shake after a near-death experience and then walk away fine. Your body knows how to do this too. Shaking literally discharges stress hormones — adrenaline, cortisol, all of it. This isn't gentle. Let yourself be loud, be messy, be ridiculous. The bigger you shake, the more you let go.",
     regulation: "up",
     tags: ["release", "energizing"],
     duration: 5,
     sessionSteps: [
-      { text: "Start with your hands. Shake them like you're flicking off water.", duration: 30 },
-      { text: "Add your arms. Let them shake loosely.", duration: 30 },
-      { text: "Let it move into your shoulders and torso.", duration: 30 },
-      { text: "Bounce your knees. Let your whole body shake.", duration: 60 },
-      { text: "Slow down gradually. Feel the tingling.", duration: 30 },
-      { text: "Stand still. Notice what's different.", duration: 30 },
+      { text: "Start with your hands. Shake them HARD — like you're trying to fling something off.", duration: 30 },
+      { text: "Arms now. Let them fly. Loose, wild, no control needed.", duration: 30 },
+      { text: "Shoulders, torso — let it take over. Make noise if you want to. Grunt, yell, whatever.", duration: 30 },
+      { text: "SHAKE. Everything. Arms, legs, whole body. Bounce your knees, let your jaw go loose. Be a mess. This is the point.", duration: 60 },
+      { text: "Start to slow down. Feel the tingling — that buzzing in your muscles? That's your body releasing.", duration: 30 },
+      { text: "Stand still. Don't move. Just feel what's different. Let the stillness hit you.", duration: 30 },
     ],
     position: "standing",
   },
   {
     id: "air-punching",
     name: "Air Punching",
-    description: "Controlled punching movements",
-    why: "When your body has energy building up but can't release it safely, air punching gives your muscles permission to discharge that trapped activation. The movement helps complete the fight response your body may be holding onto, telling your nervous system: you fought back, the threat is over.",
+    description: "Let it OUT — punch hard, be fierce",
+    why: "You've got fight energy in your body and it needs to GO somewhere. Anger, frustration, that tight feeling in your chest — your body wants to push back. So let it. Punch the air like you mean it. Make sounds. Be fierce. The physical exertion metabolizes the adrenaline and cortisol flooding your system. This is one of the fastest ways to move through anger.",
     regulation: "up",
     tags: ["release", "energizing", "fight response"],
     duration: 3,
-    sessionInstruction: "Stand with feet shoulder-width. Punch forward with alternating arms. Start slow, find your rhythm. It's okay to make sounds. Let out whatever wants to come out.",
+    sessionInstruction: "Stand with feet shoulder-width. Punch forward with alternating arms. Don't hold back. Punch HARD. Make sounds — grunt, yell, exhale forcefully. This is yours. Let out whatever wants to come out. Punch harder. Mean it.",
     position: "standing",
   },
   {
     id: "bearing-down",
     name: "Bearing Down (Valsalva)",
     description: "Engage your core against resistance",
-    why: "Bearing down - like pushing against a closed throat - creates pressure that stimulates the vagus nerve. It's a well-established vagal maneuver used in clinical settings. Note: avoid if you have heart conditions, glaucoma, or are pregnant. Stop if you feel dizzy.",
+    why: "Bearing down creates pressure that stimulates the vagus nerve, which quickly slows your heart rate. It's called a Valsalva maneuver - a strong technique you'll feel working. Note: skip this one if you have heart conditions, glaucoma, or are pregnant. Stop if you feel dizzy.",
     regulation: "down",
     tags: ["vagus nerve", "quick", "powerful"],
     duration: 2,
@@ -244,19 +244,19 @@ const techniques: ExerciseInfo[] = [
   {
     id: "dancing",
     name: "Free Movement / Dancing",
-    description: "Move your body however it wants",
-    why: "When we're shut down, our body has forgotten it can move freely. Dancing or free movement reconnects you to your body's natural impulses. There's no right way to do this - the movement itself is the medicine.",
+    description: "MOVE — dance like nobody's watching",
+    why: "This isn't a gentle sway. This is your body remembering it's ALIVE. When you move big — stomp, jump, spin, thrash — your whole nervous system shifts. Full-body movement with music rewires your emotional state in minutes. There's no right way to do this. The wilder, the better. Let your body do whatever it wants.",
     regulation: "up",
     tags: ["expression", "energizing"],
     duration: 5,
-    sessionInstruction: "Move however your body wants to. There are no rules. Sway, stomp, wave your arms, spin. Let your body lead.",
+    sessionInstruction: "Put on music if you can. Move however your body wants to — and go BIG. Stomp, jump, spin, throw your arms, shake your hips. There are no rules and nobody's watching. Let your body lead. The more you let go, the more this works.",
     position: "standing",
   },
   {
     id: "vestibular-eyes",
     name: "Vestibular Eye Movement",
     description: "Slow eye tracking exercises",
-    why: "Your vestibular system (inner ear + eyes) is deeply connected to your sense of safety. Slow, controlled eye movements help recalibrate this system when it's been disrupted by stress. It's why following a moving object can feel instantly calming.",
+    why: "Slow eye movements engage your vestibular system - the part of your brain connected to balance and safety. Following something moving back and forth settles your whole body. It's one of those things that works way better than you'd expect.",
     regulation: "both",
     tags: ["calming", "orienting"],
     duration: 3,
@@ -267,7 +267,7 @@ const techniques: ExerciseInfo[] = [
     id: "pendulation",
     name: "Pendulation",
     description: "Shift attention between tension and comfort",
-    why: "Your nervous system naturally oscillates between activation and calm. Pendulation teaches your body to move between these states fluidly, building resilience. By deliberately noticing discomfort then shifting to a place of ease, you train your nervous system to self-regulate - moving through distress rather than getting stuck in it.",
+    why: "This is about noticing that you can feel both - the hard stuff and the okay stuff. You find a spot that's tense, sit with it for a moment, then shift your attention to somewhere that feels fine. Going back and forth teaches your body that it doesn't have to get stuck in the hard part.",
     regulation: "both",
     tags: ["somatic experiencing", "resilience", "awareness"],
     duration: 3,
@@ -288,20 +288,20 @@ const techniques: ExerciseInfo[] = [
 ];
 
 const somaticExplanations: Record<string, string> = {
-  "bilateral-tapping": "Bilateral stimulation helps process distress by engaging both brain hemispheres, similar to what happens during REM sleep.",
-  "gentle-swaying": "Gentle rhythmic movement activates your vestibular system, which connects directly to your vagus nerve and calming response.",
-  "return-to-safety": "Orienting to your environment signals to your primitive brain that there\u2019s no immediate threat present.",
-  "orienting": "Slowly scanning your environment redirects your threat-detection system outward, signaling safety to your brainstem.",
-  "humming": "Vibrations from humming stimulate the vagus nerve in your throat, directly activating your parasympathetic system.",
-  "vagus-nerve-massage": "Gentle pressure behind the ear stimulates a branch of the vagus nerve, slowing your heart rate.",
-  "eye-press": "Light pressure on closed eyes activates the oculocardiac reflex, which can help slow your heart rate.",
-  "havening": "Gentle repetitive touch may promote calming brain activity and sends safety signals through skin receptors.",
-  "body-shaking": "Many animals shake after a threat passes. This type of somatic release may help humans process stored tension too.",
-  "air-punching": "Controlled aggression movements help complete the fight response your body may be holding onto.",
-  "bearing-down": "This engages your core and vagus nerve simultaneously, creating a strong parasympathetic activation.",
-  "dancing": "Free movement helps discharge stored tension while bilateral coordination regulates the nervous system.",
-  "vestibular-eyes": "Slow eye movements stimulate the vestibular-ocular reflex, which has a direct calming effect on the brainstem.",
-  "pendulation": "Pendulation trains your nervous system to move fluidly between distress and ease, building resilience over time.",
+  "bilateral-tapping": "The left-right rhythm helps your brain process what\u2019s bothering you instead of just looping on it.",
+  "gentle-swaying": "Rhythmic movement is naturally calming. Your body recognizes this pattern and starts to settle.",
+  "return-to-safety": "Looking around and grounding yourself helps your body realize the danger has passed.",
+  "orienting": "Slowly looking around tells your body: I\u2019ve checked, I\u2019m safe here.",
+  "humming": "Humming vibrations stimulate the vagus nerve, calming your body from the inside.",
+  "vagus-nerve-massage": "Gentle pressure on the vagus nerve behind your ears slows your heart rate. Works surprisingly fast.",
+  "eye-press": "Light pressure on closed eyes can actually slow your heart rate. Gentle pressure only.",
+  "havening": "Slow, gentle stroking sends a strong safety signal. Like being soothed, but you\u2019re doing it for yourself.",
+  "body-shaking": "Shaking discharges stress hormones directly. Animals do it after danger — it\u2019s one of the most primal regulation tools your body has. Go big.",
+  "air-punching": "Punching safely channels your fight energy. The physical exertion metabolizes the adrenaline and cortisol your body is flooded with.",
+  "bearing-down": "A vagal maneuver that creates internal pressure to quickly slow your heart rate. Strong one.",
+  "dancing": "Full-body movement rewires your emotional state. When you move big, your whole nervous system shifts — it\u2019s one of the fastest ways to change how you feel.",
+  "vestibular-eyes": "Slow eye movements engage the vestibular system, which has a direct calming effect.",
+  "pendulation": "Going back and forth between tension and comfort teaches your body it doesn\u2019t have to stay stuck.",
 };
 
 // ─── Web Audio helper ───────────────────────────────────────────────
@@ -630,7 +630,13 @@ function SomaticPageInner() {
   function selectTechnique(id: Technique) {
     const exercise = techniques.find((t) => t.id === id)!;
     setTechnique(id);
-    setDuration(exercise.duration);
+    // For step-based exercises, calculate duration from steps
+    if (exercise.sessionSteps) {
+      const totalSec = exercise.sessionSteps.reduce((sum, s) => sum + s.duration, 0);
+      setDuration(Math.ceil(totalSec / 60));
+    } else {
+      setDuration(exercise.duration);
+    }
     setScreen("info");
   }
 
@@ -671,18 +677,18 @@ function SomaticPageInner() {
   function AmbientToggle() {
     return (
       <div className="fixed bottom-20 left-0 right-0 flex justify-center gap-1">
-        {(["off", "rain", "ocean", "forest"] as const).map((s) => (
+        {(["off", "rain", "ocean", "forest", "white-noise"] as const).map((s) => (
           <button
             key={s}
             onClick={() => {
-              if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+              if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
               else { ambientAudio.start(s); setAmbientSound(s); }
             }}
             className={`rounded-full px-2 py-1 text-[10px] transition-all ${
               ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
             }`}
           >
-            {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
+            {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : s === "forest" ? "Forest" : "White noise"}
           </button>
         ))}
       </div>
@@ -873,25 +879,42 @@ function SomaticPageInner() {
             </div>
           )}
 
-          {/* Duration */}
-          <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
-            <p className="mb-3 text-center text-sm text-cream-dim">Duration</p>
-            <div className="flex justify-center gap-3">
-              {durationOptions.map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setDuration(n)}
-                  className={`flex h-14 w-16 items-center justify-center rounded-xl border text-sm font-medium transition-all duration-200 ${
-                    duration === n
-                      ? "border-teal/50 bg-teal/15 text-teal-soft shadow-md shadow-teal/10"
-                      : "border-slate-blue/50 bg-slate-blue/30 text-cream-dim hover:border-teal/30 hover:text-cream"
-                  }`}
-                >
-                  {n} min
-                </button>
-              ))}
+          {/* High-energy exercise note */}
+          {(technique === "body-shaking" || technique === "air-punching" || technique === "dancing") && (
+            <div className="mb-4 rounded-2xl border border-candle/15 bg-candle/5 p-4 backdrop-blur-sm">
+              <p className="text-xs leading-relaxed text-cream-dim">
+                <span className="font-medium text-candle/80">Heads up:</span> This one&apos;s meant to be big. Turn up some music if you can. Give yourself permission to be loud.
+              </p>
             </div>
-          </div>
+          )}
+
+          {/* Duration - only show selector for exercises without fixed steps */}
+          {currentExercise.sessionSteps ? (
+            <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+              <p className="text-center text-sm text-cream-dim">
+                About {duration} min
+              </p>
+            </div>
+          ) : (
+            <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+              <p className="mb-3 text-center text-sm text-cream-dim">Duration</p>
+              <div className="flex justify-center gap-3">
+                {durationOptions.map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setDuration(n)}
+                    className={`flex h-14 w-16 items-center justify-center rounded-xl border text-sm font-medium transition-all duration-200 ${
+                      duration === n
+                        ? "border-teal/50 bg-teal/15 text-teal-soft shadow-md shadow-teal/10"
+                        : "border-slate-blue/50 bg-slate-blue/30 text-cream-dim hover:border-teal/30 hover:text-cream"
+                    }`}
+                  >
+                    {n} min
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <button
             onClick={startSession}

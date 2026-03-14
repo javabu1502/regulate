@@ -27,7 +27,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [confirmClear, setConfirmClear] = useState<string | null>(null);
   const [hapticsOn, setHapticsOn] = useState(true);
-  const [fontLarge, setFontLarge] = useState(false);
+  const [textSize, setTextSize] = useState<"default" | "large" | "xl">("default");
   const [crisisName, setCrisisName] = useState("");
   const [crisisNumber, setCrisisNumber] = useState("");
   const [crisisText, setCrisisText] = useState("");
@@ -48,8 +48,13 @@ export default function SettingsPage() {
       setPremiumActive(isPremium());
       const stored = localStorage.getItem("regulate-haptics-enabled");
       if (stored !== null) setHapticsOn(stored !== "0");
-      const storedFont = localStorage.getItem("regulate-font-size");
-      if (storedFont === "large") setFontLarge(true);
+      const storedTextSize = localStorage.getItem("regulate-text-size");
+      if (storedTextSize === "large" || storedTextSize === "xl") {
+        setTextSize(storedTextSize);
+      } else {
+        const oldFont = localStorage.getItem("regulate-font-size");
+        if (oldFont === "large") setTextSize("large");
+      }
       const storedCrisis = localStorage.getItem(CRISIS_KEY);
       if (storedCrisis) {
         const parsed: CustomCrisisLine = JSON.parse(storedCrisis);
@@ -239,7 +244,7 @@ export default function SettingsPage() {
       "current_ns_state", "regulate-install-dismissed",
       "regulate-custom-patterns", "regulate-personal-affirmations",
       "regulate-favorites-v2", "regulate-haptics-enabled", "regulate-font-size",
-      "regulate-custom-crisis", "regulate-premium", "regulate-night-mode",
+      "regulate-text-size", "regulate-custom-crisis", "regulate-premium", "regulate-night-mode",
     ];
     keys.forEach((k) => localStorage.removeItem(k));
     setConfirmClear(null);
@@ -287,25 +292,39 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Font size */}
+          {/* Text size */}
           <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-cream">Text size</h3>
-                <p className="mt-1 text-xs text-cream-dim/60">Make text larger for readability</p>
-              </div>
-              <button
-                onClick={() => {
-                  const next = !fontLarge;
-                  setFontLarge(next);
-                  localStorage.setItem("regulate-font-size", next ? "large" : "normal");
-                  document.documentElement.classList.toggle("large-text", next);
-                }}
-                className={`relative h-7 w-12 rounded-full transition-colors ${fontLarge ? "bg-teal" : "bg-slate-blue/40"}`}
-                aria-label={fontLarge ? "Switch to normal text size" : "Switch to large text size"}
-              >
-                <span className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-cream transition-transform ${fontLarge ? "translate-x-5" : "translate-x-0"}`} />
-              </button>
+            <div>
+              <h3 className="text-sm font-medium text-cream">Text size</h3>
+              <p className="mt-1 text-xs text-cream-dim/60">Make text larger for readability</p>
+            </div>
+            <div className="mt-3 flex rounded-xl border border-slate-blue/20 overflow-hidden">
+              {([["default", "Default"], ["large", "Large"], ["xl", "Extra Large"]] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => {
+                    setTextSize(value);
+                    localStorage.setItem("regulate-text-size", value);
+                    // Remove old classes
+                    document.documentElement.classList.remove("large-text");
+                    document.body.classList.remove("text-size-large", "text-size-xl");
+                    // Apply new class
+                    if (value === "large") {
+                      document.documentElement.classList.add("large-text");
+                      document.body.classList.add("text-size-large");
+                    } else if (value === "xl") {
+                      document.body.classList.add("text-size-xl");
+                    }
+                  }}
+                  className={`flex-1 py-2 text-xs font-medium transition-colors ${
+                    textSize === value
+                      ? "bg-teal/20 text-teal-soft"
+                      : "text-cream-dim/50 hover:text-cream-dim"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 

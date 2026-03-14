@@ -15,11 +15,11 @@ class AmbientAudio {
   private birdTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   private ensureContext(): AudioContext {
-    if (!this.ctx) {
+    if (!this.ctx || this.ctx.state === "closed") {
       this.ctx = new AudioContext();
     }
     if (this.ctx.state === "suspended") {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => { /* ignore */ });
     }
     return this.ctx;
   }

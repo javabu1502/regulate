@@ -196,9 +196,9 @@ export function getRecommendations(nsState?: string | null): Recommendation[] {
 
 // Default body-state mapping (clinically aligned)
 const defaultRecommendations: Record<string, string[]> = {
-  panicking: ["breathing", "tapping", "grounding"],
-  anxious: ["extended", "body-scan", "grounding"],
-  shutdown: ["gentle-movement", "somatic", "tapping"],
+  panicking: ["breathing", "tapping", "body-scan"],
+  anxious: ["extended", "grounding", "somatic"],
+  shutdown: ["gentle-movement", "affirmations", "grounding"],
 };
 
 interface ToolScore {

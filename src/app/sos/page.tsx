@@ -119,16 +119,16 @@ interface Exercise {
 
 const allExercises: Exercise[] = [
   // Inline (built into SOS flow)
-  { id: "breathing", label: "Physiological sigh", icon: "\u{1F32C}\uFE0F", desc: "Double inhale, long exhale - fastest nervous system reset", time: "~1 min", type: "inline" },
-  { id: "extended", label: "Extended exhale", icon: "\u{1FAC1}", desc: "4 seconds in, 8 seconds out - slows everything down", time: "~1 min", type: "inline" },
-  { id: "tapping", label: "Bilateral tapping", icon: "\u{1F932}", desc: "Left-right rhythm with sound - helps process what you're feeling", time: "2 min", type: "inline" },
-  { id: "grounding", label: "5-4-3-2-1 Grounding", icon: "\u{1F441}\uFE0F", desc: "Use your senses to come back to the present moment", time: "~3 min", type: "inline" },
-  { id: "gentle-movement", label: "Gentle movement", icon: "\u{1F30A}", desc: "Wiggle, rock, stretch - small movements to come back online", time: "1 min", type: "inline" },
+  { id: "breathing", label: "Physiological sigh", icon: "\u{1F32C}\uFE0F", desc: "Two quick inhales, one long exhale. You'll feel it right away.", time: "~1 min", type: "inline" },
+  { id: "extended", label: "Extended exhale", icon: "\u{1FAC1}", desc: "Breathe in for 4, out for 8. Slows everything down.", time: "~1 min", type: "inline" },
+  { id: "tapping", label: "Bilateral tapping", icon: "\u{1F932}", desc: "Tap left, tap right. The rhythm gives your brain something to hold onto.", time: "2 min", type: "inline" },
+  { id: "grounding", label: "5-4-3-2-1 Grounding", icon: "\u{1F441}\uFE0F", desc: "Name what you see, hear, and feel. Gets you out of your head.", time: "~3 min", type: "inline" },
+  { id: "gentle-movement", label: "Gentle movement", icon: "\u{1F30A}", desc: "Wiggle, rock, stretch. Even tiny movements help.", time: "1 min", type: "inline" },
   // Links (navigate to module pages)
-  { id: "body-scan", label: "Body scan", icon: "\u{1F9D8}", desc: "Move attention slowly through your body - progressive release", time: "5 min", type: "link", href: "/body-scan" },
-  { id: "somatic", label: "Somatic exercises", icon: "\u{1FAE8}", desc: "Shaking, humming, vagus nerve work - release what your body is holding", time: "2-5 min", type: "link", href: "/somatic" },
-  { id: "affirmations", label: "Affirmations", icon: "\u{1F4AC}", desc: "Words to hold you - chosen for how you're feeling", time: "~2 min", type: "link", href: "/affirmations" },
-  { id: "sleep", label: "Sleep sequence", icon: "\u{1F319}", desc: "Breathing + muscle relaxation for restless nights", time: "3-5 min", type: "link", href: "/sleep" },
+  { id: "body-scan", label: "Body scan", icon: "\u{1F9D8}", desc: "Go through your body slowly. Notice what's tight, let it soften.", time: "5 min", type: "link", href: "/body-scan" },
+  { id: "somatic", label: "Somatic exercises", icon: "\u{1FAE8}", desc: "Shake it out, hum, move. Let your body release what it's holding.", time: "2-5 min", type: "link", href: "/somatic" },
+  { id: "affirmations", label: "Affirmations", icon: "\u{1F4AC}", desc: "Simple words that meet you where you are.", time: "~2 min", type: "link", href: "/affirmations" },
+  { id: "sleep", label: "Sleep sequence", icon: "\u{1F319}", desc: "Breathing and relaxation for when you can't shut off.", time: "3-5 min", type: "link", href: "/sleep" },
 ];
 
 // ─── Recommended exercises per body state ────────────────────────────
@@ -150,37 +150,37 @@ type BodyStateKey = "panicking" | "anxious" | "shutdown";
 
 const exerciseWhyMap: Record<BodyStateKey, Record<string, string>> = {
   panicking: {
-    breathing: "The double inhale stimulates your vagus nerve, which helps tell your nervous system to slow down. Research suggests it may be one of the most effective ways to reduce a panic response.",
-    extended: "Long exhales activate your parasympathetic nervous system, the brake pedal for panic. Your heart rate drops within seconds.",
-    tapping: "Alternating left-right stimulation helps your brain process the overwhelm. It gives your nervous system something rhythmic to lock onto instead of spiraling.",
-    grounding: "Your senses pull you out of your head and into the present moment. Panic lives in the future - your senses live right now.",
-    "gentle-movement": "Small movements tell your body it's safe. When you're frozen in panic, even a wiggle can break the freeze response.",
-    "body-scan": "Slowly moving attention through your body shifts you from fight-or-flight into awareness. It gives your mind something concrete to focus on.",
-    somatic: "Shaking, humming, and vagus nerve exercises discharge the physical energy that panic creates. Your body needs to move it through.",
-    affirmations: "Simple, grounding words can interrupt the panic thought loop. They're an anchor when everything feels chaotic.",
-    sleep: "Progressive relaxation paired with breathing helps your whole body let go of tension, even when your mind is racing.",
+    breathing: "This one works fast. The double inhale stimulates your vagus nerve, and the long exhale tells your body it's okay to slow down. Most people feel a shift within a few breaths.",
+    extended: "When you breathe out longer than you breathe in, your parasympathetic nervous system kicks in - your body's built-in brake pedal. Your heart rate actually drops. You can feel it happen.",
+    tapping: "Bilateral stimulation - the left-right rhythm - gives your brain something to focus on besides the panic. It helps you process what's happening instead of just spinning.",
+    grounding: "Panic pulls you into the future - into what might happen. Your senses bring you back to right now, where you're actually okay.",
+    "gentle-movement": "When you're frozen in panic, even wiggling your toes can help. Small movements remind your body that it can move, that it's not stuck.",
+    "body-scan": "Instead of fighting the panic, you just notice your body. Where's the tension? Where's it okay? It gives your mind somewhere to go besides the spiral.",
+    somatic: "Panic creates a lot of physical energy. Shaking, humming, and moving help your body actually discharge it instead of keeping it locked up.",
+    affirmations: "When panic is loud, a few simple words can cut through. Not positive thinking - just something steady to hold onto.",
+    sleep: "Breathing plus progressive muscle relaxation. You tense, then release. It helps your whole body let go, even when your mind won't stop.",
   },
   anxious: {
-    breathing: "The double inhale resets your breathing pattern. Anxiety often causes shallow breathing, which makes anxiety worse - this breaks that cycle.",
-    extended: "Breathing out longer than you breathe in directly activates your calming nervous system. It's like pressing a reset button for anxiety.",
-    tapping: "Bilateral stimulation helps your brain process anxious thoughts instead of looping on them. It's used in EMDR therapy for this reason.",
-    grounding: "Anxiety pulls you into worried thoughts about the future. Your five senses bring you back to what's actually happening right now.",
-    "gentle-movement": "Gentle rocking and swaying activate your vestibular system, which has a direct calming effect on anxiety.",
-    "body-scan": "Anxiety often hides in your body as tension you don't notice. Scanning helps you find it and let it soften.",
-    somatic: "Your body holds anxiety as muscle tension, shallow breathing, and restlessness. Somatic exercises give it a way out.",
-    affirmations: "Anxious thoughts repeat. Affirmations give your mind a different loop - one that's chosen, not reactive.",
-    sleep: "Anxiety and sleep problems feed each other. This sequence helps break the cycle with body-first relaxation.",
+    breathing: "Anxiety makes your breathing shallow, which makes the anxiety worse. This breaks that loop. Two quick inhales, long exhale, and your body starts to ease up.",
+    extended: "Longer exhales activate your parasympathetic nervous system, which slows your heart rate down. One of the most reliable ways to take the edge off.",
+    tapping: "The left-right rhythm helps your brain process anxious thoughts instead of just looping on them. Think of it like giving your brain a track to run on.",
+    grounding: "Anxiety lives in worried thoughts about what might happen. Your five senses bring you back to what's actually happening right now.",
+    "gentle-movement": "Rocking and swaying are naturally calming. It's why we do it instinctively. Gentle movement settles your body when your mind won't stop.",
+    "body-scan": "Anxiety hides in your body as tension you don't even notice. Jaw, shoulders, stomach. Scanning helps you find it and let it soften.",
+    somatic: "Your body holds anxiety as muscle tension and restlessness. These exercises give all that energy somewhere to go.",
+    affirmations: "Anxious thoughts repeat themselves. Affirmations aren't about positive thinking - they give your mind a different track, one you chose.",
+    sleep: "When anxiety keeps you up, body-first relaxation works better than trying to think your way to sleep. This sequence works with your body, not against it.",
   },
   shutdown: {
-    breathing: "When you're shut down, breathing can feel hard. The double inhale gently brings more oxygen in without forcing it.",
-    extended: "Long, slow exhales help you come back online gradually. They signal safety to a nervous system that's gone into protection mode.",
-    tapping: "The rhythmic alternating sensation gives your body gentle input - enough to start waking up without overwhelming you.",
-    grounding: "When you feel numb or disconnected, your senses are a bridge back. Each thing you notice reconnects you a little more.",
-    "gentle-movement": "Small movements tell your body it's OK to come back. Wiggling, rocking, and stretching gently restart your system.",
-    "body-scan": "Scanning your body helps you reconnect with physical sensations when everything feels far away or muted.",
-    somatic: "Gentle shaking, humming, and movement help your nervous system shift from shutdown back toward feeling present.",
-    affirmations: "Simple, warm words can reach you when shutdown makes everything feel distant. They're a gentle invitation back.",
-    sleep: "If shutdown is pulling you toward collapse, this sequence works with that energy - helping you rest intentionally rather than shutting down.",
+    breathing: "When you're shut down, breathing can feel hard. The double inhale is gentle - it opens things up without forcing anything.",
+    extended: "Long, slow exhales help you come back gradually. No rush. Just letting your body know it's safe to feel things again.",
+    tapping: "The gentle left-right sensation gives your body some input without overwhelming it. Just enough to start waking things up.",
+    grounding: "When you feel numb or far away, your senses are a way back in. Each thing you notice reconnects you a little more.",
+    "gentle-movement": "Small movements tell your body it's okay to come back. Wiggling, rocking, stretching. Nothing big - just enough.",
+    "body-scan": "When everything feels muted, scanning helps you find the places where you can still feel something. That's your starting point.",
+    somatic: "Gentle shaking, humming, and movement help your body shift from shutdown back toward feeling present. Go as slow as you need to.",
+    affirmations: "When shutdown makes everything feel far away, simple warm words can still reach you. Not demanding, just an invitation.",
+    sleep: "If your body is pulling you toward collapse, this sequence helps you rest on purpose. There's a difference between shutdown and chosen rest.",
   },
 };
 
@@ -580,7 +580,7 @@ function SOSPageInner() {
   function AmbientToggle() {
     return (
       <div className="fixed right-4 top-6 z-10 flex gap-1.5">
-        {(["rain", "ocean", "forest", "off"] as const).map((s) => (
+        {(["rain", "ocean", "forest", "white-noise", "off"] as const).map((s) => (
           <button
             key={s}
             onClick={() => {
@@ -592,10 +592,10 @@ function SOSPageInner() {
                 ? "bg-teal/20 text-teal-soft"
                 : "text-cream-dim/60 hover:text-cream-dim/70"
             }`}
-            aria-label={`${s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"} ambient sound`}
+            aria-label={`${s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : s === "forest" ? "Forest" : "White noise"} ambient sound`}
             aria-pressed={ambientSound === s}
           >
-            {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
+            {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : s === "forest" ? "Forest" : "Noise"}
           </button>
         ))}
       </div>
@@ -702,10 +702,27 @@ function SOSPageInner() {
                 <span className="mt-1 block text-xs text-cream-dim/60">{opt.sub}</span>
               </button>
             ))}
+
+            {/* Can't sleep */}
+            <button
+              onClick={() => router.push("/sleep")}
+              className="w-full rounded-2xl border border-lavender/15 bg-lavender/5 px-5 py-5 text-left transition-all hover:border-lavender/25 active:scale-[0.98]"
+            >
+              <span className="block text-base font-medium text-lavender">Can&apos;t sleep</span>
+              <span className="mt-1 block text-xs text-cream-dim/60">Restless, racing thoughts, wide awake</span>
+            </button>
           </div>
 
+          {/* I'm okay escape */}
+          <button
+            onClick={goHome}
+            className="mt-5 w-full text-center text-sm text-cream-dim/50 transition-colors hover:text-cream-dim/70"
+          >
+            I&apos;m okay - just exploring
+          </button>
+
           {/* Crisis line */}
-          <div className="mt-10 flex justify-center">
+          <div className="mt-8 flex justify-center">
             <a href="tel:988" className="text-[10px] text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim/70">
               988 Suicide &amp; Crisis Lifeline
             </a>
@@ -864,8 +881,20 @@ function SOSPageInner() {
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
 
+          {/* My toolkit link */}
+          <Link
+            href="/toolkit"
+            className="mt-3 flex min-h-[44px] items-center justify-center gap-1.5 w-full text-xs text-candle/50 transition-colors hover:text-candle/70"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" />
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+            </svg>
+            My emergency toolkit
+          </Link>
+
           {/* Crisis line */}
-          <div className="mt-8 flex justify-center">
+          <div className="mt-6 flex justify-center">
             <a href="tel:988" className="text-[10px] text-cream-dim/60 underline underline-offset-2 hover:text-cream-dim/70">
               988 Suicide &amp; Crisis Lifeline
             </a>
@@ -898,9 +927,9 @@ function SOSPageInner() {
              "All exercises"}
           </h2>
           <p className="mt-2 text-center text-xs text-cream-dim/60">
-            {selectedBodyState === "panicking" ? "Tools to slow your system down and interrupt the panic cycle." :
-             selectedBodyState === "anxious" ? "Tools to settle your nervous system and release tension." :
-             selectedBodyState === "shutdown" ? "Gentle tools to bring your body back online without overwhelming it." :
+            {selectedBodyState === "panicking" ? "These can help take the edge off when everything is too much." :
+             selectedBodyState === "anxious" ? "These help your body settle when you can't stop buzzing." :
+             selectedBodyState === "shutdown" ? "Gentle ways to come back when you feel numb or far away." :
              "Pick any one to start."}
           </p>
           <div className="mt-1.5">

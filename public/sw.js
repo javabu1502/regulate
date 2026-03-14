@@ -1,10 +1,10 @@
 // Regulate — Service Worker
 // Cache-first for static assets, network-first for pages, offline fallback
 
-const CACHE_VERSION = "regulate-v3";
-const STATIC_CACHE = "regulate-static-v3";
-const PAGES_CACHE = "regulate-pages-v3";
-const AUDIO_CACHE = "regulate-audio-v3";
+const CACHE_VERSION = "regulate-v5";
+const STATIC_CACHE = "regulate-static-v5";
+const PAGES_CACHE = "regulate-pages-v5";
+const AUDIO_CACHE = "regulate-audio-v5";
 
 // App shell — precached on install
 const APP_SHELL = [
@@ -24,6 +24,10 @@ const APP_SHELL = [
   "/settings",
   "/settings/preferences",
   "/onboarding",
+  "/games",
+  "/games/bubbles",
+  "/games/burn",
+  "/toolkit",
 ];
 
 const STATIC_ASSETS = [

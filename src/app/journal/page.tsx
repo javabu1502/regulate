@@ -23,8 +23,9 @@ interface JournalEntry {
   technique?: string;
   aftercareResponse?: string;
   date?: string;
-  type?: "reflection";
+  type?: "reflection" | "micro";
   prompt?: string;
+  content?: string;
 }
 
 const durationOptions = ["Under 5 min", "5–15 min", "15–30 min", "30+ min"];
@@ -83,7 +84,7 @@ function formatTime(ts: number) {
 // ─── Dashboard helpers ──────────────────────────────────────────────
 
 function computeDashboard(allEntries: JournalEntry[]) {
-  const entries = allEntries.filter((e) => e.type !== "reflection");
+  const entries = allEntries.filter((e) => e.type !== "reflection" && e.type !== "micro");
   if (entries.length === 0) return null;
 
   const now = Date.now();
@@ -152,7 +153,7 @@ function getTimeOfDay(ts: number): string {
 }
 
 function computeInsights(allEntries: JournalEntry[]) {
-  const entries = allEntries.filter((e) => e.type !== "reflection");
+  const entries = allEntries.filter((e) => e.type !== "reflection" && e.type !== "micro");
   if (entries.length < 10) return null;
 
   // Time of day
@@ -459,7 +460,7 @@ function JournalPageInner() {
 
   // ─── Stats (exclude reflections) ──────────────────────────────
 
-  const sessionEntries = entries.filter((e) => e.type !== "reflection");
+  const sessionEntries = entries.filter((e) => e.type !== "reflection" && e.type !== "micro");
 
   const avgIntensity = sessionEntries.length
     ? (sessionEntries.reduce((s, e) => s + e.intensity, 0) / sessionEntries.length).toFixed(1)
@@ -927,6 +928,8 @@ function JournalPageInner() {
                       className={`w-full rounded-xl border p-4 text-left transition-colors ${
                         entry.type === "reflection"
                           ? "border-l-2 border-l-purple-400/40 border-t-purple-400/10 border-r-purple-400/10 border-b-purple-400/10 bg-purple-400/5 hover:border-l-purple-400/60"
+                          : entry.type === "micro"
+                          ? "border-l-2 border-l-teal/30 border-t-teal/10 border-r-teal/10 border-b-teal/10 bg-teal/5 hover:border-l-teal/50"
                           : "border-teal/10 bg-deep/40 hover:border-teal/25"
                       }`}
                     >
@@ -934,6 +937,8 @@ function JournalPageInner() {
                         <div className="flex items-center gap-2">
                           {entry.type === "reflection" ? (
                             <span className="rounded-md bg-purple-400/15 px-2 py-0.5 text-xs font-medium text-purple-300/80">Reflection</span>
+                          ) : entry.type === "micro" ? (
+                            <span className="rounded-md bg-teal/15 px-2 py-0.5 text-xs font-medium text-teal-soft/80">Quick note</span>
                           ) : (
                             <>
                               <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${intensityColor(entry.intensity)}`}>
@@ -948,6 +953,11 @@ function JournalPageInner() {
                       {entry.type === "reflection" ? (
                         <p className="mt-1.5 truncate text-xs text-cream-dim/60 italic">
                           {entry.prompt || entry.reflection}
+                        </p>
+                      ) : entry.type === "micro" ? (
+                        <p className="mt-1.5 truncate text-xs text-cream-dim/60">
+                          {entry.content || entry.reflection}
+                          {entry.technique && <span className="ml-2 text-cream-dim/40">— {entry.technique}</span>}
                         </p>
                       ) : entry.triggers.length > 0 ? (
                         <p className="mt-1.5 truncate text-xs text-cream-dim/60">
@@ -1573,6 +1583,8 @@ function JournalPageInner() {
               </div>
               {detailEntry.type === "reflection" ? (
                 <span className="rounded-lg bg-purple-400/15 px-3 py-1 text-sm font-medium text-purple-300/80">Reflection</span>
+              ) : detailEntry.type === "micro" ? (
+                <span className="rounded-lg bg-teal/15 px-3 py-1 text-sm font-medium text-teal-soft/80">Quick note</span>
               ) : (
                 <span className={`rounded-lg px-3 py-1 text-sm font-medium ${intensityColor(detailEntry.intensity)}`}>
                   {detailEntry.intensity}/10
@@ -1586,6 +1598,21 @@ function JournalPageInner() {
                   <p className="mb-1 text-xs text-purple-300/50">Prompt</p>
                   <p className="text-sm italic leading-relaxed text-cream-dim">&ldquo;{detailEntry.prompt}&rdquo;</p>
                 </div>
+              )}
+
+              {detailEntry.type === "micro" && (
+                <>
+                  {detailEntry.technique && (
+                    <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                      <p className="mb-1 text-xs text-cream-dim/50">After</p>
+                      <p className="text-sm text-cream">{detailEntry.technique}</p>
+                    </div>
+                  )}
+                  <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                    <p className="mb-1 text-xs text-cream-dim/50">Note</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-cream-dim">{detailEntry.content || detailEntry.reflection}</p>
+                  </div>
+                </>
               )}
 
               {detailEntry.nsState && (

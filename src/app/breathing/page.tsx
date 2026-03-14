@@ -60,7 +60,7 @@ const patterns: BreathPattern[] = [
     id: "sigh",
     name: "Physiological Sigh",
     description: "Double inhale, then long exhale",
-    useCase: "Fastest nervous system reset",
+    useCase: "Quick relief when you need it now",
     steps: [
       { phase: "inhale", duration: 2, label: "Inhale" },
       { phase: "inhale", duration: 1, label: "Sip in more" },
@@ -72,7 +72,7 @@ const patterns: BreathPattern[] = [
     id: "coherence",
     name: "Coherence Breathing",
     description: "Balanced rhythm, 5 seconds each",
-    useCase: "Heart rate variability",
+    useCase: "Steady, grounding calm",
     steps: [
       { phase: "inhale", duration: 5, label: "Inhale" },
       { phase: "exhale", duration: 5, label: "Exhale" },
@@ -83,10 +83,17 @@ const patterns: BreathPattern[] = [
 const TOTAL_CYCLES = 5;
 
 const breathingExplanations: Record<string, string> = {
-  box: "Equal intervals create a predictable rhythm that tells your nervous system it\u2019s safe to slow down.",
-  "478": "The extended exhale activates your parasympathetic nervous system, triggering your body\u2019s natural relaxation response.",
-  sigh: "The double inhale helps inflate your lung\u2019s air sacs, and the long exhale promotes CO2 release - research suggests this may be one of the most effective real-time calming techniques.",
-  coherence: "Breathing at ~6 breaths per minute synchronizes your heart rate with your breath, maximizing heart rate variability.",
+  box: "The even rhythm gives your body a pattern to follow. When your breathing is predictable, everything else starts to settle too.",
+  "478": "That long exhale is the key. Breathing out longer than you breathe in activates your parasympathetic nervous system - basically your body\u2019s built-in brake pedal. You\u2019ll feel it within a few rounds.",
+  sigh: "This is what your body does naturally after a good cry or a big relief. The double inhale opens your lungs up, and the long exhale lets everything go. Research suggests it may be one of the most effective real-time calming techniques.",
+  coherence: "About 6 breaths per minute is the sweet spot where your heart and breathing sync up - it\u2019s called heart rate variability. It feels like everything just\u2026 settles.",
+};
+
+const breathingWhatYoullDo: Record<string, string> = {
+  box: "You\u2019ll breathe in a steady square rhythm: in for 4, hold for 4, out for 4, hold for 4.",
+  "478": "You\u2019ll take a deep breath in for 4, hold it for 7, then slowly exhale for 8.",
+  sigh: "You\u2019ll take two quick inhales through your nose, then one long exhale through your mouth.",
+  coherence: "You\u2019ll breathe in for 5 seconds, out for 5 seconds. That\u2019s it \u2014 just a steady, even rhythm.",
 };
 
 // ─── Pattern card icons ─────────────────────────────────────────────
@@ -126,7 +133,7 @@ function PatternIcon({ id }: { id: string }) {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-type Screen = "select" | "session" | "complete";
+type Screen = "select" | "intro" | "session" | "complete";
 
 export default function BreathingPage() {
   return (
@@ -308,11 +315,16 @@ function BreathingPageInner() {
 
   // ─── Actions ───────────────────────────────────────────────────
 
-  function selectAndStart(pattern: BreathPattern) {
+  function selectAndShowIntro(pattern: BreathPattern) {
     setSelectedPattern(pattern);
+    setScreen("intro");
+  }
+
+  function startSessionFromIntro() {
+    if (!selectedPattern) return;
     setCurrentCycle(0);
     setCurrentStepIndex(0);
-    setSecondsLeft(Math.ceil(getAdjustedDuration(pattern.steps[0].duration, 0)));
+    setSecondsLeft(Math.ceil(getAdjustedDuration(selectedPattern.steps[0].duration, 0)));
     setOrbProgress(0);
     setIsPaused(false);
     elapsedRef.current = 0;
@@ -377,7 +389,7 @@ function BreathingPageInner() {
                   className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]"
                 >
                   <button
-                    onClick={() => selectAndStart(p)}
+                    onClick={() => selectAndShowIntro(p)}
                     className="group w-full text-left"
                   >
                     <div className="flex items-start gap-3 pr-7">
@@ -411,6 +423,68 @@ function BreathingPageInner() {
               );
             })}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── INTRO SCREEN ────────────────────────────────────────────
+
+  if (screen === "intro" && selectedPattern) {
+    const cycleSec = selectedPattern.steps.reduce((a, s) => a + s.duration, 0);
+    const totalMin = Math.round((cycleSec * TOTAL_CYCLES) / 60);
+    const stepsPreview = selectedPattern.steps
+      .map((s) => `${s.label} ${s.duration}s`)
+      .join(" \u2192 ");
+
+    return (
+      <div key="intro" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5 pb-24 pt-8">
+        <div className="flex w-full max-w-sm flex-col items-center text-center">
+          {/* Pattern icon */}
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-blue/80">
+            <PatternIcon id={selectedPattern.id} />
+          </div>
+
+          {/* Pattern name */}
+          <h2 className="mt-5 text-xl font-semibold tracking-tight text-cream">
+            {selectedPattern.name}
+          </h2>
+
+          {/* What you'll do */}
+          <p className="mt-4 text-sm leading-relaxed text-cream">
+            {breathingWhatYoullDo[selectedPattern.id]}
+          </p>
+
+          {/* Breathing pattern visualization */}
+          <p className="mt-3 font-mono text-xs tracking-wide text-teal-soft/70">
+            {stepsPreview}
+          </p>
+
+          {/* Why it helps */}
+          <p className="mt-5 text-sm leading-relaxed text-cream-dim/60">
+            {breathingExplanations[selectedPattern.id]}
+          </p>
+
+          {/* Session info */}
+          <p className="mt-4 text-xs text-cream-dim/40">
+            About {totalMin} minute{totalMin !== 1 ? "s" : ""}, {TOTAL_CYCLES} rounds
+          </p>
+
+          {/* Begin button */}
+          <button
+            onClick={startSessionFromIntro}
+            className="mt-8 w-full rounded-2xl bg-teal/20 px-8 py-4 text-base font-medium text-teal-soft transition-colors hover:bg-teal/30"
+          >
+            Begin
+          </button>
+
+          {/* Back link */}
+          <button
+            onClick={resetToSelect}
+            className="mt-4 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
+          >
+            Back to patterns
+          </button>
         </div>
       </div>
     );

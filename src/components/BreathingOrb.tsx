@@ -1,12 +1,48 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 interface BreathingOrbProps {
   /** 0 = fully contracted, 1 = fully expanded */
   progress: number;
   phase: "inhale" | "hold" | "exhale" | "rest";
+  /** Optional countdown number to display in reduced-motion mode */
+  countdown?: number;
 }
 
-export default function BreathingOrb({ progress, phase }: BreathingOrbProps) {
+export default function BreathingOrb({ progress, phase, countdown }: BreathingOrbProps) {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const phaseLabel =
+    phase === "inhale" ? "Inhale" :
+    phase === "exhale" ? "Exhale" :
+    phase === "hold" ? "Hold" : "Rest";
+
+  if (prefersReducedMotion) {
+    return (
+      <div className="pointer-events-none relative flex items-center justify-center">
+        <div
+          className="flex h-[220px] w-[220px] flex-col items-center justify-center rounded-full border-2 border-teal/30 bg-deep/60"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="text-2xl font-semibold text-teal-soft">{phaseLabel}</span>
+          {countdown !== undefined && (
+            <span className="mt-1 text-4xl font-light tabular-nums text-cream">{countdown}</span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const scale = 0.55 + progress * 0.45;
 
   const glowOpacity =
