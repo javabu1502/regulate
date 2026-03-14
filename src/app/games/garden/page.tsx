@@ -181,9 +181,9 @@ export default function BreathingGardenPage() {
       y: info.y,
       color: info.color,
       variant: info.variant,
-      size: 36 + Math.random() * 16,
+      size: 52 + Math.random() * 20,
       rotation: Math.random() * 360,
-      scale: 0.6 + Math.random() * 0.4,
+      scale: 0.8 + Math.random() * 0.3,
     };
 
     setFlowers((prev) => [...prev, newFlower]);

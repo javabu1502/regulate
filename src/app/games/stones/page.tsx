@@ -218,7 +218,7 @@ export default function StoneStackingPage() {
   const activeStoneRef = useRef<Stone | null>(null);
   const dustRef = useRef<DustParticle[]>([]);
   const stateRef = useRef<GameState>("idle");
-  const moveSpeedRef = useRef(1.2);
+  const moveSpeedRef = useRef(1.6);
   const moveDirRef = useRef(1);
 
   const [showHelp, setShowHelp] = useState(false);
@@ -384,9 +384,9 @@ export default function StoneStackingPage() {
           const ts = topStone();
           const centerBelow = ts ? ts.x : w / 2;
           const offset = Math.abs(active.x - centerBelow);
-          // Very forgiving — 80% overlap tolerance
+          // Almost always sticks — 95% overlap tolerance
           const tolerance = ts
-            ? (ts.width / 2 + active.width / 2) * 0.8
+            ? (ts.width / 2 + active.width / 2) * 0.95
             : active.width;
 
           if (offset < tolerance) {
@@ -410,7 +410,7 @@ export default function StoneStackingPage() {
             });
 
             // Speed increases as tower grows
-            moveSpeedRef.current = 1.2 + tower.length * 0.1;
+            moveSpeedRef.current = 1.6 + tower.length * 0.12;
 
             playPlaceSound();
             haptics.tap();

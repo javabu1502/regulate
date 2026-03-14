@@ -68,37 +68,52 @@ function playPopSound() {
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
 
-    // Gentle water-drop pop: soft sine with a quick pitch bend
+    // Fidget toy popper sound — sharp membrane snap/thock
+    // 1) Initial click: very short noise burst (membrane snap)
+    const clickLen = Math.floor(ctx.sampleRate * 0.008);
+    const clickBuf = ctx.createBuffer(1, clickLen, ctx.sampleRate);
+    const clickData = clickBuf.getChannelData(0);
+    for (let i = 0; i < clickLen; i++) {
+      // Sharp impulse that decays instantly
+      clickData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / clickLen, 8);
+    }
+    const clickSrc = ctx.createBufferSource();
+    clickSrc.buffer = clickBuf;
+    const clickGain = ctx.createGain();
+    clickGain.gain.setValueAtTime(0.5, t);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
+    clickSrc.connect(clickGain);
+    clickGain.connect(ctx.destination);
+    clickSrc.start(t);
+
+    // 2) Low thock: resonant membrane pop
     const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
+    const oscGain = ctx.createGain();
     osc.type = "sine";
-    const baseFreq = 400 + Math.random() * 150;
+    const baseFreq = 150 + Math.random() * 80;
     osc.frequency.setValueAtTime(baseFreq, t);
-    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, t + 0.2);
-
-    gain.gain.setValueAtTime(0.25, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, t + 0.04);
+    oscGain.gain.setValueAtTime(0.35, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    osc.connect(oscGain);
+    oscGain.connect(ctx.destination);
     osc.start(t);
-    osc.stop(t + 0.25);
+    osc.stop(t + 0.06);
 
-    // Shimmer overtone
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(baseFreq * 2.5, t);
-    osc2.frequency.exponentialRampToValueAtTime(baseFreq * 1.2, t + 0.15);
-    gain2.gain.setValueAtTime(0.1, t);
-    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start(t);
-    osc2.stop(t + 0.15);
+    // 3) Subtle higher click for the "snap" feel
+    const snap = ctx.createOscillator();
+    const snapGain = ctx.createGain();
+    snap.type = "square";
+    snap.frequency.setValueAtTime(800 + Math.random() * 200, t);
+    snap.frequency.exponentialRampToValueAtTime(200, t + 0.015);
+    snapGain.gain.setValueAtTime(0.12, t);
+    snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+    snap.connect(snapGain);
+    snapGain.connect(ctx.destination);
+    snap.start(t);
+    snap.stop(t + 0.025);
   } catch {
-    // Audio not available — that's fine
+    // Audio not available
   }
 }
 

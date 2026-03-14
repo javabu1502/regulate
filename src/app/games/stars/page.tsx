@@ -123,7 +123,13 @@ export default function StarCreatorPage() {
 
   const [count, setCount] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+  const [mode, setMode] = useState<"draw" | "tap">("draw");
+  const modeRef = useRef<"draw" | "tap">("draw");
   const countRef = useRef(0);
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+
+  // Line draw animations for tap mode
+  const lineAnimsRef = useRef<{ fromIdx: number; startFrame: number; duration: number }[]>([]);
 
   // ── Finish current constellation ────────────────────────────────
 
@@ -306,9 +312,32 @@ export default function StarCreatorPage() {
       const currentPath = currentPathRef.current;
       const currentStars = currentStarsRef.current;
 
-      // Draw the current path
-      if (currentPath.length > 1) {
+      // Draw mode: draw the smooth path
+      if (modeRef.current === "draw" && currentPath.length > 1) {
         drawPath(currentPath, 0.5 * globalOpacity, 2);
+      }
+
+      // Tap mode: draw animated lines between stars
+      if (modeRef.current === "tap" && currentStars.length >= 2) {
+        for (let i = 0; i < currentStars.length - 1; i++) {
+          const from = currentStars[i];
+          const to = currentStars[i + 1];
+          // Find animation for this segment
+          const anim = lineAnimsRef.current.find(a => a.fromIdx === i);
+          let progress = 1;
+          if (anim) {
+            progress = Math.min(1, (frame - anim.startFrame) / anim.duration);
+          }
+          const endX = from.x + (to.x - from.x) * progress;
+          const endY = from.y + (to.y - from.y) * progress;
+          ctx!.strokeStyle = `rgba(94, 234, 212, ${0.5 * globalOpacity})`;
+          ctx!.lineWidth = 2;
+          ctx!.lineCap = "round";
+          ctx!.beginPath();
+          ctx!.moveTo(from.x, from.y);
+          ctx!.lineTo(endX, endY);
+          ctx!.stroke();
+        }
       }
 
       // Draw current stars with glow
@@ -371,35 +400,99 @@ export default function StarCreatorPage() {
     };
   }, []);
 
+  // ── Mode toggle ─────────────────────────────────────────────
+
+  const toggleMode = useCallback(() => {
+    const next = modeRef.current === "draw" ? "tap" : "draw";
+    modeRef.current = next;
+    setMode(next);
+    // Reset any in-progress constellation on mode switch
+    currentPathRef.current = [];
+    currentStarsRef.current = [];
+    lastStarPosRef.current = null;
+    lastTapRef.current = null;
+    lineAnimsRef.current = [];
+  }, []);
+
   // ── Pointer handlers ──────────────────────────────────────────
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.target !== canvasRef.current) return;
 
-      pointerDownRef.current = true;
-      isDraggingRef.current = false;
-
       const pos = { x: e.clientX, y: e.clientY };
 
-      // Start a new path
-      currentPathRef.current = [pos];
-      currentStarsRef.current = [{
-        x: pos.x,
-        y: pos.y,
-        placedAt: frameRef.current,
-      }];
-      lastStarPosRef.current = pos;
+      if (modeRef.current === "draw") {
+        pointerDownRef.current = true;
+        isDraggingRef.current = false;
 
-      addSparkles(pos.x, pos.y, 4);
-      playPlaceSound();
-      haptics.tap();
+        // Start a new path
+        currentPathRef.current = [pos];
+        currentStarsRef.current = [{
+          x: pos.x,
+          y: pos.y,
+          placedAt: frameRef.current,
+        }];
+        lastStarPosRef.current = pos;
+
+        addSparkles(pos.x, pos.y, 4);
+        playPlaceSound();
+        haptics.tap();
+      } else {
+        // Tap mode — place a star, connect to previous
+        const now = Date.now();
+        const lastTap = lastTapRef.current;
+
+        // Double-tap to finish constellation (within 400ms and 50px)
+        if (lastTap && now - lastTap.time < 400 && dist(pos, lastTap) < 50) {
+          lastTapRef.current = null;
+          if (currentStarsRef.current.length >= 2) {
+            finishConstellation();
+          }
+          return;
+        }
+
+        lastTapRef.current = { time: now, x: pos.x, y: pos.y };
+
+        // Place new star
+        const newStar: PlacedStar = {
+          x: pos.x,
+          y: pos.y,
+          placedAt: frameRef.current,
+        };
+
+        const stars = currentStarsRef.current;
+
+        // Add line segment from previous star
+        if (stars.length > 0) {
+          const prev = stars[stars.length - 1];
+          // Add path points for the line
+          currentPathRef.current.push({ x: prev.x, y: prev.y });
+          currentPathRef.current.push(pos);
+          // Animate the line
+          lineAnimsRef.current.push({
+            fromIdx: stars.length - 1,
+            startFrame: frameRef.current,
+            duration: 15,
+          });
+        } else {
+          currentPathRef.current = [pos];
+        }
+
+        stars.push(newStar);
+        lastStarPosRef.current = pos;
+
+        addSparkles(pos.x, pos.y, 4);
+        playPlaceSound();
+        haptics.tap();
+      }
     },
-    [addSparkles],
+    [addSparkles, finishConstellation],
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (modeRef.current === "tap") return;
       if (!pointerDownRef.current) return;
 
       isDraggingRef.current = true;
@@ -436,6 +529,7 @@ export default function StarCreatorPage() {
   );
 
   const onPointerUp = useCallback(() => {
+    if (modeRef.current === "tap") return;
     if (!pointerDownRef.current) return;
     pointerDownRef.current = false;
 
@@ -458,7 +552,6 @@ export default function StarCreatorPage() {
       finishConstellation();
     } else {
       // Just a tap — keep the single star visible briefly, then clear
-      // Actually, leave single stars as dots in the sky
       if (currentStarsRef.current.length === 1) {
         const star = currentStarsRef.current[0];
         completedRef.current.push({
@@ -534,7 +627,7 @@ export default function StarCreatorPage() {
         <span className="text-xs text-cream-dim/40">
           {count > 0
             ? `${count} constellation${count !== 1 ? "s" : ""}`
-            : "Draw across the sky"}
+            : mode === "draw" ? "Draw across the sky" : "Tap to place stars, double-tap to finish"}
         </span>
       </div>
 
@@ -548,6 +641,14 @@ export default function StarCreatorPage() {
           className="pointer-events-auto flex items-center gap-3 rounded-full px-1 py-1"
           onPointerDown={(e) => e.stopPropagation()}
         >
+          <button
+            onClick={toggleMode}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex items-center gap-1.5 rounded-full bg-deep/70 px-4 py-2.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream active:scale-95"
+            aria-label={`Switch to ${mode === "draw" ? "tap" : "draw"} mode`}
+          >
+            {mode === "draw" ? "Draw" : "Tap"}
+          </button>
           <button
             onClick={clearAll}
             onPointerDown={(e) => e.stopPropagation()}
