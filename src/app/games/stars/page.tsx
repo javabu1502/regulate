@@ -27,19 +27,16 @@ interface SparkleParticle {
 interface PlacedStar {
   x: number;
   y: number;
-  placedAt: number; // frame when placed, for pulse animation
+  placedAt: number;
 }
 
 interface Constellation {
+  // The full path the finger drew (for smooth lines)
+  path: { x: number; y: number }[];
+  // Stars placed along the path
   stars: PlacedStar[];
   opacity: number;
   targetOpacity: number;
-}
-
-interface LineAnim {
-  fromIdx: number;
-  startFrame: number;
-  duration: number; // frames
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -62,6 +59,43 @@ function generateBackgroundStars(
   return stars;
 }
 
+function dist(a: { x: number; y: number }, b: { x: number; y: number }) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+// ── Audio ─────────────────────────────────────────────────────────────
+
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioCtx) audioCtx = new AudioContext();
+  return audioCtx;
+}
+
+function playPlaceSound() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    const freq = 600 + Math.random() * 300;
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, t + 0.1);
+    gain.gain.setValueAtTime(0.06, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.15);
+  } catch {
+    // Audio not available
+  }
+}
+
 // ── Component ─────────────────────────────────────────────────────────
 
 export default function StarCreatorPage() {
@@ -71,21 +105,17 @@ export default function StarCreatorPage() {
   const bgStarsRef = useRef<BackgroundStar[]>([]);
   const sparklesRef = useRef<SparkleParticle[]>([]);
 
-  // Current in-progress constellation
+  // Current in-progress path while dragging
+  const currentPathRef = useRef<{ x: number; y: number }[]>([]);
   const currentStarsRef = useRef<PlacedStar[]>([]);
-  // Line draw animations for current constellation
-  const lineAnimsRef = useRef<LineAnim[]>([]);
+  const lastStarPosRef = useRef<{ x: number; y: number } | null>(null);
+
   // Completed constellations
   const completedRef = useRef<Constellation[]>([]);
 
-  // Pointer position for sparkle trail
-  const pointerRef = useRef<{ x: number; y: number } | null>(null);
+  // Pointer state
   const pointerDownRef = useRef(false);
-
-  // Double-tap detection
-  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(
-    null,
-  );
+  const isDraggingRef = useRef(false);
 
   // Fade-out animation for clear
   const clearingRef = useRef(false);
@@ -93,45 +123,34 @@ export default function StarCreatorPage() {
 
   const [count, setCount] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
-
-  // Force re-render for count (we read refs in canvas, but count is React state)
   const countRef = useRef(0);
 
   // ── Finish current constellation ────────────────────────────────
 
   const finishConstellation = useCallback(() => {
+    const path = currentPathRef.current;
     const stars = currentStarsRef.current;
-    if (stars.length < 2) return; // need at least 2 stars to form a constellation
+    if (stars.length < 2 || path.length < 2) {
+      currentPathRef.current = [];
+      currentStarsRef.current = [];
+      lastStarPosRef.current = null;
+      return;
+    }
 
-    // Move to completed
     completedRef.current.push({
+      path: [...path],
       stars: [...stars],
       opacity: 1,
-      targetOpacity: 0.06,
+      targetOpacity: 0.08,
     });
 
-    // Clear current
+    currentPathRef.current = [];
     currentStarsRef.current = [];
-    lineAnimsRef.current = [];
+    lastStarPosRef.current = null;
 
-    // Update count
     countRef.current += 1;
     setCount(countRef.current);
-
     haptics.complete();
-  }, []);
-
-  // ── Undo last star ──────────────────────────────────────────────
-
-  const undoStar = useCallback(() => {
-    const stars = currentStarsRef.current;
-    if (stars.length === 0) return;
-    stars.pop();
-    // Remove the line animation that connected TO the removed star
-    if (lineAnimsRef.current.length > 0) {
-      lineAnimsRef.current.pop();
-    }
-    haptics.tap();
   }, []);
 
   // ── Clear all ───────────────────────────────────────────────────
@@ -148,51 +167,11 @@ export default function StarCreatorPage() {
     haptics.tap();
   }, []);
 
-  // ── Place a star ────────────────────────────────────────────────
-
-  const placeStar = useCallback(
-    (x: number, y: number) => {
-      const now = Date.now();
-      const lastTap = lastTapRef.current;
-
-      // Double-tap detection
-      if (
-        lastTap &&
-        now - lastTap.time < 250 &&
-        Math.abs(x - lastTap.x) < 50 &&
-        Math.abs(y - lastTap.y) < 50
-      ) {
-        lastTapRef.current = null;
-        finishConstellation();
-        return;
-      }
-
-      lastTapRef.current = { time: now, x, y };
-
-      const frame = frameRef.current;
-      const stars = currentStarsRef.current;
-
-      // Add line animation if there's a previous star
-      if (stars.length > 0) {
-        lineAnimsRef.current.push({
-          fromIdx: stars.length - 1,
-          startFrame: frame,
-          duration: 12, // ~200ms at 60fps
-        });
-      }
-
-      stars.push({ x, y, placedAt: frame });
-      haptics.tap();
-    },
-    [finishConstellation],
-  );
-
   // ── Sparkle helper ──────────────────────────────────────────────
 
-  const addSparkles = useCallback((x: number, y: number) => {
-    // Cap sparkles at 30 max for performance on older devices
-    if (sparklesRef.current.length >= 30) return;
-    for (let i = 0; i < 2; i++) {
+  const addSparkles = useCallback((x: number, y: number, n = 2) => {
+    if (sparklesRef.current.length >= 40) return;
+    for (let i = 0; i < n; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 0.3 + Math.random() * 0.8;
       sparklesRef.current.push({
@@ -231,30 +210,60 @@ export default function StarCreatorPage() {
     resize();
     window.addEventListener("resize", resize);
 
+    // ── Draw a smooth path ─────────────────────────────────────
+
+    function drawPath(
+      path: { x: number; y: number }[],
+      opacity: number,
+      lineWidth: number,
+    ) {
+      if (path.length < 2) return;
+      ctx!.strokeStyle = `rgba(94, 234, 212, ${opacity})`;
+      ctx!.lineWidth = lineWidth;
+      ctx!.lineCap = "round";
+      ctx!.lineJoin = "round";
+      ctx!.beginPath();
+      ctx!.moveTo(path[0].x, path[0].y);
+
+      // Use quadratic curves for smoothness
+      if (path.length === 2) {
+        ctx!.lineTo(path[1].x, path[1].y);
+      } else {
+        for (let i = 1; i < path.length - 1; i++) {
+          const midX = (path[i].x + path[i + 1].x) / 2;
+          const midY = (path[i].y + path[i + 1].y) / 2;
+          ctx!.quadraticCurveTo(path[i].x, path[i].y, midX, midY);
+        }
+        const last = path[path.length - 1];
+        ctx!.lineTo(last.x, last.y);
+      }
+      ctx!.stroke();
+    }
+
     // ── Animation loop ──────────────────────────────────────────
 
     function draw() {
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      // Background fill
       ctx!.fillStyle = "#0a0f1e";
       ctx!.fillRect(0, 0, w, h);
 
       frameRef.current += 1;
       const frame = frameRef.current;
 
-      // Global opacity multiplier for clearing
+      // Global opacity for clearing
       let globalOpacity = 1;
       if (clearingRef.current) {
-        clearOpacityRef.current -= 0.02; // fade over ~50 frames (~0.8s)
+        clearOpacityRef.current -= 0.02;
         globalOpacity = Math.max(0, clearOpacityRef.current);
         if (globalOpacity <= 0) {
           clearingRef.current = false;
           clearOpacityRef.current = 1;
           completedRef.current = [];
+          currentPathRef.current = [];
           currentStarsRef.current = [];
-          lineAnimsRef.current = [];
+          lastStarPosRef.current = null;
           sparklesRef.current = [];
           countRef.current = 0;
           setCount(0);
@@ -275,83 +284,44 @@ export default function StarCreatorPage() {
 
       // ── Completed constellations ────────────────────────────
       for (const c of completedRef.current) {
-        // Ease opacity toward target
         if (c.opacity > c.targetOpacity) {
-          c.opacity = Math.max(
-            c.targetOpacity,
-            c.opacity - 0.007, // ~2s to fade from 1 to 0.15
-          );
+          c.opacity = Math.max(c.targetOpacity, c.opacity - 0.005);
         }
 
         const op = c.opacity * globalOpacity;
 
-        // Lines
-        if (c.stars.length > 1) {
-          ctx!.strokeStyle = `rgba(94, 234, 212, ${op * 0.4})`;
-          ctx!.lineWidth = 1.5;
-          ctx!.beginPath();
-          ctx!.moveTo(c.stars[0].x, c.stars[0].y);
-          for (let i = 1; i < c.stars.length; i++) {
-            ctx!.lineTo(c.stars[i].x, c.stars[i].y);
-          }
-          ctx!.stroke();
-        }
+        // Draw smooth path
+        drawPath(c.path, op * 0.5, 1.5);
 
         // Stars
         for (const s of c.stars) {
           ctx!.beginPath();
           ctx!.arc(s.x, s.y, 3, 0, Math.PI * 2);
-          ctx!.fillStyle = `rgba(153, 246, 228, ${op * 0.6})`;
+          ctx!.fillStyle = `rgba(153, 246, 228, ${op * 0.7})`;
           ctx!.fill();
         }
       }
 
-      // ── Current constellation lines ─────────────────────────
+      // ── Current constellation ───────────────────────────────
+      const currentPath = currentPathRef.current;
       const currentStars = currentStarsRef.current;
-      const lineAnims = lineAnimsRef.current;
 
-      if (currentStars.length > 1) {
-        ctx!.strokeStyle = `rgba(94, 234, 212, ${0.4 * globalOpacity})`;
-        ctx!.lineWidth = 2;
-
-        for (let i = 0; i < lineAnims.length; i++) {
-          const anim = lineAnims[i];
-          const fromStar = currentStars[anim.fromIdx];
-          const toStar = currentStars[anim.fromIdx + 1];
-          if (!fromStar || !toStar) continue;
-
-          const elapsed = frame - anim.startFrame;
-          const progress = Math.min(1, elapsed / anim.duration);
-
-          // Ease out
-          const eased = 1 - (1 - progress) * (1 - progress);
-
-          const cx = fromStar.x + (toStar.x - fromStar.x) * eased;
-          const cy = fromStar.y + (toStar.y - fromStar.y) * eased;
-
-          ctx!.beginPath();
-          ctx!.moveTo(fromStar.x, fromStar.y);
-          ctx!.lineTo(cx, cy);
-          ctx!.stroke();
-        }
+      // Draw the current path
+      if (currentPath.length > 1) {
+        drawPath(currentPath, 0.5 * globalOpacity, 2);
       }
 
-      // ── Current constellation stars ─────────────────────────
+      // Draw current stars with glow
       for (const star of currentStars) {
         const age = frame - star.placedAt;
-        // Pulse effect that fades over time
         const pulseIntensity = Math.max(0, 1 - age / 60);
         const pulse = 1 + 0.3 * pulseIntensity * Math.sin(age * 0.15);
-        const glowRadius = 20 * pulse;
+        const glowRadius = 18 * pulse;
 
         // Glow
         const glow = ctx!.createRadialGradient(
-          star.x,
-          star.y,
-          0,
-          star.x,
-          star.y,
-          glowRadius,
+          star.x, star.y, 0,
+          star.x, star.y, glowRadius,
         );
         const glowAlpha = (0.4 + 0.2 * pulseIntensity) * globalOpacity;
         glow.addColorStop(0, `rgba(153, 246, 228, ${glowAlpha})`);
@@ -405,47 +375,106 @@ export default function StarCreatorPage() {
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
-      // Ignore if target is not the canvas itself (e.g. buttons, links, toolbar)
       if (e.target !== canvasRef.current) return;
 
       pointerDownRef.current = true;
-      pointerRef.current = { x: e.clientX, y: e.clientY };
-      lastDragStarRef.current = { x: e.clientX, y: e.clientY };
-      placeStar(e.clientX, e.clientY);
-      addSparkles(e.clientX, e.clientY);
-    },
-    [placeStar, addSparkles],
-  );
+      isDraggingRef.current = false;
 
-  // Track last drag-placed star position to throttle placement
-  const lastDragStarRef = useRef<{ x: number; y: number } | null>(null);
+      const pos = { x: e.clientX, y: e.clientY };
+
+      // Start a new path
+      currentPathRef.current = [pos];
+      currentStarsRef.current = [{
+        x: pos.x,
+        y: pos.y,
+        placedAt: frameRef.current,
+      }];
+      lastStarPosRef.current = pos;
+
+      addSparkles(pos.x, pos.y, 4);
+      playPlaceSound();
+      haptics.tap();
+    },
+    [addSparkles],
+  );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
-      pointerRef.current = { x: e.clientX, y: e.clientY };
-      if (pointerDownRef.current) {
-        addSparkles(e.clientX, e.clientY);
+      if (!pointerDownRef.current) return;
 
-        // Place stars while dragging, spaced at least 40px apart
-        const last = lastDragStarRef.current;
-        if (last) {
-          const dx = e.clientX - last.x;
-          const dy = e.clientY - last.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist >= 40) {
-            placeStar(e.clientX, e.clientY);
-            lastDragStarRef.current = { x: e.clientX, y: e.clientY };
-          }
+      isDraggingRef.current = true;
+      const pos = { x: e.clientX, y: e.clientY };
+
+      // Add to path (thin out points that are too close)
+      const path = currentPathRef.current;
+      if (path.length > 0) {
+        const last = path[path.length - 1];
+        if (dist(last, pos) >= 4) {
+          path.push(pos);
         }
       }
+
+      // Place a star every ~70px
+      const lastStar = lastStarPosRef.current;
+      if (lastStar && dist(lastStar, pos) >= 70) {
+        currentStarsRef.current.push({
+          x: pos.x,
+          y: pos.y,
+          placedAt: frameRef.current,
+        });
+        lastStarPosRef.current = pos;
+        addSparkles(pos.x, pos.y, 3);
+        playPlaceSound();
+      }
+
+      // Trail sparkles
+      if (Math.random() < 0.3) {
+        addSparkles(pos.x, pos.y, 1);
+      }
     },
-    [addSparkles, placeStar],
+    [addSparkles],
   );
 
   const onPointerUp = useCallback(() => {
+    if (!pointerDownRef.current) return;
     pointerDownRef.current = false;
-    lastDragStarRef.current = null;
-  }, []);
+
+    // Add a final star at the end if far enough from last
+    const path = currentPathRef.current;
+    const lastStar = lastStarPosRef.current;
+    if (path.length > 0 && lastStar) {
+      const endPos = path[path.length - 1];
+      if (dist(lastStar, endPos) > 20) {
+        currentStarsRef.current.push({
+          x: endPos.x,
+          y: endPos.y,
+          placedAt: frameRef.current,
+        });
+      }
+    }
+
+    // Auto-finish if we drew something
+    if (currentStarsRef.current.length >= 2) {
+      finishConstellation();
+    } else {
+      // Just a tap — keep the single star visible briefly, then clear
+      // Actually, leave single stars as dots in the sky
+      if (currentStarsRef.current.length === 1) {
+        const star = currentStarsRef.current[0];
+        completedRef.current.push({
+          path: [{ x: star.x, y: star.y }],
+          stars: [star],
+          opacity: 0.8,
+          targetOpacity: 0.08,
+        });
+      }
+      currentPathRef.current = [];
+      currentStarsRef.current = [];
+      lastStarPosRef.current = null;
+    }
+
+    isDraggingRef.current = false;
+  }, [finishConstellation]);
 
   // ── Render ────────────────────────────────────────────────────
 
@@ -454,13 +483,12 @@ export default function StarCreatorPage() {
       className="relative h-dvh w-screen overflow-hidden"
       style={{ backgroundColor: "#0a0f1e" }}
       role="application"
-      aria-label="Constellation creator - tap to place stars and create your own constellations"
+      aria-label="Constellation creator — drag to draw constellations in the sky"
     >
       <p className="sr-only">
-        A constellation creation game. Tap anywhere on the sky to place stars.
-        Each new star connects to the previous one. Double-tap or press New to
-        finish a constellation and start a new one. Creating patterns is
-        meditative and calming.
+        Draw constellations by dragging your finger across the sky. Stars appear
+        along your path, connected by glowing lines. Each stroke becomes its own
+        constellation.
       </p>
       <canvas
         ref={canvasRef}
@@ -506,7 +534,7 @@ export default function StarCreatorPage() {
         <span className="text-xs text-cream-dim/40">
           {count > 0
             ? `${count} constellation${count !== 1 ? "s" : ""}`
-            : "Tap to place stars"}
+            : "Draw across the sky"}
         </span>
       </div>
 
@@ -516,75 +544,17 @@ export default function StarCreatorPage() {
         data-ui
         onPointerDown={(e) => e.stopPropagation()}
       >
-        {/* Toolbar buttons */}
         <div
-          className="pointer-events-auto flex items-center gap-3 rounded-full bg-transparent px-1 py-1"
+          className="pointer-events-auto flex items-center gap-3 rounded-full px-1 py-1"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <button
-            onClick={undoStar}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 rounded-full bg-deep/70 px-4 py-2.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream active:scale-95"
-            aria-label="Undo last star"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
-              <path
-                d="M3 7h7a3 3 0 0 1 0 6H8"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M6 4L3 7l3 3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Undo
-          </button>
-
-          <button
-            onClick={finishConstellation}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 rounded-full bg-teal/15 px-4 py-2.5 text-sm text-teal-soft backdrop-blur-sm transition-colors hover:bg-teal/25 active:scale-95"
-            aria-label="Finish current constellation and start a new one"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
-              <path
-                d="M8 3v10M3 8h10"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            New
-          </button>
-
           <button
             onClick={clearAll}
             onPointerDown={(e) => e.stopPropagation()}
             className="flex items-center gap-1.5 rounded-full bg-deep/70 px-4 py-2.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream active:scale-95"
             aria-label="Clear all constellations"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path
                 d="M4 4l8 8M12 4l-8 8"
                 stroke="currentColor"
@@ -592,7 +562,7 @@ export default function StarCreatorPage() {
                 strokeLinecap="round"
               />
             </svg>
-            Clear
+            Clear sky
           </button>
         </div>
 
@@ -629,7 +599,7 @@ export default function StarCreatorPage() {
             }`}
           >
             <div className="rounded-2xl border border-teal/15 bg-deep/80 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
-              Tracing patterns engages your motor cortex and visual focus at the
+              Drawing patterns engages your motor cortex and visual focus at the
               same time. This kind of dual-attention task is similar to bilateral
               stimulation &mdash; it helps your brain process and settle.
             </div>

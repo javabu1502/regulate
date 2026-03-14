@@ -406,7 +406,7 @@ export default function RipplePoolPage() {
               : "bg-deep/60 text-cream-dim/40"
           }`}
         >
-          {showAffirmations ? "Words on" : "Words off"}
+          {showAffirmations ? "Affirmations on" : "Affirmations off"}
         </button>
       </div>
 

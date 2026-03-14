@@ -103,15 +103,19 @@ function playSlideSound() {
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function randomStoneShape(): number[] {
-  return Array.from({ length: 8 }, () => (Math.random() - 0.5) * 0.2);
+  // More variation — some lumpy, some smooth
+  const roughness = 0.15 + Math.random() * 0.25;
+  return Array.from({ length: 8 }, () => (Math.random() - 0.5) * roughness * 2);
 }
 
 function createStone(x: number, y: number, level: number): Stone {
   // Stones get slightly smaller as you go up, but all are big
   const baseW = 120 - level * 4;
   const baseH = 55 - level * 2;
-  const width = Math.max(70, baseW + (Math.random() - 0.5) * 20);
-  const height = Math.max(35, baseH + (Math.random() - 0.5) * 10);
+  // Vary the aspect ratio — some round, some flat, some tall
+  const aspectVariance = 0.7 + Math.random() * 0.6; // 0.7x to 1.3x
+  const width = Math.max(70, (baseW + (Math.random() - 0.5) * 30) * aspectVariance);
+  const height = Math.max(30, (baseH + (Math.random() - 0.5) * 15) / aspectVariance);
   return {
     x,
     y,
