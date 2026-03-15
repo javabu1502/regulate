@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import AmbientAudio from "@/components/AmbientAudio";
+import PageTransition from "@/components/PageTransition";
 
 const games = [
   {
@@ -196,8 +198,10 @@ const games = [
 
 export default function GamesPage() {
   return (
+    <PageTransition>
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
       <div className="w-full max-w-md">
+        <div className="flex items-center justify-between">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream"
@@ -219,6 +223,8 @@ export default function GamesPage() {
           </svg>
           Home
         </Link>
+        <AmbientAudio />
+        </div>
 
         <header className="mb-8 mt-6 text-center">
           <div className="mb-3 flex justify-center">
@@ -309,5 +315,6 @@ export default function GamesPage() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

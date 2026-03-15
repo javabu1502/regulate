@@ -4,10 +4,45 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
 
+// ─── Audio ──────────────────────────────────────────────────────────
+
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioCtx) audioCtx = new AudioContext();
+  return audioCtx;
+}
+
+function playChimeSound() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    const t = ctx.currentTime;
+
+    // Gentle bell chime — two harmonics
+    const freqs = [523.25, 783.99]; // C5, G5
+    for (const freq of freqs) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.06, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 1.5);
+    }
+  } catch {}
+}
+
 // ─── Constants ──────────────────────────────────────────────────────
 
-const INHALE_DURATION = 4000; // ms
-const EXHALE_DURATION = 6000; // ms
+const BREATH_PATTERNS: { label: string; inhale: number; exhale: number; hold?: number }[] = [
+  { label: "4 : 6", inhale: 4000, exhale: 6000 },
+  { label: "4 : 4", inhale: 4000, exhale: 4000 },
+  { label: "4 : 7 : 8", inhale: 4000, exhale: 8000, hold: 7000 },
+];
 
 const FLOWER_COLORS = [
   "#5eead4", // teal
@@ -118,11 +153,25 @@ export default function BreathingGardenPage() {
   const [countdown, setCountdown] = useState(0);
   const [breathProgress, setBreathProgress] = useState(0); // 0-1
   const [cycleCount, setCycleCount] = useState(0);
+  const [patternIdx, setPatternIdx] = useState(0);
+  const patternRef = useRef(BREATH_PATTERNS[0]);
 
   const phaseStartRef = useRef(0);
   const animFrameRef = useRef(0);
   const flowerIdRef = useRef(0);
   const isHoldingRef = useRef(false);
+
+  // Load saved flowers from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("regulate-garden-flowers");
+      if (saved) {
+        const parsed = JSON.parse(saved) as GardenFlower[];
+        setFlowers(parsed);
+        flowerIdRef.current = parsed.reduce((max, f) => Math.max(max, f.id), 0);
+      }
+    } catch {}
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const activeFlowerRef = useRef<{ x: number; y: number; color: string; variant: number } | null>(null);
   const [activeFlower, setActiveFlower] = useState<{ x: number; y: number; color: string; variant: number } | null>(null);
@@ -132,7 +181,8 @@ export default function BreathingGardenPage() {
   useEffect(() => {
     if (phase === "idle") return;
 
-    const duration = phase === "inhale" ? INHALE_DURATION : EXHALE_DURATION;
+    const pattern = patternRef.current;
+    const duration = phase === "inhale" ? pattern.inhale : pattern.exhale;
     const totalSeconds = Math.ceil(duration / 1000);
 
     function tick() {
@@ -156,6 +206,7 @@ export default function BreathingGardenPage() {
       } else if (phase === "exhale") {
         // Exhale complete — plant the flower and go idle
         plantFlower();
+        playChimeSound();
         setPhase("idle");
         setBreathProgress(0);
         setCountdown(0);
@@ -186,7 +237,11 @@ export default function BreathingGardenPage() {
       scale: 0.8 + Math.random() * 0.3,
     };
 
-    setFlowers((prev) => [...prev, newFlower]);
+    setFlowers((prev) => {
+      const next = [...prev, newFlower];
+      try { localStorage.setItem("regulate-garden-flowers", JSON.stringify(next)); } catch {}
+      return next;
+    });
     setCycleCount((c) => c + 1);
     haptics.tap();
     activeFlowerRef.current = null;
@@ -445,8 +500,8 @@ export default function BreathingGardenPage() {
         )}
       </div>
 
-      {/* ── Back button ─────────────────────────────────────────────── */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 p-5">
+      {/* ── Back button + pattern selector ─────────────────────────────── */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between p-5">
         <Link
           href="/games"
           className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-deep/60 px-3 py-1.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream"
@@ -469,6 +524,19 @@ export default function BreathingGardenPage() {
           </svg>
           Games
         </Link>
+
+        {/* Breathing pattern selector */}
+        <button
+          className="pointer-events-auto rounded-full bg-deep/60 px-3 py-1.5 text-xs text-cream-dim/60 backdrop-blur-sm transition-colors hover:text-cream-dim"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => {
+            const next = (patternIdx + 1) % BREATH_PATTERNS.length;
+            setPatternIdx(next);
+            patternRef.current = BREATH_PATTERNS[next];
+          }}
+        >
+          {BREATH_PATTERNS[patternIdx].label}
+        </button>
       </div>
 
       {/* ── Flower counter ────────────────────────────────────────────── */}

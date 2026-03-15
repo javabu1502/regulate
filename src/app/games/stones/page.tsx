@@ -84,17 +84,34 @@ function playSlideSound() {
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
 
+    // Scraping slide sound
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
     osc.frequency.setValueAtTime(200, t);
     osc.frequency.exponentialRampToValueAtTime(80, t + 0.4);
-    gain.gain.setValueAtTime(0.04, t);
+    gain.gain.setValueAtTime(0.06, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(t);
     osc.stop(t + 0.4);
+
+    // Noise scrape layer
+    const bufLen = Math.floor(ctx.sampleRate * 0.15);
+    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufLen, 2) * 0.3;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.08, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    src.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    src.start(t);
   } catch {
     // Audio not available
   }
@@ -213,6 +230,8 @@ export default function StoneStackingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const timeRef = useRef(0);
+  const shakeRef = useRef(0); // screen shake frames remaining
+  const shakeIntensityRef = useRef(0);
 
   const towerRef = useRef<Stone[]>([]);
   const activeStoneRef = useRef<Stone | null>(null);
@@ -329,8 +348,17 @@ export default function StoneStackingPage() {
       const towerHeight = tower.length > 0 ? gy - topOfTower() : 0;
       const cameraShift = Math.max(0, towerHeight - (h * 0.5));
 
+      // Screen shake
+      let shakeX = 0, shakeY = 0;
+      if (shakeRef.current > 0) {
+        const intensity = shakeIntensityRef.current * (shakeRef.current / 10);
+        shakeX = (Math.random() - 0.5) * intensity * 2;
+        shakeY = (Math.random() - 0.5) * intensity * 2;
+        shakeRef.current--;
+      }
+
       ctx!.save();
-      ctx!.translate(0, cameraShift);
+      ctx!.translate(shakeX, cameraShift + shakeY);
 
       // Ground — wide, subtle
       ctx!.beginPath();
@@ -409,8 +437,8 @@ export default function StoneStackingPage() {
               return newBest;
             });
 
-            // Speed increases as tower grows
-            moveSpeedRef.current = 1.6 + tower.length * 0.12;
+            // Logarithmic difficulty curve — stays fun longer
+            moveSpeedRef.current = 1.6 + Math.log2(tower.length + 1) * 0.5;
 
             playPlaceSound();
             haptics.tap();
@@ -422,6 +450,9 @@ export default function StoneStackingPage() {
             active.vr = (Math.random() - 0.5) * 0.05;
             active.vy = -1;
             playSlideSound();
+            // Screen shake on miss
+            shakeRef.current = 10;
+            shakeIntensityRef.current = 4;
           }
         }
       }

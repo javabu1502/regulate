@@ -12,6 +12,43 @@ const PALETTE = [
   { r: 240, g: 235, b: 228, label: "Soft White" }, // soft white
 ];
 
+// ── Audio ─────────────────────────────────────────────────────────────
+
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioCtx) audioCtx = new AudioContext();
+  return audioCtx;
+}
+
+function playDabSound() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    const t = ctx.currentTime;
+
+    // Soft watercolor dab: gentle filtered noise
+    const bufLen = Math.floor(ctx.sampleRate * 0.08);
+    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufLen, 4);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 800 + Math.random() * 400;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.025, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(t);
+  } catch {}
+}
+
 type BrushSize = "S" | "M" | "L";
 const BRUSH_SIZES: Record<BrushSize, number> = { S: 20, M: 40, L: 65 };
 
@@ -285,6 +322,7 @@ export default function ColorWashPage() {
       drawingRef.current = true;
       lastPosRef.current = { x: e.clientX, y: e.clientY };
       lastTimeRef.current = performance.now();
+      playDabSound();
 
       // Advance auto color phase
       if (autoColorRef.current) {
@@ -410,14 +448,41 @@ export default function ColorWashPage() {
           Games
         </Link>
 
-        <button
-          onClick={triggerFade}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="pointer-events-auto rounded-full bg-deep/60 px-3 py-1.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream"
-          aria-label="Clear canvas"
-        >
-          Clear
-        </button>
+        <div className="pointer-events-auto flex items-center gap-2">
+          <button
+            onClick={() => {
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+              canvas.toBlob(async (blob) => {
+                if (!blob) return;
+                const file = new File([blob], "color-wash.png", { type: "image/png" });
+                if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                  try { await navigator.share({ files: [file], title: "My Color Wash" }); } catch {}
+                } else {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "color-wash.png";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }
+              }, "image/png");
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="rounded-full bg-deep/60 px-3 py-1.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream"
+            aria-label="Save artwork"
+          >
+            Save
+          </button>
+          <button
+            onClick={triggerFade}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="rounded-full bg-deep/60 px-3 py-1.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream"
+            aria-label="Clear canvas"
+          >
+            Clear
+          </button>
+        </div>
       </div>
 
       {/* Bottom toolbar: color palette + brush size + how this helps */}

@@ -91,6 +91,44 @@ function seededRandom(seed: number): () => number {
   };
 }
 
+// ─── Audio ──────────────────────────────────────────────────────────
+
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioCtx) audioCtx = new AudioContext();
+  return audioCtx;
+}
+
+function playSandSound() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    const t = ctx.currentTime;
+
+    // Soft sand scratch: filtered noise
+    const bufLen = Math.floor(ctx.sampleRate * 0.06);
+    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufLen, 3);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = 1200 + Math.random() * 600;
+    filter.Q.value = 0.5;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.04, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(t);
+  } catch {}
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function SandGardenPage() {
@@ -102,7 +140,17 @@ export default function SandGardenPage() {
   const isDraggingRef = useRef(false);
   const noiseDataRef = useRef<ImageData | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [rakeSize, setRakeSize] = useState<"small" | "medium" | "large">("medium");
+
+  // First-time hint
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("regulate-sand-hint-seen")) {
+        setShowHint(true);
+      }
+    } catch {}
+  }, []);
   const rakeSizeRef = useRef<"small" | "medium" | "large">("medium");
   const lastDoubleTapRef = useRef<number>(0);
   const smoothSpotsRef = useRef<{ x: number; y: number; radius: number }[]>(
@@ -631,6 +679,8 @@ export default function SandGardenPage() {
         const angle = Math.atan2(dy, dx);
         rakePositionRef.current = { x: e.clientX, y: e.clientY, angle };
         points.push({ x: e.clientX, y: e.clientY });
+        // Play sand scratch sound occasionally
+        if (points.length % 8 === 0) playSandSound();
         drawScene();
       }
     },
@@ -672,6 +722,25 @@ export default function SandGardenPage() {
         Double-tap to smooth an area. Rocks are scattered on the surface for you
         to rake around. Use the clear button to start fresh.
       </p>
+      {/* First-time hint */}
+      {showHint && (
+        <div
+          className="absolute inset-0 z-30 flex items-center justify-center"
+          onClick={() => {
+            setShowHint(false);
+            try { localStorage.setItem("regulate-sand-hint-seen", "1"); } catch {}
+          }}
+        >
+          <div className="max-w-[260px] rounded-2xl px-6 py-5 text-center backdrop-blur-md"
+            style={{ backgroundColor: "rgba(185, 170, 140, 0.95)", border: "1px solid rgba(160, 145, 115, 0.4)" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "rgb(65, 55, 38)" }}>
+              Drag to rake lines in the sand. Double-tap to smooth an area. Choose your rake size above.
+            </p>
+            <p className="mt-3 text-[11px]" style={{ color: "rgba(65, 55, 38, 0.5)" }}>Tap anywhere to start</p>
+          </div>
+        </div>
+      )}
+
       <canvas
         ref={canvasRef}
         className="absolute inset-0 touch-none"
@@ -730,11 +799,42 @@ export default function SandGardenPage() {
             </button>
           ))}
 
+          {/* Save button */}
+          <button
+            onClick={() => {
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+              canvas.toBlob(async (blob) => {
+                if (!blob) return;
+                const file = new File([blob], "sand-garden.png", { type: "image/png" });
+                if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                  try { await navigator.share({ files: [file], title: "My Sand Garden" }); } catch {}
+                } else {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "sand-garden.png";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }
+              }, "image/png");
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="rounded-full px-3 py-1.5 text-sm backdrop-blur-sm transition-opacity hover:opacity-80"
+            style={{
+              backgroundColor: "rgba(200, 185, 155, 0.8)",
+              color: "rgb(75, 65, 48)",
+              border: "1px solid rgba(160, 145, 115, 0.4)",
+            }}
+          >
+            Save
+          </button>
+
           {/* Clear button */}
           <button
             onClick={clearGarden}
             onPointerDown={(e) => e.stopPropagation()}
-            className="ml-1 rounded-full px-3 py-1.5 text-sm backdrop-blur-sm transition-opacity hover:opacity-80"
+            className="rounded-full px-3 py-1.5 text-sm backdrop-blur-sm transition-opacity hover:opacity-80"
             style={{
               backgroundColor: "rgba(200, 185, 155, 0.8)",
               color: "rgb(75, 65, 48)",

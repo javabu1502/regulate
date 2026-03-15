@@ -112,6 +112,22 @@ export default function StarCreatorPage() {
 
   // Completed constellations
   const completedRef = useRef<Constellation[]>([]);
+  const hasLoadedRef = useRef(false);
+
+  // Load saved constellations
+  useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    try {
+      const saved = localStorage.getItem("regulate-stars-constellations");
+      if (saved) {
+        const parsed = JSON.parse(saved) as Constellation[];
+        completedRef.current = parsed;
+        countRef.current = parsed.length;
+        setCount(parsed.length);
+      }
+    } catch {}
+  }, []);
 
   // Pointer state
   const pointerDownRef = useRef(false);
@@ -124,6 +140,16 @@ export default function StarCreatorPage() {
   const [count, setCount] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [mode, setMode] = useState<"draw" | "tap">("draw");
+  const [showHint, setShowHint] = useState(false);
+
+  // Show first-time hint
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("regulate-stars-hint-seen")) {
+        setShowHint(true);
+      }
+    } catch {}
+  }, []);
   const modeRef = useRef<"draw" | "tap">("draw");
   const countRef = useRef(0);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
@@ -157,6 +183,17 @@ export default function StarCreatorPage() {
     countRef.current += 1;
     setCount(countRef.current);
     haptics.complete();
+
+    // Persist constellations
+    try {
+      const toSave = completedRef.current.map(c => ({
+        path: c.path,
+        stars: c.stars,
+        opacity: c.targetOpacity,
+        targetOpacity: c.targetOpacity,
+      }));
+      localStorage.setItem("regulate-stars-constellations", JSON.stringify(toSave));
+    } catch {}
   }, []);
 
   // ── Clear all ───────────────────────────────────────────────────
@@ -622,6 +659,24 @@ export default function StarCreatorPage() {
         </Link>
       </div>
 
+      {/* First-time hint overlay */}
+      {showHint && (
+        <div
+          className="absolute inset-0 z-30 flex items-center justify-center"
+          onClick={() => {
+            setShowHint(false);
+            try { localStorage.setItem("regulate-stars-hint-seen", "1"); } catch {}
+          }}
+        >
+          <div className="max-w-[260px] rounded-2xl border border-teal/20 bg-deep/90 px-6 py-5 text-center backdrop-blur-md">
+            <p className="text-sm leading-relaxed text-cream">
+              Drag your finger across the sky to draw constellations. Switch to Tap mode to place stars one by one.
+            </p>
+            <p className="mt-3 text-[11px] text-cream-dim/40">Tap anywhere to start</p>
+          </div>
+        </div>
+      )}
+
       {/* Counter */}
       <div className="pointer-events-none absolute right-5 top-5 z-10">
         <span className="text-xs text-cream-dim/40">
@@ -648,6 +703,35 @@ export default function StarCreatorPage() {
             aria-label={`Switch to ${mode === "draw" ? "tap" : "draw"} mode`}
           >
             {mode === "draw" ? "Draw" : "Tap"}
+          </button>
+          <button
+            onClick={() => {
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+              canvas.toBlob(async (blob) => {
+                if (!blob) return;
+                const file = new File([blob], "constellation.png", { type: "image/png" });
+                if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                  try { await navigator.share({ files: [file], title: "My Constellation" }); } catch {}
+                } else {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "constellation.png";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }
+              }, "image/png");
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex items-center gap-1.5 rounded-full bg-deep/70 px-4 py-2.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream active:scale-95"
+            aria-label="Save constellation image"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M14 10v3a1 1 0 01-1 1H3a1 1 0 01-1-1v-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M5 7l3 3 3-3M8 2v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Save
           </button>
           <button
             onClick={clearAll}
