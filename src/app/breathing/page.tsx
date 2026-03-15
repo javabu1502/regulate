@@ -470,6 +470,11 @@ function BreathingPageInner() {
             About {totalMin} minute{totalMin !== 1 ? "s" : ""}, {TOTAL_CYCLES} rounds
           </p>
 
+          {/* Voice guidance callout */}
+          <p className="mt-2 text-[11px] text-cream-dim/30">
+            Voice guidance, ambient sounds, and eyes-free mode available during the session
+          </p>
+
           {/* Begin button */}
           <button
             onClick={startSessionFromIntro}
@@ -632,13 +637,31 @@ function BreathingPageInner() {
         {/* Paused overlay */}
         {isPaused && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-midnight/60 backdrop-blur-sm">
-            <div className="text-center">
+            <div className="flex w-full max-w-xs flex-col items-center text-center px-5">
               <p className="text-lg text-cream/80">Paused</p>
+              <p className="mt-2 text-xs text-cream-dim/40 leading-relaxed">
+                {currentStep.phase === "hold"
+                  ? "Just hold the air gently — don't force it. If it feels uncomfortable, exhale early."
+                  : currentStep.phase === "inhale"
+                    ? "Breathe in slowly through your nose. If your nose is blocked, your mouth is fine too."
+                    : currentStep.phase === "exhale"
+                      ? "Let the air out slowly and completely. Longer exhales calm your nervous system."
+                      : "Just rest for a moment before the next breath."}
+              </p>
               <button
                 onClick={() => setIsPaused(false)}
-                className="mt-4 rounded-xl bg-teal/20 px-6 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/30"
+                className="mt-5 rounded-xl bg-teal/20 px-6 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/30"
               >
                 Resume
+              </button>
+              <button
+                onClick={() => {
+                  resetToSelect();
+                  router.push("/grounding");
+                }}
+                className="mt-3 text-xs text-cream-dim/35 transition-colors hover:text-cream-dim/60"
+              >
+                Breathing isn&apos;t working — try grounding instead
               </button>
             </div>
           </div>

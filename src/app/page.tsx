@@ -32,6 +32,7 @@ export default function Home() {
     tool: string;
     state: string;
   } | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   // First-open detection — runs before anything else
   useEffect(() => {
@@ -263,6 +264,17 @@ export default function Home() {
           </p>
         </header>
 
+        {/* Panic shortcut — always visible */}
+        <button
+          onClick={() => router.push("/sos")}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-candle/20 bg-candle/5 px-5 py-3.5 text-sm font-medium text-candle-soft transition-colors hover:bg-candle/10 active:scale-[0.98]"
+        >
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 2v8M8 12v1" />
+          </svg>
+          Panicking or overwhelmed? Start here
+        </button>
+
         {/* Check-back banner (after SOS use) */}
         {checkBack && (
           <div className="mb-4 rounded-2xl border border-teal/20 bg-teal/5 p-5 text-center">
@@ -338,6 +350,40 @@ export default function Home() {
           </Link>
         )}
 
+        {/* "Not sure?" quiz */}
+        {!showQuiz ? (
+          <button
+            onClick={() => setShowQuiz(true)}
+            className="mb-4 w-full rounded-2xl border border-teal/15 bg-deep/40 px-5 py-3 text-center text-sm text-cream-dim/60 transition-all hover:border-teal/25 hover:text-cream-dim"
+          >
+            Not sure where to start?
+          </button>
+        ) : (
+          <div className="mb-4 rounded-2xl border border-teal/20 bg-deep/60 p-5">
+            <p className="mb-4 text-center text-sm font-medium text-cream">How are you feeling right now?</p>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => { setShowQuiz(false); router.push("/sos?state=panicking"); }} className="rounded-xl border border-candle/15 bg-candle/5 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10">
+                Panicking or can&apos;t breathe
+              </button>
+              <button onClick={() => { setShowQuiz(false); router.push("/breathing"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
+                Anxious or racing thoughts
+              </button>
+              <button onClick={() => { setShowQuiz(false); router.push("/somatic"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
+                Numb, shut down, or frozen
+              </button>
+              <button onClick={() => { setShowQuiz(false); router.push("/sleep"); }} className="rounded-xl border border-lavender/15 bg-lavender/5 py-3 text-sm text-lavender transition-colors hover:bg-lavender/10">
+                Can&apos;t sleep
+              </button>
+              <button onClick={() => { setShowQuiz(false); router.push("/games"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
+                I just need a distraction
+              </button>
+              <button onClick={() => setShowQuiz(false)} className="mt-1 text-xs text-cream-dim/30 hover:text-cream-dim/60">
+                Never mind
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Main hub cards ── */}
         <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/30">
           What do you need?
@@ -352,7 +398,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Exercises</span>
-              <span className="block text-xs text-cream-dim/50">Breathing, grounding, somatic, and more</span>
+              <span className="block text-xs text-cream-dim/50">Breathing, grounding, somatic, and more <span className="text-cream-dim/30">· 3-10 min</span></span>
             </div>
           </Link>
           <Link
@@ -372,7 +418,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Guided Meditations</span>
-              <span className="block text-xs text-cream-dim/50">Someone walks you through it</span>
+              <span className="block text-xs text-cream-dim/50">Someone walks you through it <span className="text-cream-dim/30">· 5-15 min</span></span>
             </div>
           </Link>
           <Link
@@ -388,7 +434,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Mindful Games</span>
-              <span className="block text-xs text-cream-dim/50">Something to do with your hands</span>
+              <span className="block text-xs text-cream-dim/50">Something to do with your hands <span className="text-cream-dim/30">· no time limit</span></span>
             </div>
           </Link>
           <Link
@@ -404,7 +450,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Emergency Toolkit</span>
-              <span className="block text-xs text-cream-dim/50">Your personal panic kit</span>
+              <span className="block text-xs text-cream-dim/50">Your personal panic kit <span className="text-cream-dim/30">· set up in 2 min</span></span>
             </div>
           </Link>
           <Link

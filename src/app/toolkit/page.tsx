@@ -557,9 +557,10 @@ export default function ToolkitPage() {
           </div>
 
           <header className="mb-8 mt-6">
-            <h1 className="text-xl font-semibold tracking-tight text-cream">Edit Your Toolkit</h1>
-            <p className="mt-2 text-sm text-cream-dim/60">
-              Set up what you need when things get hard. This becomes your emergency page.
+            <h1 className="text-xl font-semibold tracking-tight text-cream">Build Your Panic Kit</h1>
+            <p className="mt-2 text-sm text-cream-dim/60 leading-relaxed">
+              Set this up now, while you&apos;re calm. When you&apos;re panicking, you won&apos;t have time
+              to think — this page will be ready for you with exactly what you need.
             </p>
           </header>
 

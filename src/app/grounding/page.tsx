@@ -324,9 +324,15 @@ export default function GroundingPage() {
               </>
             )}
 
+            <p className="mt-6 text-[11px] text-cream-dim/30">
+              {groundingType === "sensory"
+                ? "You'll name things you can see, touch, hear, smell, and taste. If you can't find enough, that's okay — skip and move on."
+                : "Just follow the prompts. There's no wrong way to do this."}
+            </p>
+
             <button
               onClick={startGrounding}
-              className="mt-10 w-full max-w-[200px] rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft transition-all duration-300 hover:bg-teal/30 active:scale-[0.98]"
+              className="mt-8 w-full max-w-[200px] rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft transition-all duration-300 hover:bg-teal/30 active:scale-[0.98]"
             >
               I&apos;m ready
             </button>
@@ -391,12 +397,19 @@ export default function GroundingPage() {
             ))}
           </div>
 
+          {/* Encouragement when struggling */}
+          {!checked.every(Boolean) && checked.filter(Boolean).length === 0 && (
+            <p className="mt-6 text-xs text-cream-dim/35 leading-relaxed">
+              Can&apos;t find {currentSense.count}? That&apos;s okay — name what you can, then move on.
+            </p>
+          )}
+
           {/* Skip / early advance */}
           <button
             onClick={advanceSenseStep}
-            className="mt-8 text-xs text-cream-dim/40 transition-colors hover:text-cream-dim"
+            className="mt-6 text-xs text-cream-dim/40 transition-colors hover:text-cream-dim"
           >
-            {checked.every(Boolean) ? "Continue" : "Skip this sense"}
+            {checked.every(Boolean) ? "Continue" : `Skip ${currentSense.sense.toLowerCase()}`}
           </button>
         </div>
 
