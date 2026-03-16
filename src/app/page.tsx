@@ -11,6 +11,116 @@ import {
 import PremiumGate from "@/components/PremiumGate";
 import { isPremium } from "@/lib/premium";
 import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
+import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
+
+// ─── Daily Suggestion ───────────────────────────────────────────────
+
+const DAILY_SUGGESTIONS: Record<number, { label: string; href: string }> = {
+  0: { label: "Body scan", href: "/body-scan" },
+  1: { label: "Start with a Physiological Sigh", href: "/breathing?pattern=sigh" },
+  2: { label: "Try 5-4-3-2-1 Grounding", href: "/grounding" },
+  3: { label: "Gentle body shake", href: "/somatic?exercise=body-shaking" },
+  4: { label: "Start with a Physiological Sigh", href: "/breathing?pattern=sigh" },
+  5: { label: "Try 5-4-3-2-1 Grounding", href: "/grounding" },
+  6: { label: "Gentle body shake", href: "/somatic?exercise=body-shaking" },
+};
+
+function DailySuggestion() {
+  const [suggestion, setSuggestion] = useState<{
+    label: string;
+    href: string;
+    isRepeat: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("regulate-last-helped");
+      if (raw) {
+        const data = JSON.parse(raw);
+        const daysSince = (Date.now() - data.ts) / (1000 * 60 * 60 * 24);
+        if (daysSince <= 7 && data.name && data.href) {
+          setSuggestion({
+            label: data.name,
+            href: data.href,
+            isRepeat: true,
+          });
+          return;
+        }
+      }
+    } catch {}
+
+    const day = new Date().getDay();
+    const pick = DAILY_SUGGESTIONS[day];
+    setSuggestion({ label: pick.label, href: pick.href, isRepeat: false });
+  }, []);
+
+  if (!suggestion) return null;
+
+  return (
+    <Link
+      href={suggestion.href}
+      className="mb-4 block rounded-2xl border border-teal/20 bg-teal/5 px-5 py-4 transition-all hover:border-teal/30"
+    >
+      <p className="mb-1 text-[10px] uppercase tracking-widest text-teal-soft/50">
+        Suggested for you
+      </p>
+      <p className="text-sm font-medium text-cream">
+        {suggestion.isRepeat
+          ? `Last time, ${suggestion.label} helped. Try it again?`
+          : suggestion.label}
+      </p>
+    </Link>
+  );
+}
+
+// ─── Session Stats ──────────────────────────────────────────────────
+
+function SessionStats() {
+  const [stats, setStats] = useState<{ total: number; streak: number } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("regulate-sessions");
+      if (!raw) return;
+      const sessions = JSON.parse(raw) as { date: string }[];
+      if (sessions.length === 0) return;
+
+      // Unique dates sorted descending
+      const dates = [...new Set(sessions.map((s) => s.date))].sort().reverse();
+
+      // Calculate streak: consecutive days ending today or yesterday
+      const today = new Date().toISOString().slice(0, 10);
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      let streak = 0;
+      if (dates[0] === today || dates[0] === yesterday) {
+        let expected = dates[0];
+        for (const d of dates) {
+          if (d === expected) {
+            streak++;
+            const prev = new Date(expected + "T00:00:00");
+            prev.setDate(prev.getDate() - 1);
+            expected = prev.toISOString().slice(0, 10);
+          } else if (d < expected) {
+            break;
+          }
+        }
+      }
+
+      setStats({ total: sessions.length, streak });
+    } catch { /* */ }
+  }, []);
+
+  if (!stats) return null;
+
+  return (
+    <div className="flex items-center gap-4 mb-4 text-xs text-cream-dim/50">
+      <span><span className="text-cream font-medium">{stats.total}</span> session{stats.total !== 1 ? "s" : ""}</span>
+      {stats.streak > 0 && (
+        <span><span className="text-cream font-medium">{stats.streak}</span> day streak</span>
+      )}
+    </div>
+  );
+}
 
 // ─── Component ──────────────────────────────────────────────────────
 
@@ -26,6 +136,7 @@ export default function Home() {
     label: string;
     href: string;
   } | null>(null);
+  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
 
   const [checkBack, setCheckBack] = useState<{
     ts: number;
@@ -53,6 +164,11 @@ export default function Home() {
   useEffect(() => {
     const h = new Date().getHours();
     setIsNightTime(h >= 22 || h < 6);
+  }, []);
+
+  // Stop ambient audio when leaving home page
+  useEffect(() => {
+    return () => { ambientAudio.stop(); };
   }, []);
 
   // First-session nudge: show once after onboarding
@@ -260,8 +376,27 @@ export default function Home() {
             Regulate
           </h1>
           <p className="mt-1.5 text-xs text-cream-dim/60">
-            Pick something that feels right.
+            You&apos;re here. That&apos;s a good start.
           </p>
+          {/* Ambient sound toggle */}
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            {(["rain", "ocean", "forest", "off"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => {
+                  if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+                  else { ambientAudio.start(s); setAmbientSound(s); }
+                }}
+                className={`rounded-full px-2.5 py-1 text-[10px] transition-all ${
+                  ambientSound === s
+                    ? "bg-teal/20 text-teal-soft"
+                    : "text-cream-dim/30 hover:text-cream-dim/50"
+                }`}
+              >
+                {s === "off" ? "Quiet" : s.charAt(0).toUpperCase() + s.slice(1)}
+              </button>
+            ))}
+          </div>
         </header>
 
         {/* Panic shortcut — always visible */}
@@ -350,39 +485,42 @@ export default function Home() {
           </Link>
         )}
 
-        {/* "Not sure?" quiz */}
+        {/* Body check-in */}
         {!showQuiz ? (
           <button
             onClick={() => setShowQuiz(true)}
             className="mb-4 w-full rounded-2xl border border-teal/15 bg-deep/40 px-5 py-3 text-center text-sm text-cream-dim/60 transition-all hover:border-teal/25 hover:text-cream-dim"
           >
-            Not sure where to start?
+            How does your body feel right now?
           </button>
         ) : (
           <div className="mb-4 rounded-2xl border border-teal/20 bg-deep/60 p-5">
-            <p className="mb-4 text-center text-sm font-medium text-cream">How are you feeling right now?</p>
+            <p className="mb-4 text-center text-sm font-medium text-cream">How does your body feel right now?</p>
             <div className="flex flex-col gap-2">
               <button onClick={() => { setShowQuiz(false); router.push("/sos?state=panicking"); }} className="rounded-xl border border-candle/15 bg-candle/5 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10">
-                Panicking or can&apos;t breathe
+                Tight, racing, can&apos;t sit still
               </button>
               <button onClick={() => { setShowQuiz(false); router.push("/breathing"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
-                Anxious or racing thoughts
+                Tense but managing
               </button>
               <button onClick={() => { setShowQuiz(false); router.push("/somatic"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
-                Numb, shut down, or frozen
+                Numb or disconnected
               </button>
               <button onClick={() => { setShowQuiz(false); router.push("/sleep"); }} className="rounded-xl border border-lavender/15 bg-lavender/5 py-3 text-sm text-lavender transition-colors hover:bg-lavender/10">
-                Can&apos;t sleep
-              </button>
-              <button onClick={() => { setShowQuiz(false); router.push("/games"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
-                I just need a distraction
+                Restless, can&apos;t sleep
               </button>
               <button onClick={() => setShowQuiz(false)} className="mt-1 text-xs text-cream-dim/30 hover:text-cream-dim/60">
-                Never mind
+                Fine — just exploring
               </button>
             </div>
           </div>
         )}
+
+        {/* Daily suggested exercise */}
+        <DailySuggestion />
+
+        {/* Session stats */}
+        <SessionStats />
 
         {/* ── Main hub cards ── */}
         <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/30">
@@ -398,7 +536,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Exercises</span>
-              <span className="block text-xs text-cream-dim/50">Breathing, grounding, somatic, and more <span className="text-cream-dim/30">· 3-10 min</span></span>
+              <span className="block text-xs text-cream-dim/50">Things your body already knows how to do <span className="text-cream-dim/30">· 3-10 min</span></span>
             </div>
           </Link>
           <Link
@@ -418,7 +556,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Guided Meditations</span>
-              <span className="block text-xs text-cream-dim/50">Someone walks you through it <span className="text-cream-dim/30">· 5-15 min</span></span>
+              <span className="block text-xs text-cream-dim/50">A calm voice walks you through it <span className="text-cream-dim/30">· 5-15 min</span></span>
             </div>
           </Link>
           <Link
@@ -434,7 +572,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Mindful Games</span>
-              <span className="block text-xs text-cream-dim/50">Something to do with your hands <span className="text-cream-dim/30">· no time limit</span></span>
+              <span className="block text-xs text-cream-dim/50">Gentle distractions for restless hands <span className="text-cream-dim/30">· no time limit</span></span>
             </div>
           </Link>
           <Link
@@ -450,7 +588,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Emergency Toolkit</span>
-              <span className="block text-xs text-cream-dim/50">Your personal panic kit <span className="text-cream-dim/30">· set up in 2 min</span></span>
+              <span className="block text-xs text-cream-dim/50">Your panic kit, safety plan &amp; contacts <span className="text-cream-dim/30">· set up in 2 min</span></span>
             </div>
           </Link>
           <Link
@@ -467,21 +605,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-sm font-medium text-cream">Helping Someone</span>
-              <span className="block text-xs text-cream-dim/50">Step-by-step for someone with you</span>
-            </div>
-          </Link>
-          <Link
-            href="/safety-plan"
-            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
-              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-              </svg>
-            </div>
-            <div>
-              <span className="block text-sm font-medium text-cream">Safety Plan</span>
-              <span className="block text-xs text-cream-dim/50">Know what to do before you need it</span>
+              <span className="block text-xs text-cream-dim/50">Walk someone through a tough moment</span>
             </div>
           </Link>
           <Link
@@ -543,9 +667,9 @@ export default function Home() {
         {/* Footer — trust statement and 988 */}
         <footer className="mt-8">
           <p className="text-center text-[11px] leading-relaxed text-cream-dim/30">
-            Regulate supports your nervous system between therapy sessions. It
-            is not a replacement for professional mental health care. If you
-            are in crisis, please contact the{" "}
+            Regulate is a companion for your nervous system — not a replacement
+            for professional care. You&apos;re doing something good by being here. If
+            you&apos;re in crisis, please reach out to the{" "}
             <a
               href="tel:988"
               className="text-cream-dim/60 underline underline-offset-2"

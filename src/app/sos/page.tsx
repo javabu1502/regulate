@@ -688,7 +688,28 @@ function SOSPageInner() {
             This helps us pick the right tool for you.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3">
+          {/* Instant breathing — skip all choices */}
+          <div className="mt-8">
+            <button
+              onClick={() => {
+                setActiveTool("breathing");
+                startBreathing(sighSteps, SOS_SIGH_CYCLES);
+              }}
+              className="w-full rounded-2xl border border-candle/30 bg-candle/10 px-5 py-6 text-center transition-all hover:border-candle/40 active:scale-[0.98]"
+            >
+              <span className="block text-lg font-medium text-cream">Just breathe with me</span>
+              <span className="mt-1.5 block text-xs text-cream-dim/50">No choices needed — we&apos;ll start right away</span>
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="mt-6 mb-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-blue/15" />
+            <span className="text-[11px] text-cream-dim/40">or tell us more</span>
+            <div className="h-px flex-1 bg-slate-blue/15" />
+          </div>
+
+          <div className="flex flex-col gap-3">
             {bodyStateOptions.map((opt) => (
               <button
                 key={opt.id}

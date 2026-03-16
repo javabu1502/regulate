@@ -7,6 +7,7 @@ import { GroundingIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
 import MicroExplanation from "@/components/MicroExplanation";
 import { haptics } from "@/lib/haptics";
+import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
 
@@ -121,6 +122,14 @@ export default function GroundingPage() {
 
   // Body / Object grounding state
   const [simpleStepIndex, setSimpleStepIndex] = useState(0);
+
+  // Ambient audio
+  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
+
+  // Cleanup ambient on unmount
+  useEffect(() => {
+    return () => { ambientAudio.stop(); };
+  }, []);
 
   // Reset checked items when sense step changes to prevent stale state
   useEffect(() => {
@@ -413,6 +422,24 @@ export default function GroundingPage() {
           </button>
         </div>
 
+        {/* Ambient audio toggle */}
+        <div className="fixed right-4 top-6 z-10 flex gap-1.5">
+          {(["rain", "ocean", "off"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(s); setAmbientSound(s); }
+              }}
+              className={`rounded-full px-2.5 py-2 text-[10px] transition-all ${
+                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+              }`}
+            >
+              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : "Ocean"}
+            </button>
+          ))}
+        </div>
+
         <PresenceCue active={true} />
         <EscapeHatch />
       </div>
@@ -453,6 +480,24 @@ export default function GroundingPage() {
               />
             ))}
           </div>
+        </div>
+
+        {/* Ambient audio toggle */}
+        <div className="fixed right-4 top-6 z-10 flex gap-1.5">
+          {(["rain", "ocean", "off"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(s); setAmbientSound(s); }
+              }}
+              className={`rounded-full px-2.5 py-2 text-[10px] transition-all ${
+                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+              }`}
+            >
+              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : "Ocean"}
+            </button>
+          ))}
         </div>
 
         <PresenceCue active={true} />

@@ -75,6 +75,8 @@ const KEYS = {
   grounding: "regulate-toolkit-grounding",
   helper: "regulate-toolkit-helper-instructions",
   contacts: "my_person",
+  warnings: "regulate-toolkit-warnings",
+  reasons: "regulate-toolkit-reasons",
 } as const;
 
 // ─── Storage helpers ────────────────────────────────────────────────
@@ -127,6 +129,8 @@ export default function ToolkitPage() {
   const [grounding, setGrounding] = useState<string[]>([]);
   const [helperInstructions, setHelperInstructions] = useState("");
   const [contacts, setContacts] = useState<ContactData[]>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [reasons, setReasons] = useState<string[]>([]);
 
   // Edit form state
   const [mediaTitle, setMediaTitle] = useState("");
@@ -141,15 +145,17 @@ export default function ToolkitPage() {
     setGrounding(load<string[]>(KEYS.grounding, []));
     setHelperInstructions(loadString(KEYS.helper));
     setContacts(loadContacts());
+    setWarnings(load<string[]>(KEYS.warnings, []));
+    setReasons(load<string[]>(KEYS.reasons, []));
     setLoaded(true);
   }, []);
 
   // Auto-enter edit mode on first visit (no data yet)
   useEffect(() => {
     if (!loaded) return;
-    const hasData = exercises.length > 0 || media.length > 0 || grounding.length > 0 || helperInstructions;
+    const hasData = exercises.length > 0 || media.length > 0 || grounding.length > 0 || helperInstructions || warnings.length > 0 || reasons.length > 0;
     if (!hasData) setEditing(true);
-  }, [loaded, exercises.length, media.length, grounding.length, helperInstructions]);
+  }, [loaded, exercises.length, media.length, grounding.length, helperInstructions, warnings.length, reasons.length]);
 
   // ─── Save helpers ───────────────────────────────────────────────
 
@@ -196,6 +202,44 @@ export default function ToolkitPage() {
     } else {
       localStorage.removeItem(KEYS.helper);
     }
+  }
+
+  function addWarning(text: string) {
+    if (!text.trim()) return;
+    const next = [...warnings, text.trim()];
+    setWarnings(next);
+    localStorage.setItem(KEYS.warnings, JSON.stringify(next));
+  }
+
+  function removeWarning(index: number) {
+    const next = warnings.filter((_, i) => i !== index);
+    setWarnings(next);
+    localStorage.setItem(KEYS.warnings, JSON.stringify(next));
+  }
+
+  function updateWarning(index: number, value: string) {
+    const next = warnings.map((w, i) => (i === index ? value : w));
+    setWarnings(next);
+    localStorage.setItem(KEYS.warnings, JSON.stringify(next));
+  }
+
+  function addReason(text: string) {
+    if (!text.trim()) return;
+    const next = [...reasons, text.trim()];
+    setReasons(next);
+    localStorage.setItem(KEYS.reasons, JSON.stringify(next));
+  }
+
+  function removeReason(index: number) {
+    const next = reasons.filter((_, i) => i !== index);
+    setReasons(next);
+    localStorage.setItem(KEYS.reasons, JSON.stringify(next));
+  }
+
+  function updateReason(index: number, value: string) {
+    const next = reasons.map((r, i) => (i === index ? value : r));
+    setReasons(next);
+    localStorage.setItem(KEYS.reasons, JSON.stringify(next));
   }
 
   const exitHelperMode = useCallback(() => {
@@ -548,17 +592,28 @@ export default function ToolkitPage() {
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               Home
             </Link>
-            <button
-              onClick={() => setEditing(false)}
-              className="rounded-xl bg-teal/20 px-4 py-2 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30"
-            >
-              Done
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.print()}
+                className="rounded-xl border border-slate-blue/20 px-4 py-2 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
+              >
+                Print
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="rounded-xl bg-teal/20 px-4 py-2 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30"
+              >
+                Done
+              </button>
+            </div>
           </div>
 
           <header className="mb-8 mt-6">
             <h1 className="text-xl font-semibold tracking-tight text-cream">Build Your Panic Kit</h1>
             <p className="mt-2 text-sm text-cream-dim/60 leading-relaxed">
+              This includes your safety plan. You can print it from here.
+            </p>
+            <p className="mt-1 text-sm text-cream-dim/60 leading-relaxed">
               Set this up now, while you&apos;re calm. When you&apos;re panicking, you won&apos;t have time
               to think — this page will be ready for you with exactly what you need.
             </p>
@@ -741,6 +796,77 @@ export default function ToolkitPage() {
             />
           </section>
 
+          {/* ── My Warning Signs ─────────────────────────── */}
+          <section className="mb-6">
+            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">My warning signs</h2>
+            <p className="mb-3 text-xs text-cream-dim/40">How do you know you&apos;re starting to struggle?</p>
+            {warnings.length > 0 && (
+              <div className="mb-3 flex flex-col gap-2">
+                {warnings.map((w, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={w}
+                      onChange={(e) => updateWarning(i, e.target.value)}
+                      className="flex-1 rounded-xl border border-slate-blue/20 bg-deep/60 p-3 text-sm text-cream-dim focus:border-teal/30 focus:outline-none"
+                    />
+                    <button
+                      onClick={() => removeWarning(i)}
+                      className="shrink-0 text-xs text-cream-dim/30 transition-colors hover:text-coral"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              onClick={() => {
+                const next = [...warnings, ""];
+                setWarnings(next);
+                localStorage.setItem(KEYS.warnings, JSON.stringify(next));
+              }}
+              className="rounded-xl bg-teal/20 px-4 py-2.5 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30"
+            >
+              + Add warning sign
+            </button>
+          </section>
+
+          {/* ── Reasons to Keep Going ─────────────────────── */}
+          <section className="mb-6">
+            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">Reasons to keep going</h2>
+            {reasons.length > 0 && (
+              <div className="mb-3 flex flex-col gap-2">
+                {reasons.map((r, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={r}
+                      onChange={(e) => updateReason(i, e.target.value)}
+                      className="flex-1 rounded-xl border border-slate-blue/20 bg-deep/60 p-3 text-sm text-cream-dim focus:border-teal/30 focus:outline-none"
+                    />
+                    <button
+                      onClick={() => removeReason(i)}
+                      className="shrink-0 text-xs text-cream-dim/30 transition-colors hover:text-coral"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              onClick={() => {
+                const next = [...reasons, ""];
+                setReasons(next);
+                localStorage.setItem(KEYS.reasons, JSON.stringify(next));
+              }}
+              className="rounded-xl bg-teal/20 px-4 py-2.5 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/30"
+            >
+              + Add reason
+            </button>
+          </section>
+
           <button
             onClick={() => setEditing(false)}
             className="mt-4 w-full rounded-2xl bg-teal/20 py-4 text-base font-medium text-teal-soft transition-colors hover:bg-teal/30"
@@ -781,32 +907,22 @@ export default function ToolkitPage() {
           </p>
         </header>
 
-        {/* ── Help Mode Button ───────────────────────────── */}
-        <button
-          onClick={() => { setHelperMode(true); setHelperStep(1); }}
-          className="mb-10 flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl border border-cream/15 bg-cream/8 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-cream/25 hover:bg-cream/12"
-        >
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" className="shrink-0">
-            <path d="M11 21C16.5228 21 21 16.5228 21 11C21 5.47715 16.5228 1 11 1C5.47715 1 1 5.47715 1 11C1 16.5228 5.47715 21 11 21Z" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M8.5 8.5C8.5 7.11929 9.61929 6 11 6C12.3807 6 13.5 7.11929 13.5 8.5C13.5 9.88071 12.3807 11 11 11V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="11" cy="15.5" r="0.75" fill="currentColor" />
-          </svg>
-          Someone with me? Help them help you
-        </button>
-
-        {/* ── Quick Exercises ──────────────────────────────── */}
-        {exercises.length > 0 && (
+        {/* ── Emergency Contacts ──────────────────────────── */}
+        {contacts.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Try this</h2>
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Call someone</h2>
             <div className="flex flex-col gap-3">
-              {exercises.map((ex) => (
-                <Link
-                  key={ex.id}
-                  href={ex.href}
-                  className="flex min-h-[56px] items-center justify-center rounded-2xl border border-teal/20 bg-teal/10 px-6 py-4 text-base font-medium text-teal-soft transition-colors hover:border-teal/40 hover:bg-teal/15"
+              {contacts.map((c, i) => (
+                <a
+                  key={i}
+                  href={`tel:${c.phone}`}
+                  className="flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-teal/20 bg-deep/60 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-teal/40"
                 >
-                  {ex.label}
-                </Link>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0 text-teal-soft">
+                    <path d="M3.5 2.5C3.5 2.5 5 2 6 3.5L7 5.5C7 5.5 6 6.5 7 8.5C8 10.5 9.5 9.5 9.5 9.5L11.5 11C13 12 12.5 13.5 12.5 13.5C11.5 15 9 14.5 7 12.5C5 10.5 3 8 3.5 5.5C3.5 5.5 3.5 3.5 3.5 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                  </svg>
+                  Call {c.name}
+                </a>
               ))}
             </div>
           </section>
@@ -835,6 +951,24 @@ export default function ToolkitPage() {
           </section>
         )}
 
+        {/* ── Quick Exercises (compact 2-col grid) ─────────── */}
+        {exercises.length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Try this</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {exercises.map((ex) => (
+                <Link
+                  key={ex.id}
+                  href={ex.href}
+                  className="flex items-center justify-center rounded-2xl border border-teal/20 bg-teal/10 px-3 py-2.5 text-sm font-medium text-teal-soft transition-colors hover:border-teal/40 hover:bg-teal/15"
+                >
+                  {ex.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── Grounding Reminders ─────────────────────────── */}
         {grounding.length > 0 && (
           <section className="mb-8">
@@ -852,26 +986,18 @@ export default function ToolkitPage() {
           </section>
         )}
 
-        {/* ── Emergency Contacts ──────────────────────────── */}
-        {contacts.length > 0 && (
-          <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Call someone</h2>
-            <div className="flex flex-col gap-3">
-              {contacts.map((c, i) => (
-                <a
-                  key={i}
-                  href={`tel:${c.phone}`}
-                  className="flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-teal/20 bg-deep/60 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-teal/40"
-                >
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0 text-teal-soft">
-                    <path d="M3.5 2.5C3.5 2.5 5 2 6 3.5L7 5.5C7 5.5 6 6.5 7 8.5C8 10.5 9.5 9.5 9.5 9.5L11.5 11C13 12 12.5 13.5 12.5 13.5C11.5 15 9 14.5 7 12.5C5 10.5 3 8 3.5 5.5C3.5 5.5 3.5 3.5 3.5 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                  </svg>
-                  Call {c.name}
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
+        {/* ── Help Mode Button ───────────────────────────── */}
+        <button
+          onClick={() => { setHelperMode(true); setHelperStep(1); }}
+          className="mb-8 flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl border border-cream/15 bg-cream/8 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-cream/25 hover:bg-cream/12"
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" className="shrink-0">
+            <path d="M11 21C16.5228 21 21 16.5228 21 11C21 5.47715 16.5228 1 11 1C5.47715 1 1 5.47715 1 11C1 16.5228 5.47715 21 11 21Z" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M8.5 8.5C8.5 7.11929 9.61929 6 11 6C12.3807 6 13.5 7.11929 13.5 8.5C13.5 9.88071 12.3807 11 11 11V12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="11" cy="15.5" r="0.75" fill="currentColor" />
+          </svg>
+          Someone with me? Help them help you
+        </button>
 
         {/* ── Helper Instructions ─────────────────────────── */}
         {helperInstructions && (
@@ -879,6 +1005,40 @@ export default function ToolkitPage() {
             <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">For someone helping me</h2>
             <div className="rounded-2xl border border-cream/10 bg-cream/5 px-5 py-5 text-sm leading-relaxed text-cream/80">
               {helperInstructions}
+            </div>
+          </section>
+        )}
+
+        {/* ── Warning Signs ──────────────────────────────── */}
+        {warnings.filter((w) => w.trim()).length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">My warning signs</h2>
+            <div className="flex flex-col gap-2">
+              {warnings.filter((w) => w.trim()).map((w, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-candle/15 bg-candle/5 px-5 py-3 text-sm leading-relaxed text-candle-soft"
+                >
+                  {w}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Reasons to Keep Going ──────────────────────── */}
+        {reasons.filter((r) => r.trim()).length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Reasons to keep going</h2>
+            <div className="flex flex-col gap-2">
+              {reasons.filter((r) => r.trim()).map((r, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-lavender/15 bg-lavender/5 px-5 py-3 text-sm leading-relaxed text-lavender"
+                >
+                  {r}
+                </div>
+              ))}
             </div>
           </section>
         )}

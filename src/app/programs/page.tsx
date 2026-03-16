@@ -176,11 +176,94 @@ export default function ProgramsPage() {
           )}
         </Link>
 
-        {/* More coming */}
-        <div className="mt-6 rounded-2xl border border-slate-blue/10 bg-deep/30 p-5 text-center">
-          <p className="text-xs text-cream-dim/30">
-            More programs are on the way.
-          </p>
+        {/* 3-Day Nervous System Reset */}
+        <div className="mt-4 w-full rounded-2xl border border-lavender/15 bg-deep/60 p-5">
+          <div className="flex items-start justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-lavender/50">
+                3-day program
+              </p>
+              <h2 className="mt-1.5 text-base font-medium text-cream">
+                Nervous System Reset
+              </h2>
+              <p className="mt-1.5 text-xs leading-relaxed text-cream-dim/50">
+                Three days of targeted exercises to bring your nervous system back to baseline. Focused on vagus nerve activation and somatic release.
+              </p>
+            </div>
+            <div className="ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lavender/10">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-lavender">
+                <path d="M10 2C10 2 4 6 4 11C4 14.3 6.7 17 10 17C13.3 17 16 14.3 16 11C16 6 10 2 10 2Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                <path d="M10 10V14" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-1.5 text-xs text-cream-dim/40">
+            <p>Day 1: Physiological Sigh + Body Shaking</p>
+            <p>Day 2: Vagus Nerve Massage + Humming</p>
+            <p>Day 3: Pendulation + Body Scan</p>
+          </div>
+          <span className="mt-4 inline-block rounded-lg bg-lavender/15 px-3 py-1.5 text-xs font-medium text-lavender/70">
+            Coming soon
+          </span>
+        </div>
+
+        {/* 5-Day Sleep Recovery */}
+        <div className="mt-4 w-full rounded-2xl border border-candle/15 bg-deep/60 p-5">
+          <div className="flex items-start justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-candle/50">
+                5-day program
+              </p>
+              <h2 className="mt-1.5 text-base font-medium text-cream">
+                Sleep Recovery
+              </h2>
+              <p className="mt-1.5 text-xs leading-relaxed text-cream-dim/50">
+                Five evenings of progressively deeper relaxation techniques. Build a wind-down routine your body recognizes.
+              </p>
+            </div>
+            <div className="ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-candle/10">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-candle/60">
+                <path d="M14 4C10 4 7 7 7 11C7 15 10 18 14 18C10.5 17 8 14 8 11C8 8 10.5 5 14 4Z" fill="currentColor" opacity="0.4" />
+                <circle cx="15" cy="6" r="1" fill="currentColor" opacity="0.3" />
+                <circle cx="17" cy="9" r="0.5" fill="currentColor" opacity="0.2" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-1.5 text-xs text-cream-dim/40">
+            <p>Day 1: Extended Exhale Breathing</p>
+            <p>Day 2: Body Scan + 4-7-8 Breathing</p>
+            <p>Day 3: Self-Havening + Coherence</p>
+            <p>Day 4: Sleep Sequence Practice</p>
+            <p>Day 5: Full Wind-Down Routine</p>
+          </div>
+          <span className="mt-4 inline-block rounded-lg bg-candle/15 px-3 py-1.5 text-xs font-medium text-candle/70">
+            Coming soon
+          </span>
+        </div>
+
+        {/* 10-Day Anxiety Management */}
+        <div className="mt-4 w-full rounded-2xl border border-teal/10 bg-deep/60 p-5">
+          <div className="flex items-start justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/40">
+                10-day program
+              </p>
+              <h2 className="mt-1.5 text-base font-medium text-cream">
+                Anxiety Management
+              </h2>
+              <p className="mt-1.5 text-xs leading-relaxed text-cream-dim/50">
+                A deeper exploration of breathing, grounding, and somatic techniques for ongoing anxiety. Build lasting regulation skills.
+              </p>
+            </div>
+            <div className="ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/10">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-teal-soft/60">
+                <path d="M10 3V17M3 10H17" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+          <span className="mt-4 inline-block rounded-lg bg-teal/10 px-3 py-1.5 text-xs font-medium text-teal-soft/50">
+            Coming soon
+          </span>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
 import { voiceGuidance } from "@/lib/voice-guidance";
 import { haptics } from "@/lib/haptics";
+import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
 
@@ -118,6 +119,7 @@ export default function BodyScanPage() {
   const [regionElapsed, setRegionElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
+  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useWakeLock(screen === "session" && !isPaused);
@@ -161,10 +163,11 @@ export default function BodyScanPage() {
 
   // ─── Voice guidance ────────────────────────────────────────────
 
-  // Stop voice on unmount (e.g. browser back navigation)
+  // Stop voice + ambient on unmount
   useEffect(() => {
     return () => {
       voiceGuidance.stop();
+      ambientAudio.stop();
     };
   }, []);
 
@@ -277,8 +280,8 @@ export default function BodyScanPage() {
           <SessionProgressBar current={currentRegion + 1} total={regions.length} />
         </div>
 
-        {/* Voice toggle */}
-        <div className="fixed right-4 top-4 z-20">
+        {/* Voice + ambient toggles */}
+        <div className="fixed right-4 top-4 z-20 flex gap-1.5">
           <button
             onClick={() => {
               const next = voiceGuidance.toggle();
@@ -290,6 +293,20 @@ export default function BodyScanPage() {
           >
             Voice
           </button>
+          {(["rain", "ocean", "off"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(s); setAmbientSound(s); }
+              }}
+              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
+              }`}
+            >
+              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : "Ocean"}
+            </button>
+          ))}
         </div>
 
         {/* Region dots */}

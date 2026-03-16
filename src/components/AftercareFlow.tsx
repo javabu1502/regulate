@@ -375,6 +375,19 @@ export default function AftercareFlow({
       } catch { /* */ }
     }
 
+    // Track session for outcomes measurement
+    try {
+      const raw = localStorage.getItem("regulate-sessions");
+      const sessions = raw ? JSON.parse(raw) : [];
+      sessions.push({
+        technique,
+        feeling: f,
+        ts: Date.now(),
+        date: new Date().toISOString().slice(0, 10),
+      });
+      localStorage.setItem("regulate-sessions", JSON.stringify(sessions));
+    } catch { /* */ }
+
     // Show safety check before the "heavier" result screen
     if (f === "harder") {
       // Check for repeated "harder" responses (3+ in 7 days)

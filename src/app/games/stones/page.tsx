@@ -27,13 +27,15 @@ interface Stone {
   color: { r: number; g: number; b: number };
   shape: number[];
   rotation: number;
-  settled: boolean;
-  vy: number;
-  vx: number;
-  vr: number;
   wobble: number;
   wobbleSpeed: number;
   wobblePhase: number;
+}
+
+interface FallingStone extends Stone {
+  vy: number;
+  settled: boolean;
+  bounceCount: number;
 }
 
 interface DustParticle {
@@ -55,27 +57,24 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-function playPlaceSound() {
+function playPlaceSound(pitch: number = 1) {
   try {
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
 
-    // Deep, satisfying thud
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(120 + Math.random() * 40, t);
-    osc.frequency.exponentialRampToValueAtTime(60, t + 0.25);
+    osc.frequency.setValueAtTime((120 + Math.random() * 40) * pitch, t);
+    osc.frequency.exponentialRampToValueAtTime(60 * pitch, t + 0.25);
     gain.gain.setValueAtTime(0.1, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(t);
     osc.stop(t + 0.25);
-  } catch {
-    // Audio not available
-  }
+  } catch {}
 }
 
 function playSlideSound() {
@@ -84,7 +83,6 @@ function playSlideSound() {
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
 
-    // Scraping slide sound
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
@@ -97,7 +95,6 @@ function playSlideSound() {
     osc.start(t);
     osc.stop(t + 0.4);
 
-    // Noise scrape layer
     const bufLen = Math.floor(ctx.sampleRate * 0.15);
     const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
     const data = buf.getChannelData(0);
@@ -112,27 +109,23 @@ function playSlideSound() {
     src.connect(noiseGain);
     noiseGain.connect(ctx.destination);
     src.start(t);
-  } catch {
-    // Audio not available
-  }
+  } catch {}
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function randomStoneShape(): number[] {
-  // Big variation — lumpy, angular, smooth, wobbly
-  const roughness = 0.2 + Math.random() * 0.4;
+  const roughness = 0.15 + Math.random() * 0.3;
   return Array.from({ length: 8 }, () => (Math.random() - 0.5) * roughness * 2);
 }
 
 function createStone(x: number, y: number, level: number): Stone {
-  // Stones get slightly smaller as you go up, but all are big
-  const baseW = 120 - level * 4;
-  const baseH = 55 - level * 2;
-  // Wide range of shapes — flat slabs, chunky rounds, tall ovals
-  const aspectVariance = 0.5 + Math.random() * 1.0; // 0.5x to 1.5x
-  const width = Math.max(60, (baseW + (Math.random() - 0.5) * 40) * aspectVariance);
-  const height = Math.max(25, (baseH + (Math.random() - 0.5) * 20) / aspectVariance);
+  // Stones get slightly narrower but stay substantial
+  const baseW = 110 - Math.min(level, 8) * 3;
+  const baseH = 48 - Math.min(level, 8) * 1.5;
+  const aspectVariance = 0.6 + Math.random() * 0.8;
+  const width = Math.max(65, (baseW + (Math.random() - 0.5) * 30) * aspectVariance);
+  const height = Math.max(28, (baseH + (Math.random() - 0.5) * 15) / aspectVariance);
   return {
     x,
     y,
@@ -140,22 +133,14 @@ function createStone(x: number, y: number, level: number): Stone {
     height,
     color: STONE_COLORS[Math.floor(Math.random() * STONE_COLORS.length)],
     shape: randomStoneShape(),
-    rotation: (Math.random() - 0.5) * 0.08,
-    settled: false,
-    vy: 0,
-    vx: 0,
-    vr: 0,
+    rotation: (Math.random() - 0.5) * 0.06,
     wobble: 0,
-    wobbleSpeed: 0.02 + Math.random() * 0.01,
+    wobbleSpeed: 0.015 + Math.random() * 0.008,
     wobblePhase: Math.random() * Math.PI * 2,
   };
 }
 
-function drawStone(
-  ctx: CanvasRenderingContext2D,
-  stone: Stone,
-  alpha: number = 1,
-) {
+function drawStone(ctx: CanvasRenderingContext2D, stone: Stone, alpha: number = 1) {
   ctx.save();
   ctx.translate(stone.x, stone.y);
   ctx.rotate(stone.rotation + stone.wobble);
@@ -164,59 +149,35 @@ function drawStone(
   const hw = width / 2;
   const hh = height / 2;
 
-  // Organic rounded shape
   ctx.beginPath();
   ctx.moveTo(-hw * (1 + shape[0]), 0);
   ctx.bezierCurveTo(
-    -hw * (0.7 + shape[1]),
-    -hh * (1.05 + shape[2]),
-    hw * (0.7 + shape[3]),
-    -hh * (1 + shape[4]),
-    hw * (1 + shape[5]),
-    0,
+    -hw * (0.7 + shape[1]), -hh * (1.05 + shape[2]),
+    hw * (0.7 + shape[3]), -hh * (1 + shape[4]),
+    hw * (1 + shape[5]), 0,
   );
   ctx.bezierCurveTo(
-    hw * (0.7 + shape[6]),
-    hh * (1.05 + shape[7]),
-    -hw * (0.7 + shape[0]),
-    hh * (1 + shape[1]),
-    -hw * (1 + shape[0]),
-    0,
+    hw * (0.7 + shape[6]), hh * (1.05 + shape[7]),
+    -hw * (0.7 + shape[0]), hh * (1 + shape[1]),
+    -hw * (1 + shape[0]), 0,
   );
   ctx.closePath();
 
-  // Gradient for depth — lighter on top, darker on bottom
   const grad = ctx.createLinearGradient(-hw, -hh, hw * 0.3, hh);
-  grad.addColorStop(
-    0,
-    `rgba(${color.r + 30}, ${color.g + 30}, ${color.b + 30}, ${0.95 * alpha})`,
-  );
-  grad.addColorStop(
-    0.4,
-    `rgba(${color.r + 10}, ${color.g + 10}, ${color.b + 10}, ${0.9 * alpha})`,
-  );
-  grad.addColorStop(
-    1,
-    `rgba(${color.r - 15}, ${color.g - 15}, ${color.b - 15}, ${0.85 * alpha})`,
-  );
+  grad.addColorStop(0, `rgba(${color.r + 30}, ${color.g + 30}, ${color.b + 30}, ${0.95 * alpha})`);
+  grad.addColorStop(0.4, `rgba(${color.r + 10}, ${color.g + 10}, ${color.b + 10}, ${0.9 * alpha})`);
+  grad.addColorStop(1, `rgba(${color.r - 15}, ${color.g - 15}, ${color.b - 15}, ${0.85 * alpha})`);
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // Subtle edge
   ctx.strokeStyle = `rgba(${color.r - 25}, ${color.g - 25}, ${color.b - 25}, ${0.2 * alpha})`;
   ctx.lineWidth = 0.8;
   ctx.stroke();
 
-  // Top highlight — makes it look 3D
+  // Top highlight
   ctx.beginPath();
   ctx.ellipse(-hw * 0.1, -hh * 0.3, hw * 0.5, hh * 0.3, -0.1, 0, Math.PI * 2);
   ctx.fillStyle = `rgba(255, 255, 255, ${0.1 * alpha})`;
-  ctx.fill();
-
-  // Second subtle highlight for realism
-  ctx.beginPath();
-  ctx.ellipse(hw * 0.2, -hh * 0.15, hw * 0.2, hh * 0.15, 0.1, 0, Math.PI * 2);
-  ctx.fillStyle = `rgba(255, 255, 255, ${0.05 * alpha})`;
   ctx.fill();
 
   ctx.restore();
@@ -224,27 +185,26 @@ function drawStone(
 
 // ─── Component ──────────────────────────────────────────────────────
 
-type GameState = "moving" | "falling" | "settling" | "sliding" | "idle";
-
 export default function StoneStackingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animFrameRef = useRef<number>(0);
+  const animFrameRef = useRef(0);
   const timeRef = useRef(0);
-  const shakeRef = useRef(0); // screen shake frames remaining
-  const shakeIntensityRef = useRef(0);
 
   const towerRef = useRef<Stone[]>([]);
-  const activeStoneRef = useRef<Stone | null>(null);
   const dustRef = useRef<DustParticle[]>([]);
-  const stateRef = useRef<GameState>("idle");
-  const moveSpeedRef = useRef(1.6);
-  const moveDirRef = useRef(1);
+  const cameraYRef = useRef(0); // smooth camera
+
+  // Drag state
+  const isDraggingRef = useRef(false);
+  const dragXRef = useRef(0);
+  const activeStoneRef = useRef<Stone | null>(null);
+  const fallingRef = useRef<FallingStone | null>(null);
 
   const [showHelp, setShowHelp] = useState(false);
   const [height, setHeight] = useState(0);
   const [best, setBest] = useState(0);
+  const [hint, setHint] = useState(true);
 
-  // Load best from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem("regulate-stones-best");
@@ -252,30 +212,31 @@ export default function StoneStackingPage() {
     } catch {}
   }, []);
 
-  // ── Spawn a new stone ─────────────────────────────────────────
+  // ── Get tower positions ─────────────────────────────────────
 
-  const spawnStone = useCallback((canvasW: number) => {
+  const getGroundY = useCallback((h: number) => h - 90, []);
+
+  const getTopOfTower = useCallback((h: number) => {
+    const tower = towerRef.current;
+    if (tower.length === 0) return getGroundY(h);
+    const top = tower[tower.length - 1];
+    return top.y - top.height / 2;
+  }, [getGroundY]);
+
+  // ── Spawn stone at drag position ────────────────────────────
+
+  const spawnStone = useCallback((w: number) => {
     const level = towerRef.current.length;
-    const stone = createStone(canvasW / 2, 45, level);
+    const stone = createStone(w / 2, 50, level);
     activeStoneRef.current = stone;
-    stateRef.current = "moving";
-    moveDirRef.current = Math.random() > 0.5 ? 1 : -1;
+    dragXRef.current = w / 2;
   }, []);
 
-  // ── Drop stone ────────────────────────────────────────────────
-
-  const dropStone = useCallback(() => {
-    if (stateRef.current !== "moving" || !activeStoneRef.current) return;
-    stateRef.current = "falling";
-    activeStoneRef.current.vy = 2;
-  }, []);
-
-  // ── Main effect ───────────────────────────────────────────────
+  // ── Main effect ─────────────────────────────────────────────
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -305,7 +266,7 @@ export default function StoneStackingPage() {
       const tower = towerRef.current;
       if (tower.length === 0) return groundY();
       const top = tower[tower.length - 1];
-      return top.y - top.height;
+      return top.y - top.height / 2;
     }
 
     function topStone(): Stone | null {
@@ -327,8 +288,10 @@ export default function StoneStackingPage() {
       }
     }
 
-    // ── Animation loop ────────────────────────────────────────
+    // ── Animation loop ──────────────────────────────────────
     function draw() {
+      timeRef.current += 1;
+
       // Background
       const bgGrad = ctx!.createLinearGradient(0, 0, 0, h);
       bgGrad.addColorStop(0, "#0a0f1e");
@@ -336,196 +299,164 @@ export default function StoneStackingPage() {
       ctx!.fillStyle = bgGrad;
       ctx!.fillRect(0, 0, w, h);
 
-      timeRef.current += 1;
-
-      const state = stateRef.current;
-      const active = activeStoneRef.current;
       const tower = towerRef.current;
       const dust = dustRef.current;
       const gy = groundY();
+      const active = activeStoneRef.current;
+      const falling = fallingRef.current;
 
-      // ── Camera ────────────────────────────────────────────
+      // ── Smooth camera ──────────────────────────────────────
       const towerHeight = tower.length > 0 ? gy - topOfTower() : 0;
-      const cameraShift = Math.max(0, towerHeight - (h * 0.5));
-
-      // Screen shake
-      let shakeX = 0, shakeY = 0;
-      if (shakeRef.current > 0) {
-        const intensity = shakeIntensityRef.current * (shakeRef.current / 10);
-        shakeX = (Math.random() - 0.5) * intensity * 2;
-        shakeY = (Math.random() - 0.5) * intensity * 2;
-        shakeRef.current--;
-      }
+      const targetCam = Math.max(0, towerHeight - h * 0.45);
+      // Lerp for smooth following
+      cameraYRef.current += (targetCam - cameraYRef.current) * 0.06;
 
       ctx!.save();
-      ctx!.translate(shakeX, cameraShift + shakeY);
+      ctx!.translate(0, cameraYRef.current);
 
-      // Ground — wide, subtle
+      // ── Ground ─────────────────────────────────────────────
       ctx!.beginPath();
       ctx!.moveTo(0, gy);
       ctx!.lineTo(w, gy);
-      ctx!.strokeStyle = "rgba(94, 234, 212, 0.08)";
+      ctx!.strokeStyle = "rgba(94, 234, 212, 0.12)";
       ctx!.lineWidth = 1;
       ctx!.stroke();
 
       // Sandy ground fill
-      const groundGrad = ctx!.createLinearGradient(0, gy, 0, gy + 40);
-      groundGrad.addColorStop(0, "rgba(160, 150, 138, 0.06)");
+      const groundGrad = ctx!.createLinearGradient(0, gy, 0, gy + 50);
+      groundGrad.addColorStop(0, "rgba(160, 150, 138, 0.08)");
       groundGrad.addColorStop(1, "rgba(160, 150, 138, 0)");
       ctx!.fillStyle = groundGrad;
-      ctx!.fillRect(0, gy, w, 40);
+      ctx!.fillRect(0, gy, w, 50);
 
-      // ── Update wobble ─────────────────────────────────────
-      for (const s of tower) {
-        s.wobble =
-          Math.sin(timeRef.current * s.wobbleSpeed + s.wobblePhase) *
-          0.005 *
-          (tower.indexOf(s) + 1);
+      // ── Update wobble (capped) ─────────────────────────────
+      for (let i = 0; i < tower.length; i++) {
+        const s = tower[i];
+        // Cap wobble so it never gets crazy — max ±0.02 radians
+        const wobbleAmount = Math.min(0.02, 0.003 * (i + 1));
+        s.wobble = Math.sin(timeRef.current * s.wobbleSpeed + s.wobblePhase) * wobbleAmount;
       }
 
-      // ── Move active stone ─────────────────────────────────
-      if (state === "moving" && active) {
-        const speed = moveSpeedRef.current;
-        active.x += moveDirRef.current * speed;
-
-        const margin = active.width / 2 + 15;
-        if (active.x > w - margin) {
-          active.x = w - margin;
-          moveDirRef.current = -1;
-        }
-        if (active.x < margin) {
-          active.x = margin;
-          moveDirRef.current = 1;
-        }
-      }
-
-      // ── Fall active stone ─────────────────────────────────
-      if (state === "falling" && active) {
-        active.vy += 0.18;
-        active.y += active.vy;
-
-        const targetY = topOfTower();
-
-        if (active.y + active.height / 2 >= targetY) {
-          active.y = targetY - active.height / 2 + active.height;
-
-          const ts = topStone();
-          const centerBelow = ts ? ts.x : w / 2;
-          const offset = Math.abs(active.x - centerBelow);
-          // Almost always sticks — 95% overlap tolerance
-          const tolerance = ts
-            ? (ts.width / 2 + active.width / 2) * 0.95
-            : active.width;
-
-          if (offset < tolerance) {
-            // Successful placement
-            active.settled = true;
-            active.vy = -1;
-            stateRef.current = "settling";
-            active.y = topOfTower();
-
-            tower.push(active);
-            const newHeight = tower.length;
-            setHeight(newHeight);
-
-            // Save best
-            setBest((prev) => {
-              const newBest = Math.max(prev, newHeight);
-              try {
-                localStorage.setItem("regulate-stones-best", String(newBest));
-              } catch {}
-              return newBest;
-            });
-
-            // Logarithmic difficulty curve — stays fun longer
-            moveSpeedRef.current = 1.6 + Math.log2(tower.length + 1) * 0.5;
-
-            playPlaceSound();
-            haptics.tap();
-            spawnDust(active.x, active.y + active.height / 2, 10);
-          } else {
-            // Miss — stone slides off, but tower stays!
-            stateRef.current = "sliding";
-            active.vx = active.x > centerBelow ? 2.5 : -2.5;
-            active.vr = (Math.random() - 0.5) * 0.05;
-            active.vy = -1;
-            playSlideSound();
-            // Screen shake on miss
-            shakeRef.current = 10;
-            shakeIntensityRef.current = 4;
-          }
-        }
-      }
-
-      // ── Settling bounce ───────────────────────────────────
-      if (state === "settling" && active) {
-        active.vy += 0.3;
-        active.y += active.vy;
-
-        const restY =
-          tower.length <= 1
-            ? gy - active.height / 2
-            : tower[tower.length - 2].y -
-              tower[tower.length - 2].height -
-              active.height / 2 +
-              active.height;
-
-        if (active.y >= restY && active.vy > 0) {
-          active.y = restY;
-          active.vy *= -0.25;
-
-          if (Math.abs(active.vy) < 0.3) {
-            active.vy = 0;
-            stateRef.current = "idle";
-            activeStoneRef.current = null;
-            setTimeout(() => spawnStone(w), 400);
-          }
-        }
-      }
-
-      // ── Sliding off — stone slides away, tower stays ──────
-      if (state === "sliding" && active) {
-        active.vy += 0.2;
-        active.y += active.vy;
-        active.x += active.vx;
-        active.rotation += active.vr;
-
-        if (active.y > h + 100) {
-          activeStoneRef.current = null;
-          stateRef.current = "idle";
-          // Just spawn a new one — don't reset the tower
-          setTimeout(() => spawnStone(w), 600);
-        }
-      }
-
-      // ── Draw tower stones ─────────────────────────────────
+      // ── Draw tower stones ──────────────────────────────────
       for (const s of tower) {
         drawStone(ctx!, s);
       }
 
-      // Draw active stone
-      if (active && state !== "idle") {
-        const fadeAlpha =
-          state === "sliding"
-            ? Math.max(0, 1 - Math.max(0, active.y - h) / 100)
-            : 1;
-        drawStone(ctx!, active, fadeAlpha);
+      // ── Landing preview (ghost stone + guide line) ─────────
+      if (active && !falling) {
+        const landY = topOfTower();
+        const previewX = dragXRef.current;
+        const previewY = landY - active.height / 2;
 
-        // Drop guide line when moving (shows where it'll land)
-        if (state === "moving") {
-          const landY = topOfTower();
+        // Ghost stone at landing position
+        ctx!.globalAlpha = 0.15;
+        const ghost = { ...active, x: previewX, y: previewY, wobble: 0 };
+        drawStone(ctx!, ghost);
+        ctx!.globalAlpha = 1;
+
+        // Vertical guide line — visible!
+        ctx!.beginPath();
+        ctx!.setLineDash([6, 6]);
+        ctx!.moveTo(previewX, active.y + active.height / 2);
+        ctx!.lineTo(previewX, landY);
+        ctx!.strokeStyle = "rgba(94, 234, 212, 0.25)";
+        ctx!.lineWidth = 1.5;
+        ctx!.stroke();
+        ctx!.setLineDash([]);
+
+        // Center indicator on top stone
+        const ts = topStone();
+        if (ts) {
           ctx!.beginPath();
-          ctx!.setLineDash([4, 6]);
-          ctx!.moveTo(active.x, active.y + active.height / 2);
-          ctx!.lineTo(active.x, landY);
-          ctx!.strokeStyle = "rgba(94, 234, 212, 0.08)";
-          ctx!.lineWidth = 1;
-          ctx!.stroke();
-          ctx!.setLineDash([]);
+          ctx!.arc(ts.x, ts.y, 3, 0, Math.PI * 2);
+          ctx!.fillStyle = "rgba(94, 234, 212, 0.3)";
+          ctx!.fill();
         }
+
+        // Draw the active stone at drag position
+        active.x = previewX;
+        drawStone(ctx!, active);
       }
 
-      // ── Draw dust ─────────────────────────────────────────
+      // ── Falling stone ──────────────────────────────────────
+      if (falling) {
+        falling.vy += 0.25;
+        falling.y += falling.vy;
+
+        const targetY = topOfTower();
+        const landY = targetY - falling.height / 2;
+
+        if (falling.y >= landY && falling.vy > 0) {
+          falling.y = landY;
+
+          const ts = topStone();
+          const centerBelow = ts ? ts.x : w / 2;
+          const offset = Math.abs(falling.x - centerBelow);
+          const tolerance = ts
+            ? (ts.width / 2 + falling.width / 2) * 0.9
+            : falling.width;
+
+          if (offset < tolerance) {
+            // Bounce
+            falling.bounceCount++;
+            falling.vy *= -0.2;
+
+            if (falling.bounceCount >= 2 || Math.abs(falling.vy) < 0.5) {
+              // Settle
+              falling.y = landY;
+              const settled: Stone = {
+                x: falling.x,
+                y: falling.y,
+                width: falling.width,
+                height: falling.height,
+                color: falling.color,
+                shape: falling.shape,
+                rotation: falling.rotation,
+                wobble: 0,
+                wobbleSpeed: falling.wobbleSpeed,
+                wobblePhase: falling.wobblePhase,
+              };
+              tower.push(settled);
+              const newHeight = tower.length;
+              setHeight(newHeight);
+
+              setBest((prev) => {
+                const nb = Math.max(prev, newHeight);
+                try { localStorage.setItem("regulate-stones-best", String(nb)); } catch {}
+                return nb;
+              });
+
+              playPlaceSound(1 + tower.length * 0.03);
+              haptics.tap();
+              spawnDust(falling.x, falling.y + falling.height / 2, 10);
+
+              fallingRef.current = null;
+              setTimeout(() => spawnStone(w), 400);
+            }
+          } else {
+            // Miss — slides off
+            fallingRef.current = {
+              ...falling,
+              vy: -2,
+              settled: false,
+            };
+            // Add sideways velocity
+            (falling as FallingStone & { vx?: number }).x += (falling.x > centerBelow ? 3 : -3);
+            falling.rotation += (Math.random() - 0.5) * 0.1;
+            playSlideSound();
+          }
+        }
+
+        // Off screen — respawn
+        if (falling.y > h + cameraYRef.current + 200) {
+          fallingRef.current = null;
+          setTimeout(() => spawnStone(w), 600);
+        }
+
+        drawStone(ctx!, falling, Math.max(0, 1 - Math.max(0, falling.y - (h + cameraYRef.current)) / 100));
+      }
+
+      // ── Dust ───────────────────────────────────────────────
       for (let i = dust.length - 1; i >= 0; i--) {
         const d = dust[i];
         d.x += d.vx;
@@ -556,71 +487,103 @@ export default function StoneStackingPage() {
       cancelAnimationFrame(animFrameRef.current);
       window.removeEventListener("resize", resize);
     };
+  }, [spawnStone, getGroundY]);
+
+  // ── Pointer handlers — drag to position, release to drop ────
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (!activeStoneRef.current || fallingRef.current) return;
+    isDraggingRef.current = true;
+    dragXRef.current = e.clientX;
+    setHint(false);
+  }, []);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingRef.current || !activeStoneRef.current) return;
+    dragXRef.current = e.clientX;
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    if (!isDraggingRef.current || !activeStoneRef.current) return;
+    isDraggingRef.current = false;
+
+    // Drop the stone
+    const stone = activeStoneRef.current;
+    stone.x = dragXRef.current;
+    fallingRef.current = {
+      ...stone,
+      vy: 0,
+      settled: false,
+      bounceCount: 0,
+    };
+    activeStoneRef.current = null;
+  }, []);
+
+  // ── Reset ────────────────────────────────────────────────────
+
+  const resetTower = useCallback(() => {
+    towerRef.current = [];
+    fallingRef.current = null;
+    activeStoneRef.current = null;
+    cameraYRef.current = 0;
+    setHeight(0);
+    setTimeout(() => spawnStone(window.innerWidth), 200);
   }, [spawnStone]);
-
-  // ── Handle tap ────────────────────────────────────────────────
-
-  const onPointerDown = useCallback(() => {
-    dropStone();
-  }, [dropStone]);
-
-  // ── Render ────────────────────────────────────────────────────
 
   return (
     <div
       className="relative h-dvh w-screen overflow-hidden bg-midnight"
       role="application"
-      aria-label="Stone stacking game - tap to drop stones"
+      aria-label="Stone stacking — drag to position, release to drop"
     >
-      <p className="sr-only">
-        Stones move across the screen. Tap to drop and stack them.
-      </p>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 touch-none"
         onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       />
 
-      {/* Top bar — back + stats */}
+      {/* Top bar — back + stats + reset */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-5">
         <Link
           href="/games"
           className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-deep/60 px-3 py-1.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            className="translate-y-px"
-          >
-            <path
-              d="M10 12L6 8L10 4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
+            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           Games
         </Link>
 
-        <div className="pointer-events-none flex items-center gap-3 rounded-full bg-deep/60 px-3.5 py-1.5 text-xs text-cream-dim/60 backdrop-blur-sm">
-          <span>{height} high</span>
-          {best > 0 && (
-            <>
-              <span className="text-cream-dim/20">·</span>
-              <span>best {best}</span>
-            </>
+        <div className="pointer-events-auto flex items-center gap-2">
+          <div className="flex items-center gap-3 rounded-full bg-deep/60 px-3.5 py-1.5 text-xs text-cream-dim/60 backdrop-blur-sm">
+            <span>{height} high</span>
+            {best > 0 && (
+              <>
+                <span className="text-cream-dim/20">·</span>
+                <span>best {best}</span>
+              </>
+            )}
+          </div>
+
+          {height > 0 && (
+            <button
+              className="rounded-full bg-deep/60 px-3 py-1.5 text-xs text-cream-dim/40 backdrop-blur-sm transition-colors hover:text-cream-dim"
+              onClick={resetTower}
+            >
+              Reset
+            </button>
           )}
         </div>
       </div>
 
-      {/* Tap hint — shows briefly */}
-      {height === 0 && (
+      {/* Drag hint */}
+      {hint && height === 0 && (
         <div className="pointer-events-none absolute inset-x-0 bottom-28 z-10 flex justify-center">
           <p className="rounded-full bg-deep/60 px-4 py-2 text-xs text-cream-dim/50 backdrop-blur-sm">
-            Tap anywhere to drop
+            Drag to position · Release to drop
           </p>
         </div>
       )}
@@ -633,30 +596,14 @@ export default function StoneStackingPage() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-deep/70 px-4 py-3 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream"
           >
             How this helps
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-              className={`transition-transform duration-300 ${showHelp ? "rotate-180" : ""}`}
-            >
-              <path
-                d="M4 6L8 10L12 6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className={`transition-transform duration-300 ${showHelp ? "rotate-180" : ""}`}>
+              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
 
-          <div
-            className={`overflow-hidden transition-all duration-300 ease-out ${
-              showHelp ? "mt-2 max-h-60 opacity-100" : "max-h-0 opacity-0"
-            }`}
-          >
+          <div className={`overflow-hidden transition-all duration-300 ease-out ${showHelp ? "mt-2 max-h-60 opacity-100" : "max-h-0 opacity-0"}`}>
             <div className="rounded-2xl border border-teal/15 bg-deep/80 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
-              Stacking takes patience and timing — two things that are hard when
+              Stacking takes patience and focus &mdash; two things that are hard when
               you&apos;re stressed. Doing it here, where nothing&apos;s at stake,
               helps your brain practice slowing down.
             </div>

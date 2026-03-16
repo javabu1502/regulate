@@ -78,6 +78,16 @@ const patterns: BreathPattern[] = [
       { phase: "exhale", duration: 5, label: "Exhale" },
     ],
   },
+  {
+    id: "extended-exhale",
+    name: "Extended Exhale",
+    description: "Breathe in for 4, out for 8",
+    useCase: "Slowing down fast",
+    steps: [
+      { phase: "inhale", duration: 4, label: "Breathe in" },
+      { phase: "exhale", duration: 8, label: "Slow exhale" },
+    ],
+  },
 ];
 
 const TOTAL_CYCLES = 5;
@@ -87,6 +97,7 @@ const breathingExplanations: Record<string, string> = {
   "478": "That long exhale is the key. Breathing out longer than you breathe in activates your parasympathetic nervous system - basically your body\u2019s built-in brake pedal. You\u2019ll feel it within a few rounds.",
   sigh: "This is what your body does naturally after a good cry or a big relief. The double inhale opens your lungs up, and the long exhale lets everything go. Research suggests it may be one of the most effective real-time calming techniques.",
   coherence: "About 6 breaths per minute is the sweet spot where your heart and breathing sync up - it\u2019s called heart rate variability. It feels like everything just\u2026 settles.",
+  "extended-exhale": "The longer your exhale compared to your inhale, the stronger the calming signal to your nervous system. This is one of the simplest, most reliable ways to slow everything down.",
 };
 
 const breathingWhatYoullDo: Record<string, string> = {
@@ -94,6 +105,7 @@ const breathingWhatYoullDo: Record<string, string> = {
   "478": "You\u2019ll take a deep breath in for 4, hold it for 7, then slowly exhale for 8.",
   sigh: "You\u2019ll take two quick inhales through your nose, then one long exhale through your mouth.",
   coherence: "You\u2019ll breathe in for 5 seconds, out for 5 seconds. That\u2019s it \u2014 just a steady, even rhythm.",
+  "extended-exhale": "You\u2019ll breathe in for 4 seconds, then slowly breathe out for 8 seconds. Simple and powerful.",
 };
 
 // ─── Pattern card icons ─────────────────────────────────────────────
@@ -124,6 +136,13 @@ function PatternIcon({ id }: { id: string }) {
       return (
         <svg className={base} viewBox="0 0 32 32" fill="none">
           <path d="M4 16C4 16 8 8 12 8C16 8 16 24 20 24C24 24 28 16 28 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case "extended-exhale":
+      return (
+        <svg className={base} viewBox="0 0 32 32" fill="none">
+          <path d="M6 20L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M12 12L28 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       );
     default:

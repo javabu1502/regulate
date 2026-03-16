@@ -387,6 +387,25 @@ class AmbientAudio {
     }
 
     this.current = sound;
+    this.setMediaSession(sound);
+  }
+
+  private setMediaSession(sound: AmbientSound): void {
+    if (!('mediaSession' in navigator)) return;
+    const labels: Record<string, string> = {
+      rain: 'Rain Sounds',
+      ocean: 'Ocean Waves',
+      forest: 'Forest Ambience',
+      'white-noise': 'White Noise',
+    };
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: labels[sound] || 'Ambient Sound',
+      artist: 'Regulate',
+      album: 'Ambient Sounds',
+    });
+    navigator.mediaSession.playbackState = 'playing';
+    navigator.mediaSession.setActionHandler('pause', () => this.stop());
+    navigator.mediaSession.setActionHandler('stop', () => this.stop());
   }
 
   stop(): void {
@@ -440,6 +459,11 @@ class AmbientAudio {
     this.oscillators = [];
     this.allNodes = [];
     this.masterGain = null;
+
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'none';
+    }
+
     this.current = "off";
   }
 
