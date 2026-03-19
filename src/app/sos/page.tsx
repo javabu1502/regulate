@@ -11,6 +11,7 @@ import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { getPersonalizedRecommendations } from "@/lib/recommendations";
 import { isPremium } from "@/lib/premium";
 import PresenceCue from "@/components/PresenceCue";
+import { useAudioGuide } from "@/hooks/useAudioGuide";
 
 // ─── Breathing patterns ──────────────────────────────────────────────
 
@@ -270,6 +271,10 @@ function SOSPageInner() {
   // Ambient audio
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
 
+  // Voice audio
+  const breathingAudio = useAudioGuide("breathing");
+  const sosAudio = useAudioGuide("sos");
+
   // Check back later
   const [checkBackScheduled, setCheckBackScheduled] = useState(false);
 
@@ -524,6 +529,22 @@ function SOSPageInner() {
     setChecked(Array(groundingSenses[0].count).fill(false));
     setStep("grounding");
   }
+
+  // Play breathing voice clips
+  const sosSenseFileMap = ["see-5", "touch-4", "hear-3", "smell-2", "taste-1"];
+  useEffect(() => {
+    if (step === "breathing" && currentBreathStep) {
+      const filename = currentBreathStep.label.toLowerCase().replace(/\s+/g, "-");
+      breathingAudio.play(filename);
+    }
+  }, [currentStepIndex, currentCycle, step]);
+
+  // Play grounding voice clips
+  useEffect(() => {
+    if (step === "grounding") {
+      sosAudio.play(sosSenseFileMap[groundingStep]);
+    }
+  }, [groundingStep, step]);
 
   function checkGroundingItem(index: number) {
     const next = [...checked];

@@ -15,6 +15,7 @@ import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
+import { useAudioGuide } from "@/hooks/useAudioGuide";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -409,6 +410,9 @@ function SomaticPageInner() {
   // Ambient audio state
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
 
+  // Voice audio
+  const somaticAudio = useAudioGuide("somatic");
+
   useWakeLock(screen === "session" && !isPaused);
   useScrollMemory("somatic", screen === "select");
 
@@ -536,6 +540,19 @@ function SomaticPageInner() {
       if (vestibularRef.current) cancelAnimationFrame(vestibularRef.current);
     };
   }, [screen, technique, isPaused, totalSeconds]);
+
+  // ─── Voice guidance for step-based exercises ───────────────────
+
+  useEffect(() => {
+    if (screen !== "session") return;
+    // Play audio clip: {technique}-{step+1}.mp3
+    if (currentExercise.sessionSteps) {
+      somaticAudio.play(`${technique}-${sessionStep + 1}`);
+    } else if (currentExercise.sessionInstruction) {
+      // Single-instruction exercises (humming, air-punching, dancing)
+      somaticAudio.play(`${technique}-1`);
+    }
+  }, [sessionStep, screen]);
 
   // ─── Step-based session timer ─────────────────────────────────
 
