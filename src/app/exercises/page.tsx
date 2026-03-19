@@ -19,14 +19,48 @@ interface ExerciseGroup {
   exercises: Exercise[];
 }
 
-// ─── Goal → exercise name mapping ────────────────────────────────────
-const GOAL_EXERCISES: Record<string, string[]> = {
-  calmer: ["Box Breathing", "4-7-8 Breathing", "Coherence", "Body Scan", "Self-Havening", "Gentle Swaying"],
-  awake: ["Body Shaking", "Air Punching", "Free Movement / Dancing", "Bilateral Tapping"],
-  sleepy: ["4-7-8 Breathing", "Sleep Sequence", "Extended Exhale", "Body Scan"],
-  grounded: ["5-4-3-2-1 Senses", "Body Grounding", "Object Grounding", "Orienting"],
-  "less-pain": ["Pendulation", "Body Scan", "Gentle Swaying", "Self-Havening"],
-};
+// ─── Feeling → recommended exercises ─────────────────────────────────
+
+interface FeelingOption {
+  key: string;
+  label: string;
+  subtext: string;
+  exercises: string[];
+}
+
+const FEELINGS: FeelingOption[] = [
+  {
+    key: "calmer",
+    label: "Anxious or tense",
+    subtext: "Slow your nervous system down",
+    exercises: ["Box Breathing", "4-7-8 Breathing", "Physiological Sigh", "Coherence", "Body Scan", "Self-Havening", "Gentle Swaying"],
+  },
+  {
+    key: "grounded",
+    label: "Racing thoughts",
+    subtext: "Come back to your body and the present",
+    exercises: ["5-4-3-2-1 Senses", "Body Grounding", "Object Grounding", "Orienting", "Body Scan"],
+  },
+  {
+    key: "awake",
+    label: "Frozen or numb",
+    subtext: "Wake your body up gently",
+    exercises: ["Body Shaking", "Air Punching", "Free Movement / Dancing", "Bilateral Tapping", "Butterfly Hug"],
+  },
+  {
+    key: "sleepy",
+    label: "Can\u2019t sleep",
+    subtext: "Slow everything down for rest",
+    exercises: ["4-7-8 Breathing", "Sleep Sequence", "Extended Exhale", "Body Scan"],
+  },
+  {
+    key: "less-pain",
+    label: "In pain",
+    subtext: "Work with your body, not against it",
+    exercises: ["Pendulation", "Body Scan", "Gentle Swaying", "Self-Havening"],
+  },
+];
+
 
 // Goal labels kept for potential future use
 
@@ -120,32 +154,29 @@ const exerciseGroups: ExerciseGroup[] = [
   },
 ];
 
+// Flat lookup for exercise details by name
+const exerciseByName = new Map<string, Exercise>();
+for (const g of exerciseGroups) {
+  for (const ex of g.exercises) {
+    if (!exerciseByName.has(ex.name)) exerciseByName.set(ex.name, ex);
+  }
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function ExercisesPage() {
-  const [goalFilter, setGoalFilter] = useState<string>("all");
+  const [activeFeeling, setActiveFeeling] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState<string>("any");
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
-  const filtersActive = goalFilter !== "all" || timeFilter !== "any";
-
-  // Apply both filters to produce the visible groups
+  // Apply time filter to produce the visible groups (for "Browse all" section)
   const filteredGroups = exerciseGroups
     .map((group) => {
-      const filtered = group.exercises.filter((ex) => {
-        // Goal filter
-        if (goalFilter !== "all") {
-          const allowed = GOAL_EXERCISES[goalFilter];
-          if (allowed && !allowed.includes(ex.name)) return false;
-        }
-        // Time filter
-        if (!matchesTimeFilter(ex.time, timeFilter)) return false;
-        return true;
-      });
+      const filtered = group.exercises.filter((ex) => matchesTimeFilter(ex.time, timeFilter));
       return { ...group, exercises: filtered };
     })
-    .filter((group) => !filtersActive || group.exercises.length > 0);
+    .filter((group) => group.exercises.length > 0);
 
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
@@ -171,43 +202,59 @@ export default function ExercisesPage() {
           </p>
         </header>
 
-        {/* "What's going on?" — tappable states that set the goal filter + show a top pick */}
-        <div className="mb-5">
+        {/* "How are you feeling?" — tap a feeling to see exercises that can help */}
+        <div className="mb-6">
           <p className="mb-2.5 text-[10px] uppercase tracking-widest text-cream-dim/40">
-            What&apos;s going on?
+            How are you feeling?
           </p>
           <div className="flex flex-col gap-2">
-            {[
-              { key: "calmer", label: "Anxious or tense", pick: "Physiological Sigh", pickHref: "/breathing?pattern=sigh" },
-              { key: "grounded", label: "Racing thoughts", pick: "5-4-3-2-1 Senses", pickHref: "/grounding?type=sensory" },
-              { key: "awake", label: "Frozen or numb", pick: "Body Shaking", pickHref: "/somatic?exercise=body-shaking" },
-              { key: "sleepy", label: "Can\u2019t sleep", pick: "4-7-8 Breathing", pickHref: "/breathing?pattern=478" },
-              { key: "less-pain", label: "In pain", pick: "Pendulation", pickHref: "/somatic?exercise=pendulation" },
-            ].map((item) => {
-              const isActive = goalFilter === item.key;
+            {FEELINGS.map((feeling) => {
+              const isActive = activeFeeling === feeling.key;
               return (
-                <div key={item.key}>
+                <div key={feeling.key}>
                   <button
-                    onClick={() => { setGoalFilter(isActive ? "all" : item.key); setTimeFilter("any"); }}
-                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm transition-all ${
+                    onClick={() => setActiveFeeling(isActive ? null : feeling.key)}
+                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-all ${
                       isActive
                         ? "border-teal/30 bg-teal/10 text-cream"
                         : "border-slate-blue/15 bg-deep/40 text-cream-dim/60 hover:border-teal/20"
                     }`}
                   >
-                    <span>{item.label}</span>
-                    {isActive && (
-                      <span className="text-xs text-teal-soft/70">Try {item.pick} &rarr;</span>
-                    )}
+                    <div>
+                      <span className="text-sm">{feeling.label}</span>
+                      {isActive && (
+                        <p className="mt-0.5 text-xs text-cream-dim/50">{feeling.subtext}</p>
+                      )}
+                    </div>
+                    <svg
+                      width="14" height="14" viewBox="0 0 16 16" fill="none"
+                      className={`shrink-0 text-cream-dim/40 transition-transform duration-200 ${isActive ? "rotate-180" : ""}`}
+                    >
+                      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </button>
                   {isActive && (
-                    <Link
-                      href={item.pickHref}
-                      className="mt-1.5 ml-4 inline-flex items-center gap-1 text-xs text-teal-soft transition-colors hover:text-teal-soft/80"
-                    >
-                      Start {item.pick}
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4l4 4-4 4" /></svg>
-                    </Link>
+                    <div className="mt-2 flex flex-col gap-1.5 pl-2">
+                      {feeling.exercises.map((name) => {
+                        const ex = exerciseByName.get(name);
+                        if (!ex) return null;
+                        return (
+                          <Link
+                            key={name}
+                            href={ex.href}
+                            className="group flex items-center justify-between rounded-lg border border-slate-blue/10 bg-deep/30 px-3.5 py-2.5 transition-all hover:border-teal/20"
+                          >
+                            <div className="min-w-0">
+                              <span className="text-sm text-cream">{ex.name}</span>
+                              <p className="mt-0.5 text-xs text-cream-dim/40">{ex.description}{ex.time && <span className="text-cream-dim/25"> · {ex.time}</span>}</p>
+                            </div>
+                            <svg className="ml-2 h-3.5 w-3.5 shrink-0 text-cream-dim/25 transition-colors group-hover:text-cream-dim/50" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M6 4l4 4-4 4" />
+                            </svg>
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               );
@@ -215,17 +262,20 @@ export default function ExercisesPage() {
           </div>
         </div>
 
-        {/* Time filter */}
-        <div className="mb-4">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+        {/* Browse all — with time filter */}
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[10px] uppercase tracking-widest text-cream-dim/40">
+            Browse all
+          </p>
+          <div className="flex gap-1.5">
             {TIME_LABELS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTimeFilter(t.key)}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                className={`rounded-full border px-2.5 py-1 text-[10px] transition-colors ${
                   timeFilter === t.key
                     ? "bg-teal/20 text-teal-soft border-teal/30"
-                    : "bg-deep/40 text-cream-dim/50 border-slate-blue/20"
+                    : "bg-deep/40 text-cream-dim/40 border-slate-blue/15"
                 }`}
               >
                 {t.label}
@@ -233,16 +283,6 @@ export default function ExercisesPage() {
             ))}
           </div>
         </div>
-
-        {/* Clear filters */}
-        {filtersActive && (
-          <button
-            onClick={() => { setGoalFilter("all"); setTimeFilter("any"); }}
-            className="mb-4 text-xs text-teal-soft/70 underline underline-offset-2 transition-colors hover:text-teal-soft"
-          >
-            Clear filters
-          </button>
-        )}
 
         {/* Exercise groups (collapsible) */}
         <div className="flex flex-col gap-3">

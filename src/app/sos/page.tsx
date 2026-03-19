@@ -25,7 +25,7 @@ interface BreathStep {
 
 const sighSteps: BreathStep[] = [
   { phase: "inhale", duration: 2, label: "Inhale" },
-  { phase: "inhale", duration: 1, label: "Sip in more" },
+  { phase: "inhale", duration: 2, label: "Sip in more" },
   { phase: "exhale", duration: 6, label: "Long exhale" },
   { phase: "rest", duration: 1, label: "Rest" },
 ];
