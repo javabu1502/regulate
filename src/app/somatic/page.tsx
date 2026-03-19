@@ -388,6 +388,7 @@ function SomaticPageInner() {
   const [activeSide, setActiveSide] = useState<"left" | "right">("left");
   const [elapsed, setElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [controlsHidden, setControlsHidden] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tapIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -693,7 +694,7 @@ function SomaticPageInner() {
 
   function AmbientToggle() {
     return (
-      <div className="fixed bottom-20 left-0 right-0 flex justify-center gap-1">
+      <div className={`fixed bottom-20 left-0 right-0 flex justify-center gap-1 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         {(["off", "rain", "ocean", "forest", "white-noise"] as const).map((s) => (
           <button
             key={s}
@@ -714,7 +715,7 @@ function SomaticPageInner() {
 
   function SessionControls() {
     return (
-      <div className="fixed bottom-6 left-0 right-0 flex items-center justify-center gap-6">
+      <div className={`fixed bottom-6 left-0 right-0 flex items-center justify-center gap-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <button
           onClick={() => setIsPaused((p) => !p)}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:text-cream"
@@ -738,10 +739,10 @@ function SomaticPageInner() {
     const remaining = totalSeconds - elapsed;
     return (
       <>
-        <div className="fixed left-0 right-0 top-2 z-20 px-6">
+        <div className={`fixed left-0 right-0 top-2 z-20 px-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <SessionProgressBar current={Math.min(elapsed, totalSeconds)} total={totalSeconds} />
         </div>
-        <div className="fixed left-0 right-0 top-14 text-center">
+        <div className={`fixed left-0 right-0 top-14 text-center transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <p className="font-mono text-sm text-cream-dim/60">{formatTime(remaining)}</p>
         </div>
       </>
@@ -948,7 +949,14 @@ function SomaticPageInner() {
 
   if (screen === "session" && technique === "bilateral-tapping") {
     return (
-      <div key="session-tapping" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-0">
+      <div
+        key="session-tapping"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-0"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <SessionHeader />
 
         {/* Tap zones */}
@@ -1019,7 +1027,14 @@ function SomaticPageInner() {
 
   if (screen === "session" && technique === "gentle-swaying") {
     return (
-      <div key="session-swaying" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key="session-swaying"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <SessionHeader />
 
         <div className="flex flex-col items-center">
@@ -1067,7 +1082,14 @@ function SomaticPageInner() {
 
   if (screen === "session" && technique === "humming") {
     return (
-      <div key="session-humming" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key="session-humming"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <SessionHeader />
 
         <div className="flex max-w-sm flex-col items-center text-center">
@@ -1104,7 +1126,14 @@ function SomaticPageInner() {
     const phaseNames = ["Horizontal", "Vertical", "Diagonal", "Circular"];
 
     return (
-      <div key="session-vestibular" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key="session-vestibular"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <SessionHeader />
 
         <div className="flex flex-col items-center">
@@ -1141,7 +1170,14 @@ function SomaticPageInner() {
     const stepProgress = Math.min(stepElapsed / currentStepData.duration, 1);
 
     return (
-      <div key="session-steps" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key="session-steps"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <SessionHeader />
 
         <div className="flex max-w-sm flex-col items-center text-center">
@@ -1200,7 +1236,14 @@ function SomaticPageInner() {
 
   if (screen === "session") {
     return (
-      <div key="session-timer" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key="session-timer"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <SessionHeader />
 
         <div className="flex max-w-sm flex-col items-center text-center">
@@ -1237,6 +1280,8 @@ function SomaticPageInner() {
       <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique={currentExercise.name}
+          exerciseId={technique}
+          exerciseHref={"/somatic?exercise=" + technique}
           onDone={() => router.push("/")}
           learnLink="/learn#bilateral"
         />

@@ -119,6 +119,7 @@ export default function BodyScanPage() {
   const [currentRegion, setCurrentRegion] = useState(0);
   const [regionElapsed, setRegionElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [controlsHidden, setControlsHidden] = useState(true);
   const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
   const bodyScanAudio = useAudioGuide("body-scan");
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
@@ -279,14 +280,21 @@ export default function BodyScanPage() {
     const regionRemaining = regionDuration - regionElapsed;
 
     return (
-      <div key="session" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-20 pt-6">
+      <div
+        key="session"
+        className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-20 pt-6"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         {/* Session progress bar */}
-        <div className="fixed left-0 right-0 top-2 z-20 px-6">
+        <div className={`fixed left-0 right-0 top-2 z-20 px-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <SessionProgressBar current={currentRegion + 1} total={regions.length} />
         </div>
 
         {/* Voice + ambient toggles */}
-        <div className="fixed left-0 right-0 top-0 z-20 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top">
+        <div className={`fixed left-0 right-0 top-0 z-20 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <button
             onClick={() => {
               const next = voiceGuidance.toggle();
@@ -315,7 +323,7 @@ export default function BodyScanPage() {
         </div>
 
         {/* Region dots */}
-        <div className="mb-6 mt-4 flex items-center gap-1.5">
+        <div className={`mb-6 mt-4 flex items-center gap-1.5 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {regions.map((_, i) => (
             <div
               key={i}
@@ -349,7 +357,7 @@ export default function BodyScanPage() {
         </div>
 
         {/* Controls */}
-        <div className="fixed bottom-20 flex items-center gap-6">
+        <div className={`fixed bottom-20 flex items-center gap-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <button
             onClick={() => setIsPaused((p) => !p)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:text-cream"
@@ -386,6 +394,8 @@ export default function BodyScanPage() {
       <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique="Body Scan"
+          exerciseId={scanMode === "quick" ? "quick-body-scan" : "full-body-scan"}
+          exerciseHref="/body-scan"
           onDone={() => router.push("/")}
           learnLink="/learn#body-scan"
         />

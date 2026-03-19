@@ -101,6 +101,7 @@ export default function SleepPage() {
 
   // Ambient audio state
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
+  const [controlsHidden, setControlsHidden] = useState(true);
 
   // Timed step state (relaxation, grounding, affirmations, body scan)
   const [stepIndex, setStepIndex] = useState(0);
@@ -369,9 +370,16 @@ export default function SleepPage() {
 
   if (screen === "breathing" && currentStep) {
     return (
-      <div key="breathing" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key="breathing"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         {/* Cycle indicator */}
-        <div className="fixed left-0 right-0 top-8 flex justify-center">
+        <div className={`fixed left-0 right-0 top-8 flex justify-center transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <div className="flex items-center gap-1.5">
             {Array.from({ length: totalCycles }).map((_, i) => (
               <div
@@ -406,7 +414,7 @@ export default function SleepPage() {
         </div>
 
         {/* Ambient sound toggle */}
-        <div className="fixed bottom-20 left-0 right-0 flex flex-wrap justify-center gap-1">
+        <div className={`fixed bottom-20 left-0 right-0 flex flex-wrap justify-center gap-1 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {(["off", "rain", "ocean", "forest"] as const).map((s) => (
             <button
               key={s}
@@ -442,7 +450,14 @@ export default function SleepPage() {
             : "Body scan";
 
     return (
-      <div key={screen} className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key={screen}
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <div className="flex w-full max-w-md flex-col items-center text-center">
           <p className="mb-6 text-xs uppercase tracking-widest text-cream-dim/30">
             {phaseLabel}
@@ -477,7 +492,7 @@ export default function SleepPage() {
         </div>
 
         {/* Ambient sound toggle */}
-        <div className="fixed bottom-20 left-0 right-0 flex flex-wrap justify-center gap-1">
+        <div className={`fixed bottom-20 left-0 right-0 flex flex-wrap justify-center gap-1 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {(["off", "rain", "ocean", "forest"] as const).map((s) => (
             <button
               key={s}
@@ -513,6 +528,8 @@ export default function SleepPage() {
       <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique={techniqueLabel}
+          exerciseId={mode + "-sleep"}
+          exerciseHref="/sleep"
           onDone={() => router.push("/")}
           learnLink="/learn#breathing"
         />

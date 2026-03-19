@@ -26,49 +26,6 @@ interface ContactData {
 
 // ─── Constants ──────────────────────────────────────────────────────
 
-const CATEGORY_ORDER = ["Breathing", "Somatic", "Grounding", "Body Scan", "Sleep", "Other"] as const;
-
-const AVAILABLE_EXERCISES: Exercise[] = [
-  // ── Breathing ──────────────────────────────────────────────
-  { id: "box-breathing", label: "Box Breathing", href: "/breathing?pattern=box", category: "Breathing" },
-  { id: "478-breathing", label: "4-7-8 Breathing", href: "/breathing?pattern=478", category: "Breathing" },
-  { id: "sigh-breathing", label: "Physiological Sigh", href: "/breathing?pattern=sigh", category: "Breathing" },
-  { id: "coherence-breathing", label: "Coherence Breathing", href: "/breathing?pattern=coherence", category: "Breathing" },
-
-  // ── Somatic ────────────────────────────────────────────────
-  { id: "body-shaking", label: "Body Shaking / TRE", href: "/somatic?exercise=body-shaking", category: "Somatic" },
-  { id: "bilateral-tapping", label: "Butterfly Hug", href: "/somatic?exercise=bilateral-tapping", category: "Somatic" },
-  { id: "gentle-swaying", label: "Gentle Swaying", href: "/somatic?exercise=gentle-swaying", category: "Somatic" },
-  { id: "dancing", label: "Free Movement / Dancing", href: "/somatic?exercise=dancing", category: "Somatic" },
-  { id: "air-punching", label: "Air Punching", href: "/somatic?exercise=air-punching", category: "Somatic" },
-  { id: "orienting", label: "Orienting", href: "/somatic?exercise=orienting", category: "Somatic" },
-  { id: "havening", label: "Self-Havening", href: "/somatic?exercise=havening", category: "Somatic" },
-  { id: "vagus-nerve-massage", label: "Vagus Nerve Massage", href: "/somatic?exercise=vagus-nerve-massage", category: "Somatic" },
-  { id: "humming", label: "Humming / Voo Sound", href: "/somatic?exercise=humming", category: "Somatic" },
-  { id: "eye-press", label: "Eye Press Reset", href: "/somatic?exercise=eye-press", category: "Somatic" },
-  { id: "bearing-down", label: "Bearing Down (Valsalva)", href: "/somatic?exercise=bearing-down", category: "Somatic" },
-  { id: "pendulation", label: "Pendulation", href: "/somatic?exercise=pendulation", category: "Somatic" },
-  { id: "vestibular-eyes", label: "Vestibular Eye Movement", href: "/somatic?exercise=vestibular-eyes", category: "Somatic" },
-  { id: "return-to-safety", label: "Return to Safety", href: "/somatic?exercise=return-to-safety", category: "Somatic" },
-
-  // ── Grounding ──────────────────────────────────────────────
-  { id: "grounding-senses", label: "5-4-3-2-1 Senses", href: "/grounding", category: "Grounding" },
-  { id: "grounding-body", label: "Body Grounding", href: "/grounding", category: "Grounding" },
-  { id: "grounding-object", label: "Object Grounding", href: "/grounding", category: "Grounding" },
-
-  // ── Body Scan ──────────────────────────────────────────────
-  { id: "body-scan-full", label: "Full Body Scan", href: "/body-scan", category: "Body Scan" },
-  { id: "body-scan-quick", label: "Quick Body Scan", href: "/body-scan", category: "Body Scan" },
-
-  // ── Sleep ──────────────────────────────────────────────────
-  { id: "sleep-cant", label: "Can't Fall Asleep", href: "/sleep", category: "Sleep" },
-  { id: "sleep-woke", label: "Woke Up Anxious", href: "/sleep", category: "Sleep" },
-  { id: "sleep-racing", label: "Racing Thoughts", href: "/sleep", category: "Sleep" },
-
-  // ── Other ──────────────────────────────────────────────────
-  { id: "affirmations", label: "Affirmations", href: "/affirmations", category: "Other" },
-];
-
 const KEYS = {
   exercises: "regulate-toolkit-exercises",
   media: "regulate-toolkit-media",
@@ -136,7 +93,6 @@ export default function ToolkitPage() {
   const [mediaTitle, setMediaTitle] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [groundingInput, setGroundingInput] = useState("");
-  const [exerciseSearch, setExerciseSearch] = useState("");
 
   // Load data
   useEffect(() => {
@@ -622,58 +578,36 @@ export default function ToolkitPage() {
           {/* ── My Go-To Exercises ────────────────────────────── */}
           <section className="mb-6">
             <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">My go-to exercises</h2>
-            <input
-              type="text"
-              placeholder="Search exercises..."
-              value={exerciseSearch}
-              onChange={(e) => setExerciseSearch(e.target.value)}
-              className="mb-3 w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
-            />
-            <div className="flex flex-col gap-1">
-              {(() => {
-                const query = exerciseSearch.trim().toLowerCase();
-                const filtered = query
-                  ? AVAILABLE_EXERCISES.filter((ex) => ex.label.toLowerCase().includes(query))
-                  : AVAILABLE_EXERCISES;
-
-                return CATEGORY_ORDER.map((cat) => {
-                  const catExercises = filtered.filter((ex) => ex.category === cat);
-                  if (catExercises.length === 0) return null;
-                  return (
-                    <div key={cat} className="mb-2">
-                      <p className="mb-1.5 mt-2 text-[10px] uppercase tracking-widest text-cream-dim/30">{cat}</p>
-                      <div className="flex flex-col gap-2">
-                        {catExercises.map((ex) => {
-                          const selected = exercises.some((e) => e.id === ex.id);
-                          return (
-                            <button
-                              key={ex.id}
-                              onClick={() => toggleExercise(ex)}
-                              className={`flex items-center gap-3 rounded-xl border p-4 text-left text-sm transition-colors ${
-                                selected
-                                  ? "border-teal/30 bg-teal/10 text-cream"
-                                  : "border-slate-blue/20 bg-deep/60 text-cream-dim/60 hover:border-teal/20"
-                              }`}
-                            >
-                              <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
-                                selected ? "border-teal bg-teal/30" : "border-slate-blue/40"
-                              }`}>
-                                {selected && (
-                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                    <path d="M3 6L5.25 8.25L9 3.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal-soft" />
-                                  </svg>
-                                )}
-                              </div>
-                              {ex.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
+            {exercises.length === 0 ? (
+              <div className="rounded-xl border border-slate-blue/20 bg-deep/60 p-4">
+                <p className="text-sm text-cream-dim/50 leading-relaxed">
+                  Complete an exercise and tap &ldquo;Add to toolkit&rdquo; when it helps.
+                  Your favorites will show up here.
+                </p>
+                <Link href="/exercises" className="mt-3 inline-flex items-center gap-1 text-sm text-teal-soft/70 transition-colors hover:text-teal-soft">
+                  Browse exercises
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {exercises.map((ex) => (
+                  <div key={ex.id} className="flex items-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/60 p-3">
+                    <span className="flex-1 text-sm text-cream-dim">{ex.label}</span>
+                    <button
+                      onClick={() => toggleExercise(ex)}
+                      className="shrink-0 text-xs text-cream-dim/30 transition-colors hover:text-coral"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <Link href="/exercises" className="mt-1 inline-flex items-center gap-1 text-xs text-teal-soft/70 transition-colors hover:text-teal-soft">
+                  Browse more exercises
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Link>
+              </div>
+            )}
           </section>
 
           {/* ── My Music & Videos ─────────────────────────────── */}

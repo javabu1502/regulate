@@ -138,6 +138,7 @@ function GroundingPageInner() {
 
   // Ambient audio
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
+  const [controlsHidden, setControlsHidden] = useState(true);
 
   // Voice audio
   const groundingAudio = useAudioGuide("grounding");
@@ -388,9 +389,16 @@ function GroundingPageInner() {
 
   if (screen === "session" && groundingType === "sensory") {
     return (
-      <div key="session-sensory" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div
+        key="session-sensory"
+        className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         {/* Progress bar */}
-        <div className="fixed left-0 right-0 top-0 z-20 h-1 bg-slate-blue/30">
+        <div className={`fixed left-0 right-0 top-0 z-20 h-1 bg-slate-blue/30 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <div
             className="h-full bg-teal-soft/60 transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
@@ -456,7 +464,7 @@ function GroundingPageInner() {
         </div>
 
         {/* Ambient audio toggle */}
-        <div className="fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top">
+        <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}
@@ -485,7 +493,14 @@ function GroundingPageInner() {
     const steps = groundingType === "body" ? bodySteps : objectSteps;
 
     return (
-      <div key={`session-${groundingType}`} className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key={`session-${groundingType}`}
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         <div className="flex w-full max-w-md flex-col items-center text-center">
           <p className="text-xl font-light leading-relaxed text-cream">
             {steps[simpleStepIndex]}
@@ -516,7 +531,7 @@ function GroundingPageInner() {
         </div>
 
         {/* Ambient audio toggle */}
-        <div className="fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top">
+        <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}
@@ -552,6 +567,8 @@ function GroundingPageInner() {
       <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique={techniqueNames[groundingType]}
+          exerciseId={groundingType + "-grounding"}
+          exerciseHref={"/grounding?type=" + groundingType}
           onDone={() => router.push("/")}
           learnLink="/learn#grounding"
         />

@@ -694,6 +694,8 @@ function BreathingPageInner() {
       <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
         <AftercareFlow
           technique={selectedPattern?.name ?? "Guided Breathing"}
+          exerciseId={selectedPattern?.id ?? "box-breathing"}
+          exerciseHref={"/breathing?pattern=" + (selectedPattern?.id ?? "box")}
           onDone={() => router.push("/")}
           learnLink="/learn#breathing"
         />
