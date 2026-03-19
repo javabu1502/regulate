@@ -528,44 +528,39 @@ function BreathingPageInner() {
           setControlsHidden((h) => !h);
         }}
       >
-        {/* Progress bar */}
-        <div className={`fixed left-0 right-0 top-4 z-20 px-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-          <SessionProgressBar current={currentCycle + 1} total={TOTAL_CYCLES} />
+        {/* Cycle dots — always visible */}
+        <div className="fixed left-0 right-0 top-4 z-10 flex justify-center">
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: TOTAL_CYCLES }).map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i < currentCycle
+                    ? "w-4 bg-teal-soft/30"
+                    : i === currentCycle
+                      ? "w-6 bg-teal-soft/60"
+                      : "w-3 bg-slate-blue/30"
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Minimal top bar: cycle dots + key toggles */}
+        {/* Compact icon bar — tap screen to reveal */}
         <div className={`fixed left-0 right-0 top-0 z-20 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-          {/* Cycle dots */}
-          <div className="flex justify-center pt-3 pb-1">
-            <div className="flex items-center gap-1.5">
-              {Array.from({ length: TOTAL_CYCLES }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    i < currentCycle
-                      ? "w-4 bg-teal-soft/50"
-                      : i === currentCycle
-                        ? "w-6 bg-teal-soft"
-                        : "w-3 bg-slate-blue/50"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-          {/* Toggles row */}
-          <div className="flex items-center justify-center gap-3 pb-2">
+          <div className="flex items-center justify-center gap-5 pt-3 pb-2">
+            {/* Voice toggle */}
             <button
-              onClick={() => {
-                const next = voiceGuidance.toggle();
-                setVoiceOn(next);
-              }}
-              className={`text-[10px] transition-all ${
-                voiceOn ? "text-teal-soft" : "text-cream-dim/30"
-              }`}
+              onClick={() => { const next = voiceGuidance.toggle(); setVoiceOn(next); }}
+              className={`transition-all ${voiceOn ? "text-teal-soft" : "text-cream-dim/25"}`}
+              aria-label={voiceOn ? "Voice on" : "Voice off"}
             >
-              {voiceOn ? "Voice on" : "Voice off"}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1C12 1 8 5 8 10C8 15 12 19 12 19" /><path d="M12 1C12 1 16 5 16 10C16 15 12 19 12 19" />
+                {!voiceOn && <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />}
+              </svg>
             </button>
-            <span className="text-cream-dim/15">|</span>
+            {/* Ambient sound cycle */}
             <button
               onClick={() => {
                 const sounds: AmbientSound[] = ["off", "rain", "ocean", "forest"];
@@ -574,18 +569,43 @@ function BreathingPageInner() {
                 if (next === "off") { ambientAudio.stop(); setAmbientSound("off"); }
                 else { ambientAudio.start(next); setAmbientSound(next); }
               }}
-              className="text-[10px] text-cream-dim/30 transition-all"
+              className={`transition-all ${ambientSound !== "off" ? "text-teal-soft" : "text-cream-dim/25"}`}
+              aria-label={`Ambient sound: ${ambientSound}`}
             >
-              {ambientSound === "off" ? "Sound off" : ambientSound === "rain" ? "Rain" : ambientSound === "ocean" ? "Ocean" : "Forest"}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 18V12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12V18" /><path d="M21 19C21 20.1 20.1 21 19 21H18C16.9 21 16 20.1 16 19V16C16 14.9 16.9 14 18 14H21V19Z" /><path d="M3 19C3 20.1 3.9 21 5 21H6C7.1 21 8 20.1 8 19V16C8 14.9 7.1 14 6 14H3V19Z" />
+              </svg>
             </button>
-            <span className="text-cream-dim/15">|</span>
+            {/* Eyes-free toggle */}
             <button
               onClick={() => setEyesFree((v) => !v)}
-              className={`text-[10px] transition-all ${
-                eyesFree ? "text-teal-soft" : "text-cream-dim/30"
-              }`}
+              className={`transition-all ${eyesFree ? "text-teal-soft" : "text-cream-dim/25"}`}
+              aria-label={eyesFree ? "Eyes-free on" : "Eyes-free off"}
             >
-              {eyesFree ? "Eyes-free on" : "Eyes-free"}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12C1 12 5 5 12 5C19 5 23 12 23 12C23 12 19 19 12 19C5 19 1 12 1 12Z" /><circle cx="12" cy="12" r="3" />
+                {eyesFree && <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />}
+              </svg>
+            </button>
+            {/* Pause/play */}
+            <button
+              onClick={() => setIsPaused((p) => !p)}
+              className="text-cream-dim/25 transition-all"
+              aria-label={isPaused ? "Resume" : "Pause"}
+            >
+              {isPaused ? (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><path d="M5 3L15 9L5 15V3Z" /></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="4" y="3" width="3" height="12" rx="1" /><rect x="11" y="3" width="3" height="12" rx="1" /></svg>
+              )}
+            </button>
+            {/* End session */}
+            <button
+              onClick={resetToSelect}
+              className="text-cream-dim/25 transition-all"
+              aria-label="End session"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 4L14 14M14 4L4 14" /></svg>
             </button>
           </div>
         </div>
@@ -608,32 +628,7 @@ function BreathingPageInner() {
           </div>
         </div>
 
-        {/* Controls */}
-        <div className={`fixed bottom-20 z-30 flex items-center gap-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-          <button
-            onClick={() => setIsPaused((p) => !p)}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:border-teal/40 hover:text-cream focus:outline-none focus:ring-2 focus:ring-teal/50"
-            aria-label={isPaused ? "Resume" : "Pause"}
-          >
-            {isPaused ? (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                <path d="M5 3L15 9L5 15V3Z" fill="currentColor" />
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                <rect x="4" y="3" width="3.5" height="12" rx="1" fill="currentColor" />
-                <rect x="10.5" y="3" width="3.5" height="12" rx="1" fill="currentColor" />
-              </svg>
-            )}
-          </button>
-
-          <button
-            onClick={resetToSelect}
-            className="text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
-          >
-            End session
-          </button>
-        </div>
+        {/* Bottom controls moved to top icon bar */}
 
         {/* Eyes-free overlay */}
         {eyesFree && (
