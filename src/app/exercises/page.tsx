@@ -28,14 +28,7 @@ const GOAL_EXERCISES: Record<string, string[]> = {
   "less-pain": ["Pendulation", "Body Scan", "Gentle Swaying", "Self-Havening"],
 };
 
-const GOAL_LABELS: { key: string; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "calmer", label: "Calmer" },
-  { key: "awake", label: "More awake" },
-  { key: "sleepy", label: "Sleepy" },
-  { key: "grounded", label: "Grounded" },
-  { key: "less-pain", label: "Less pain" },
-];
+// Goal labels kept for potential future use
 
 const TIME_LABELS: { key: string; label: string }[] = [
   { key: "any", label: "Any time" },
@@ -130,7 +123,6 @@ const exerciseGroups: ExerciseGroup[] = [
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function ExercisesPage() {
-  const [showGuide, setShowGuide] = useState(false);
   const [goalFilter, setGoalFilter] = useState<string>("all");
   const [timeFilter, setTimeFilter] = useState<string>("any");
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
@@ -179,52 +171,47 @@ export default function ExercisesPage() {
           </p>
         </header>
 
-        {/* Which one should I pick? */}
-        <button
-          onClick={() => setShowGuide(!showGuide)}
-          className="mb-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-teal/15 bg-deep/40 px-4 py-3 text-sm text-cream-dim/60 transition-all hover:border-teal/25 hover:text-cream-dim"
-        >
-          Which one should I pick?
-          <svg
-            width="14" height="14" viewBox="0 0 16 16" fill="none"
-            className={`transition-transform duration-300 ${showGuide ? "rotate-180" : ""}`}
-          >
-            <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        {showGuide && (
-          <div className="mb-6 rounded-2xl border border-teal/15 bg-deep/60 p-5 text-sm leading-relaxed text-cream-dim">
-            <p className="font-medium text-cream mb-2">Quick guide:</p>
-            <ul className="flex flex-col gap-2 text-xs">
-              <li><span className="text-teal-soft">Panicking or can&apos;t breathe?</span> → Physiological Sigh (fastest relief)</li>
-              <li><span className="text-teal-soft">Racing thoughts?</span> → 5-4-3-2-1 Senses or Box Breathing</li>
-              <li><span className="text-teal-soft">Frozen or numb?</span> → Body Shaking, Free Movement, or Bilateral Tapping</li>
-              <li><span className="text-teal-soft">Can&apos;t sleep?</span> → 4-7-8 Breathing or Sleep Sequence</li>
-              <li><span className="text-teal-soft">General anxiety?</span> → Coherence Breathing or Self-Havening</li>
-              <li><span className="text-teal-soft">Need a distraction?</span> → Try the <Link href="/games" className="underline underline-offset-2">Mindful Games</Link></li>
-            </ul>
-          </div>
-        )}
-
-        {/* I want to feel... */}
-        <div className="mb-4">
-          <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/40">
-            I want to feel&hellip;
+        {/* "What's going on?" — tappable states that set the goal filter + show a top pick */}
+        <div className="mb-5">
+          <p className="mb-2.5 text-[10px] uppercase tracking-widest text-cream-dim/40">
+            What&apos;s going on?
           </p>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {GOAL_LABELS.map((g) => (
-              <button
-                key={g.key}
-                onClick={() => setGoalFilter(g.key)}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                  goalFilter === g.key
-                    ? "bg-teal/20 text-teal-soft border-teal/30"
-                    : "bg-deep/40 text-cream-dim/50 border-slate-blue/20"
-                }`}
-              >
-                {g.label}
-              </button>
-            ))}
+          <div className="flex flex-col gap-2">
+            {[
+              { key: "calmer", label: "Anxious or tense", pick: "Physiological Sigh", pickHref: "/breathing?pattern=sigh" },
+              { key: "grounded", label: "Racing thoughts", pick: "5-4-3-2-1 Senses", pickHref: "/grounding?type=sensory" },
+              { key: "awake", label: "Frozen or numb", pick: "Body Shaking", pickHref: "/somatic?exercise=body-shaking" },
+              { key: "sleepy", label: "Can\u2019t sleep", pick: "4-7-8 Breathing", pickHref: "/breathing?pattern=478" },
+              { key: "less-pain", label: "In pain", pick: "Pendulation", pickHref: "/somatic?exercise=pendulation" },
+            ].map((item) => {
+              const isActive = goalFilter === item.key;
+              return (
+                <div key={item.key}>
+                  <button
+                    onClick={() => { setGoalFilter(isActive ? "all" : item.key); setTimeFilter("any"); }}
+                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm transition-all ${
+                      isActive
+                        ? "border-teal/30 bg-teal/10 text-cream"
+                        : "border-slate-blue/15 bg-deep/40 text-cream-dim/60 hover:border-teal/20"
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {isActive && (
+                      <span className="text-xs text-teal-soft/70">Try {item.pick} &rarr;</span>
+                    )}
+                  </button>
+                  {isActive && (
+                    <Link
+                      href={item.pickHref}
+                      className="mt-1.5 ml-4 inline-flex items-center gap-1 text-xs text-teal-soft transition-colors hover:text-teal-soft/80"
+                    >
+                      Start {item.pick}
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4l4 4-4 4" /></svg>
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
