@@ -147,18 +147,18 @@ function ExerciseCard({ exercise }: { exercise: Exercise }) {
   return (
     <Link
       href={exercise.href}
-      className="group flex items-center justify-between rounded-xl border border-slate-blue/10 bg-deep/30 px-4 py-3 transition-all hover:border-teal/20"
+      className="group flex items-center justify-between rounded-lg px-3 py-2.5 transition-all hover:bg-deep/40"
     >
       <div className="min-w-0">
         <div className="flex items-baseline gap-2">
-          <span className="text-sm text-cream">{exercise.name}</span>
+          <span className="text-sm text-cream-dim/70 group-hover:text-cream">{exercise.name}</span>
           {exercise.time && (
-            <span className="text-[10px] text-cream-dim/30">{exercise.time}</span>
+            <span className="text-[10px] text-cream-dim/25">{exercise.time}</span>
           )}
         </div>
-        <p className="mt-0.5 text-xs text-cream-dim/40">{exercise.description}</p>
+        <p className="mt-0.5 text-xs text-cream-dim/30">{exercise.description}</p>
       </div>
-      <svg className="ml-3 h-3.5 w-3.5 shrink-0 text-cream-dim/20 group-hover:text-cream-dim/40" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="ml-3 h-3 w-3 shrink-0 text-cream-dim/15 group-hover:text-cream-dim/35" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M6 4l4 4-4 4" />
       </svg>
     </Link>
@@ -202,21 +202,21 @@ export default function ExercisesPage() {
         </header>
 
         {/* Feeling filter chips */}
-        <div className="mb-5">
-          <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/40">
+        <div className="mb-6">
+          <p className="mb-3 text-sm text-cream/70">
             What are you feeling?
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {FEELINGS.map((feeling) => {
               const isActive = activeFeeling === feeling.key;
               return (
                 <button
                   key={feeling.key}
                   onClick={() => setActiveFeeling(isActive ? null : feeling.key)}
-                  className={`rounded-full border px-3.5 py-1.5 text-sm transition-all ${
+                  className={`rounded-full border px-4 py-2 text-[15px] transition-all ${
                     isActive
                       ? "border-teal/30 bg-teal/15 text-cream"
-                      : "border-slate-blue/15 bg-deep/40 text-cream-dim/50 hover:border-teal/20 hover:text-cream-dim/70"
+                      : "border-slate-blue/20 bg-deep/50 text-cream-dim/60 hover:border-teal/20 hover:text-cream-dim/80"
                   }`}
                 >
                   {feeling.label}
@@ -242,13 +242,13 @@ export default function ExercisesPage() {
 
         {/* Browse all — flat list grouped by category, always visible */}
         {!activeFeeling && (
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             {exerciseGroups.map((group) => (
               <section key={group.label}>
-                <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/30">
+                <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/25">
                   {group.label}
                 </p>
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-0.5">
                   {group.exercises.map((exercise) => (
                     <ExerciseCard key={exercise.name} exercise={exercise} />
                   ))}
