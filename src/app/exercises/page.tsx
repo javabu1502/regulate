@@ -29,7 +29,7 @@ interface FeelingOption {
 const FEELINGS: FeelingOption[] = [
   {
     key: "calmer",
-    label: "Anxious or tense",
+    label: "Anxious",
     subtext: "Slow your nervous system down",
     exercises: ["Box Breathing", "4-7-8 Breathing", "Physiological Sigh", "Coherence", "Body Scan", "Self-Havening", "Gentle Swaying"],
   },
@@ -41,7 +41,7 @@ const FEELINGS: FeelingOption[] = [
   },
   {
     key: "awake",
-    label: "Frozen or numb",
+    label: "Frozen",
     subtext: "Wake your body up gently",
     exercises: ["Body Shaking", "Air Punching", "Free Movement / Dancing", "Bilateral Tapping", "Butterfly Hug"],
   },
@@ -141,11 +141,44 @@ for (const g of exerciseGroups) {
   }
 }
 
+// ─── Exercise card ──────────────────────────────────────────────────
+
+function ExerciseCard({ exercise }: { exercise: Exercise }) {
+  return (
+    <Link
+      href={exercise.href}
+      className="group flex items-center justify-between rounded-xl border border-slate-blue/10 bg-deep/30 px-4 py-3 transition-all hover:border-teal/20"
+    >
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm text-cream">{exercise.name}</span>
+          {exercise.time && (
+            <span className="text-[10px] text-cream-dim/30">{exercise.time}</span>
+          )}
+        </div>
+        <p className="mt-0.5 text-xs text-cream-dim/40">{exercise.description}</p>
+      </div>
+      <svg className="ml-3 h-3.5 w-3.5 shrink-0 text-cream-dim/20 group-hover:text-cream-dim/40" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 4l4 4-4 4" />
+      </svg>
+    </Link>
+  );
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export default function ExercisesPage() {
   const [activeFeeling, setActiveFeeling] = useState<string | null>(null);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+
+  const activeFeelingData = FEELINGS.find((f) => f.key === activeFeeling);
+  const matchingNames = activeFeelingData ? new Set(activeFeelingData.exercises) : null;
+
+  // Build filtered exercise list when a feeling is selected
+  const filteredExercises = matchingNames
+    ? activeFeelingData!.exercises
+        .map((name) => exerciseByName.get(name))
+        .filter((ex): ex is Exercise => ex !== undefined)
+    : null;
 
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
@@ -162,118 +195,68 @@ export default function ExercisesPage() {
         </Link>
 
         {/* Header */}
-        <header className="mb-6">
+        <header className="mb-5">
           <h1 className="text-xl font-light tracking-tight text-cream">
             Exercises
           </h1>
-          <p className="mt-1.5 text-xs text-cream-dim/60">
-            Everything in one place. Pick what feels right.
-          </p>
         </header>
 
-        {/* "How are you feeling?" — tap a feeling to see exercises that can help */}
-        <div className="mb-6">
-          <p className="mb-2.5 text-[10px] uppercase tracking-widest text-cream-dim/40">
-            How are you feeling?
+        {/* Feeling filter chips */}
+        <div className="mb-5">
+          <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/40">
+            What are you feeling?
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
             {FEELINGS.map((feeling) => {
               const isActive = activeFeeling === feeling.key;
               return (
-                <div key={feeling.key}>
-                  <button
-                    onClick={() => setActiveFeeling(isActive ? null : feeling.key)}
-                    className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-all ${
-                      isActive
-                        ? "border-teal/30 bg-teal/10 text-cream"
-                        : "border-slate-blue/15 bg-deep/40 text-cream-dim/60 hover:border-teal/20"
-                    }`}
-                  >
-                    <div>
-                      <span className="text-sm">{feeling.label}</span>
-                      {isActive && (
-                        <p className="mt-0.5 text-xs text-cream-dim/50">{feeling.subtext}</p>
-                      )}
-                    </div>
-                    <svg
-                      width="14" height="14" viewBox="0 0 16 16" fill="none"
-                      className={`shrink-0 text-cream-dim/40 transition-transform duration-200 ${isActive ? "rotate-180" : ""}`}
-                    >
-                      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                  {isActive && (
-                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 pl-4">
-                      {feeling.exercises.map((name) => {
-                        const ex = exerciseByName.get(name);
-                        if (!ex) return null;
-                        return (
-                          <Link
-                            key={name}
-                            href={ex.href}
-                            className="text-sm text-teal-soft transition-colors hover:text-teal-soft/80"
-                          >
-                            {ex.name}{ex.time ? <span className="ml-1 text-[10px] text-cream-dim/30">{ex.time}</span> : null} &rarr;
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <button
+                  key={feeling.key}
+                  onClick={() => setActiveFeeling(isActive ? null : feeling.key)}
+                  className={`rounded-full border px-3.5 py-1.5 text-sm transition-all ${
+                    isActive
+                      ? "border-teal/30 bg-teal/15 text-cream"
+                      : "border-slate-blue/15 bg-deep/40 text-cream-dim/50 hover:border-teal/20 hover:text-cream-dim/70"
+                  }`}
+                >
+                  {feeling.label}
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* Browse all */}
-        <p className="mb-3 text-[10px] uppercase tracking-widest text-cream-dim/40">
-          Browse all
-        </p>
+        {/* Filtered view — when a feeling is selected */}
+        {activeFeelingData && filteredExercises && (
+          <div className="mb-6">
+            <p className="mb-3 text-sm text-cream-dim/50">
+              {activeFeelingData.subtext}
+            </p>
+            <div className="flex flex-col gap-2">
+              {filteredExercises.map((exercise) => (
+                <ExerciseCard key={exercise.name} exercise={exercise} />
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Exercise groups (collapsible) */}
-        <div className="flex flex-col gap-3">
-          {exerciseGroups.map((group) => {
-            const isOpen = expandedGroup === group.label;
-            return (
+        {/* Browse all — flat list grouped by category, always visible */}
+        {!activeFeeling && (
+          <div className="flex flex-col gap-5">
+            {exerciseGroups.map((group) => (
               <section key={group.label}>
-                <button
-                  onClick={() => setExpandedGroup(isOpen ? null : group.label)}
-                  className="flex w-full items-center justify-between rounded-xl border border-slate-blue/15 bg-deep/40 px-4 py-3 transition-all hover:border-teal/25"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-cream">{group.label}</span>
-                    <span className="text-[10px] text-cream-dim/30">{group.exercises.length}</span>
-                  </div>
-                  <svg
-                    width="14" height="14" viewBox="0 0 16 16" fill="none"
-                    className={`text-cream-dim/40 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                  >
-                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-                {isOpen && (
-                  <div className="mt-2 flex flex-col gap-1.5">
-                    {group.exercises.map((exercise) => (
-                      <Link
-                        key={exercise.name}
-                        href={exercise.href}
-                        className="group flex items-center justify-between rounded-lg border border-slate-blue/10 bg-deep/30 px-4 py-3 transition-all hover:border-teal/20"
-                      >
-                        <div className="min-w-0">
-                          <span className="text-sm text-cream">{exercise.name}</span>
-                          <span className="ml-2 text-xs text-cream-dim/35">{exercise.time}</span>
-                        </div>
-                        <svg className="h-3.5 w-3.5 shrink-0 text-cream-dim/25 group-hover:text-cream-dim/50" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M6 4l4 4-4 4" />
-                        </svg>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/30">
+                  {group.label}
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {group.exercises.map((exercise) => (
+                    <ExerciseCard key={exercise.name} exercise={exercise} />
+                  ))}
+                </div>
               </section>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

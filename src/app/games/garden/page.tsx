@@ -123,7 +123,7 @@ export default function BreathingGardenPage() {
 
   const flowersRef = useRef<Flower[]>([]);
   const flowerIdRef = useRef(0);
-  const nextFlowerXRef = useRef(0); // track where next flower goes
+  const tapPosRef = useRef<{ x: number; y: number } | null>(null);
 
   // Growing flower animation — tracks stem/bloom progress
   const growingRef = useRef<{
@@ -338,6 +338,24 @@ export default function BreathingGardenPage() {
         ctx!.stroke();
       }
 
+      // ── Planting marker (shows where the flower will grow) ───
+      const tap = tapPosRef.current;
+      const currentPhase = phaseRef.current;
+      if (tap && (currentPhase === "inhale" || currentPhase === "exhale")) {
+        const markerX = Math.max(w * 0.05, Math.min(w * 0.95, tap.x));
+        const markerY = getGroundY(markerX);
+        const pulse = 0.4 + 0.3 * Math.sin(timeRef.current * 0.06);
+        const markerGlow = ctx!.createRadialGradient(markerX, markerY, 0, markerX, markerY, 12);
+        markerGlow.addColorStop(0, `rgba(94, 234, 212, ${pulse * 0.5})`);
+        markerGlow.addColorStop(1, "rgba(94, 234, 212, 0)");
+        ctx!.fillStyle = markerGlow;
+        ctx!.fillRect(markerX - 12, markerY - 12, 24, 24);
+        ctx!.beginPath();
+        ctx!.arc(markerX, markerY, 3, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(94, 234, 212, ${pulse * 0.6})`;
+        ctx!.fill();
+      }
+
       // ── Draw existing flowers ─────────────────────────────────
       for (const f of flowersRef.current) {
         drawFlower(f, 1, 1);
@@ -440,18 +458,12 @@ export default function BreathingGardenPage() {
     }
 
     if (phase === "rest") {
-      // Brief pause between breaths — circle stays small, no "Tap to begin"
+      // Between breaths — wait for user to tap where they want the next flower
       phaseRef.current = "idle";
       progressRef.current = 0;
       setBreathProgress(0);
       setCountdown(0);
-      // Auto-start next cycle after brief pause
-      const timer = setTimeout(() => {
-        phaseStartRef.current = Date.now();
-        setPhase("inhale");
-        progressRef.current = 0;
-      }, 1200);
-      return () => clearTimeout(timer);
+      return;
     }
 
     phaseRef.current = phase;
@@ -499,18 +511,16 @@ export default function BreathingGardenPage() {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
 
-    // Spread flowers across the ground
-    const margin = w * 0.08;
-    const usableW = w - margin * 2;
-    const count = flowersRef.current.length;
-
-    // Distribute somewhat evenly with randomness
+    // Use tap position if available, otherwise distribute
+    const tap = tapPosRef.current;
     let x: number;
-    if (count < 12) {
-      // First 12 flowers: spread across width
-      const slot = (count % 12) / 12;
-      x = margin + slot * usableW + (Math.random() - 0.5) * (usableW / 12);
+    if (tap) {
+      // Clamp to ground area
+      const margin = w * 0.05;
+      x = Math.max(margin, Math.min(w - margin, tap.x));
     } else {
+      const margin = w * 0.08;
+      const usableW = w - margin * 2;
       x = margin + Math.random() * usableW;
     }
 
@@ -549,8 +559,11 @@ export default function BreathingGardenPage() {
 
   // ── Start breathing ─────────────────────────────────────────────
 
-  const startBreathing = useCallback(() => {
-    if (phase !== "idle") return;
+  const startBreathing = useCallback((tapX?: number, tapY?: number) => {
+    if (phase !== "idle" && phase !== "rest") return;
+    if (tapX !== undefined && tapY !== undefined) {
+      tapPosRef.current = { x: tapX, y: tapY };
+    }
     phaseStartRef.current = Date.now();
     setPhase("inhale");
     progressRef.current = 0;
@@ -576,7 +589,7 @@ export default function BreathingGardenPage() {
     guideText = "Breathe out";
     subText = countdown > 0 ? `${countdown}` : "";
   } else if (phase === "rest") {
-    guideText = "";
+    guideText = "Tap to plant another";
     subText = "";
   }
 
@@ -593,7 +606,9 @@ export default function BreathingGardenPage() {
         className="absolute inset-0 touch-none"
         onPointerDown={(e) => {
           e.preventDefault();
-          if (phase === "idle") startBreathing();
+          if (phase === "idle" || phase === "rest") {
+            startBreathing(e.clientX, e.clientY);
+          }
         }}
       />
 
