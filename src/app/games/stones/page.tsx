@@ -33,9 +33,11 @@ interface Stone {
 }
 
 interface FallingStone extends Stone {
+  vx: number;
   vy: number;
   settled: boolean;
   bounceCount: number;
+  missed: boolean;
 }
 
 interface DustParticle {
@@ -121,11 +123,11 @@ function randomStoneShape(): number[] {
 
 function createStone(x: number, y: number, level: number): Stone {
   // Stones get slightly narrower but stay substantial
-  const baseW = 110 - Math.min(level, 8) * 3;
-  const baseH = 48 - Math.min(level, 8) * 1.5;
-  const aspectVariance = 0.6 + Math.random() * 0.8;
-  const width = Math.max(65, (baseW + (Math.random() - 0.5) * 30) * aspectVariance);
-  const height = Math.max(28, (baseH + (Math.random() - 0.5) * 15) / aspectVariance);
+  const baseW = 100 - Math.min(level, 8) * 3;
+  const baseH = 32 - Math.min(level, 8) * 1;
+  const aspectVariance = 0.7 + Math.random() * 0.6;
+  const width = Math.max(60, (baseW + (Math.random() - 0.5) * 25) * aspectVariance);
+  const height = Math.max(18, (baseH + (Math.random() - 0.5) * 10) / aspectVariance);
   return {
     x,
     y,
@@ -382,68 +384,69 @@ export default function StoneStackingPage() {
       if (falling) {
         falling.vy += 0.25;
         falling.y += falling.vy;
+        falling.x += falling.vx;
 
-        const targetY = topOfTower();
-        const landY = targetY - falling.height / 2;
+        // If already missed, just let it fall off screen
+        if (falling.missed) {
+          falling.rotation += falling.vx > 0 ? 0.02 : -0.02;
+        } else {
+          const targetY = topOfTower();
+          const landY = targetY - falling.height / 2;
 
-        if (falling.y >= landY && falling.vy > 0) {
-          falling.y = landY;
+          if (falling.y >= landY && falling.vy > 0) {
+            falling.y = landY;
 
-          const ts = topStone();
-          const centerBelow = ts ? ts.x : w / 2;
-          const offset = Math.abs(falling.x - centerBelow);
-          const tolerance = ts
-            ? (ts.width / 2 + falling.width / 2) * 0.9
-            : falling.width;
+            const ts = topStone();
+            const centerBelow = ts ? ts.x : w / 2;
+            const offset = Math.abs(falling.x - centerBelow);
+            const tolerance = ts
+              ? (ts.width / 2 + falling.width / 2) * 0.9
+              : falling.width;
 
-          if (offset < tolerance) {
-            // Bounce
-            falling.bounceCount++;
-            falling.vy *= -0.2;
+            if (offset < tolerance) {
+              // Bounce
+              falling.bounceCount++;
+              falling.vy *= -0.2;
 
-            if (falling.bounceCount >= 2 || Math.abs(falling.vy) < 0.5) {
-              // Settle
-              falling.y = landY;
-              const settled: Stone = {
-                x: falling.x,
-                y: falling.y,
-                width: falling.width,
-                height: falling.height,
-                color: falling.color,
-                shape: falling.shape,
-                rotation: falling.rotation,
-                wobble: 0,
-                wobbleSpeed: falling.wobbleSpeed,
-                wobblePhase: falling.wobblePhase,
-              };
-              tower.push(settled);
-              const newHeight = tower.length;
-              setHeight(newHeight);
+              if (falling.bounceCount >= 2 || Math.abs(falling.vy) < 0.5) {
+                // Settle
+                falling.y = landY;
+                const settled: Stone = {
+                  x: falling.x,
+                  y: falling.y,
+                  width: falling.width,
+                  height: falling.height,
+                  color: falling.color,
+                  shape: falling.shape,
+                  rotation: falling.rotation,
+                  wobble: 0,
+                  wobbleSpeed: falling.wobbleSpeed,
+                  wobblePhase: falling.wobblePhase,
+                };
+                tower.push(settled);
+                const newHeight = tower.length;
+                setHeight(newHeight);
 
-              setBest((prev) => {
-                const nb = Math.max(prev, newHeight);
-                try { localStorage.setItem("regulate-stones-best", String(nb)); } catch {}
-                return nb;
-              });
+                setBest((prev) => {
+                  const nb = Math.max(prev, newHeight);
+                  try { localStorage.setItem("regulate-stones-best", String(nb)); } catch {}
+                  return nb;
+                });
 
-              playPlaceSound(1 + tower.length * 0.03);
-              haptics.tap();
-              spawnDust(falling.x, falling.y + falling.height / 2, 10);
+                playPlaceSound(1 + tower.length * 0.03);
+                haptics.tap();
+                spawnDust(falling.x, falling.y + falling.height / 2, 10);
 
-              fallingRef.current = null;
-              setTimeout(() => spawnStone(w), 400);
+                fallingRef.current = null;
+                setTimeout(() => spawnStone(w), 400);
+              }
+            } else {
+              // Miss — slides off sideways
+              falling.missed = true;
+              falling.vy = -3;
+              falling.vx = falling.x > centerBelow ? 4 : -4;
+              playSlideSound();
             }
-          } else {
-            // Miss — slides off
-            fallingRef.current = {
-              ...falling,
-              vy: -2,
-              settled: false,
-            };
-            // Add sideways velocity
-            (falling as FallingStone & { vx?: number }).x += (falling.x > centerBelow ? 3 : -3);
-            falling.rotation += (Math.random() - 0.5) * 0.1;
-            playSlideSound();
           }
         }
 
@@ -512,9 +515,11 @@ export default function StoneStackingPage() {
     stone.x = dragXRef.current;
     fallingRef.current = {
       ...stone,
+      vx: 0,
       vy: 0,
       settled: false,
       bounceCount: 0,
+      missed: false,
     };
     activeStoneRef.current = null;
   }, []);

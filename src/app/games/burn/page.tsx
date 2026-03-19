@@ -390,8 +390,15 @@ export default function BurnNotePage() {
       }
       ctx2d.restore();
 
-      // ── Lighter flame at finger position ─────────────────────
+      // ── Spawn embers at finger position while holding ────────
       const ptr = pointerPosRef.current;
+      if (ptr && isPointerDownRef.current && frameRef.current % 4 === 0) {
+        if (isOnPaper(ptr.x, ptr.y)) {
+          spawnEmbersAt(ptr.x, ptr.y, 1);
+        }
+      }
+
+      // ── Match flame at finger position ────────────────────────
       if (ptr && isPointerDownRef.current) {
         ctx2d.save();
         ctx2d.globalCompositeOperation = "lighter";
@@ -549,18 +556,12 @@ export default function BurnNotePage() {
       ctx2d.restore();
 
       // ── Check if fully burned ──────────────────────────────
-      // Check if burn spots cover the entire paper
       const totalBurnArea = spots.reduce((sum, s) => sum + Math.PI * s.radius * s.radius, 0);
       const paperArea = noteW * noteH;
       const allStopped = spots.every((s) => s.radius >= s.maxRadius);
 
-      if (allStopped && embers.length === 0 && smokes.length === 0) {
-        setPhase("done");
-        return;
-      }
-
-      // Auto-finish: if burn covers > 95% of paper area and all spots stopped growing
-      if (totalBurnArea > paperArea * 2 && allStopped && embers.length < 5 && smokes.length < 5) {
+      // Done when enough burn area covers the paper and particles have mostly cleared
+      if (totalBurnArea > paperArea * 0.75 && allStopped && embers.length < 5 && smokes.length < 5) {
         setPhase("done");
         return;
       }
@@ -588,8 +589,8 @@ export default function BurnNotePage() {
       x: pos.x,
       y: pos.y,
       radius: 0,
-      maxRadius: 80 + Math.random() * 60,
-      speed: 1.2 + Math.random() * 0.8,
+      maxRadius: 50 + Math.random() * 40,
+      speed: 1.5 + Math.random() * 1,
     });
 
     haptics.tap();
@@ -601,21 +602,31 @@ export default function BurnNotePage() {
     const pos = { x: e.clientX, y: e.clientY };
     pointerPosRef.current = pos;
 
-    // Add new burn spots as finger moves (throttled)
+    // Add new burn spots as finger moves — closer spacing for continuous burn trail
     const spots = burnSpotsRef.current;
     const last = spots[spots.length - 1];
     if (last) {
       const dx = pos.x - last.x;
       const dy = pos.y - last.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > 30) {
+      if (dist > 18) {
         spots.push({
           x: pos.x,
           y: pos.y,
           radius: 0,
-          maxRadius: 60 + Math.random() * 50,
-          speed: 1.5 + Math.random() * 1,
+          maxRadius: 45 + Math.random() * 35,
+          speed: 1.8 + Math.random() * 1.2,
         });
+        if (dist > 35) {
+          // Also add intermediate spot for seamless burn trail
+          spots.push({
+            x: last.x + dx * 0.5,
+            y: last.y + dy * 0.5,
+            radius: 0,
+            maxRadius: 40 + Math.random() * 30,
+            speed: 1.5 + Math.random() * 1,
+          });
+        }
       }
     }
   }, []);
@@ -700,7 +711,7 @@ export default function BurnNotePage() {
           </button>
 
           <p className="mt-4 text-xs text-cream-dim/30">
-            Touch the paper to light it
+            Move the match across the paper to burn it
           </p>
         </div>
       )}
@@ -709,7 +720,7 @@ export default function BurnNotePage() {
       {phase === "burning" && (
         <div className="pointer-events-none absolute inset-x-0 top-20 z-20 text-center">
           <p className="text-sm text-cream/30">
-            Touch the paper to burn it
+            Drag the match across the paper
           </p>
         </div>
       )}

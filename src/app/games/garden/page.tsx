@@ -108,14 +108,14 @@ export default function BreathingGardenPage() {
   const animRef = useRef(0);
   const timeRef = useRef(0);
 
-  const [phase, setPhase] = useState<"idle" | "inhale" | "exhale">("idle");
+  const [phase, setPhase] = useState<"idle" | "inhale" | "exhale" | "rest">("idle");
   const [breathProgress, setBreathProgress] = useState(0);
   const [countdown, setCountdown] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
   const [patternIdx, setPatternIdx] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
 
-  const phaseRef = useRef<"idle" | "inhale" | "exhale">("idle");
+  const phaseRef = useRef<"idle" | "inhale" | "exhale" | "rest">("idle");
   const progressRef = useRef(0);
   const patternRef = useRef(BREATH_PATTERNS[0]);
   const phaseStartRef = useRef(0);
@@ -439,6 +439,21 @@ export default function BreathingGardenPage() {
       return;
     }
 
+    if (phase === "rest") {
+      // Brief pause between breaths — circle stays small, no "Tap to begin"
+      phaseRef.current = "idle";
+      progressRef.current = 0;
+      setBreathProgress(0);
+      setCountdown(0);
+      // Auto-start next cycle after brief pause
+      const timer = setTimeout(() => {
+        phaseStartRef.current = Date.now();
+        setPhase("inhale");
+        progressRef.current = 0;
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+
     phaseRef.current = phase;
     const pattern = patternRef.current;
     const duration = phase === "inhale" ? pattern.inhale : pattern.exhale;
@@ -464,17 +479,10 @@ export default function BreathingGardenPage() {
         // Breath complete — grow a flower!
         spawnFlower();
         setCycleCount((c) => c + 1);
-        setPhase("idle");
+        setPhase("rest");
         progressRef.current = 0;
         setBreathProgress(0);
         setCountdown(0);
-
-        // Auto-start next cycle after brief pause
-        setTimeout(() => {
-          phaseStartRef.current = Date.now();
-          setPhase("inhale");
-          progressRef.current = 0;
-        }, 1200);
       }
     }
 
@@ -567,6 +575,9 @@ export default function BreathingGardenPage() {
   } else if (phase === "exhale") {
     guideText = "Breathe out";
     subText = countdown > 0 ? `${countdown}` : "";
+  } else if (phase === "rest") {
+    guideText = "";
+    subText = "";
   }
 
   const flowerCount = flowersRef.current.length + (growingRef.current ? 1 : 0);
@@ -645,7 +656,7 @@ export default function BreathingGardenPage() {
           </button>
 
           {/* Stop button (when breathing) */}
-          {phase !== "idle" && (
+          {(phase === "inhale" || phase === "exhale" || phase === "rest") && (
             <button
               className="rounded-full bg-deep/60 px-3 py-1.5 text-xs text-cream-dim/60 backdrop-blur-sm transition-colors hover:text-cream-dim"
               onClick={stopBreathing}

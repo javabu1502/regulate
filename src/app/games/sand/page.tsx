@@ -298,12 +298,10 @@ export default function SandGardenPage() {
     // Draw sand background with noise
     if (noiseDataRef.current) {
       const offscreen = document.createElement("canvas");
-      offscreen.width = canvas.width;
-      offscreen.height = canvas.height;
+      offscreen.width = w;
+      offscreen.height = h;
       const offCtx = offscreen.getContext("2d");
       if (offCtx) {
-        offCtx.fillStyle = `rgb(${SAND_BASE.r}, ${SAND_BASE.g}, ${SAND_BASE.b})`;
-        offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
         offCtx.putImageData(noiseDataRef.current, 0, 0);
         ctx.drawImage(offscreen, 0, 0, w, h);
       }
@@ -598,10 +596,7 @@ export default function SandGardenPage() {
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    noiseDataRef.current = generateNoise(
-      Math.floor(w / 2),
-      Math.floor(h / 2),
-    );
+    noiseDataRef.current = generateNoise(w, h);
     rocksRef.current = generateRocks(w, h);
     drawScene();
 
