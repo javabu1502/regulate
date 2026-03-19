@@ -9,6 +9,7 @@ import { BodyScanIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
 import { voiceGuidance } from "@/lib/voice-guidance";
+import { useAudioGuide } from "@/hooks/useAudioGuide";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
@@ -119,6 +120,7 @@ export default function BodyScanPage() {
   const [regionElapsed, setRegionElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
+  const bodyScanAudio = useAudioGuide("body-scan");
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -173,7 +175,10 @@ export default function BodyScanPage() {
 
   useEffect(() => {
     if (screen === "session" && voiceOn) {
-      voiceGuidance.speak(`${region.name}. ${region.instruction}`);
+      // Play MP3 clip; quick scan uses quick-* filenames
+      const quickMap: Record<string, string> = { head: "quick-upper", belly: "quick-core", legs: "quick-lower" };
+      const filename = scanMode === "quick" ? quickMap[region.id] || region.id : region.id;
+      bodyScanAudio.play(filename);
     }
   }, [currentRegion, screen]);
 

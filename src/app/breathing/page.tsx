@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { voiceGuidance } from "@/lib/voice-guidance";
+import { useAudioGuide } from "@/hooks/useAudioGuide";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
 
@@ -166,13 +167,9 @@ function BreathingPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const patternParam = searchParams.get("pattern");
-  const [screen, setScreen] = useState<Screen>("select");
-  const [selectedPattern, setSelectedPattern] = useState<BreathPattern | null>(() => {
-    if (patternParam) {
-      return patterns.find((p) => p.id === patternParam) ?? null;
-    }
-    return null;
-  });
+  const initialPattern = patternParam ? patterns.find((p) => p.id === patternParam) ?? null : null;
+  const [screen, setScreen] = useState<Screen>(initialPattern ? "intro" : "select");
+  const [selectedPattern, setSelectedPattern] = useState<BreathPattern | null>(initialPattern);
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
 
   // Session state
@@ -183,6 +180,7 @@ function BreathingPageInner() {
   const [isPaused, setIsPaused] = useState(false);
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
   const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
+  const breathingAudio = useAudioGuide("breathing");
   const [eyesFree, setEyesFree] = useState(false);
   const [gentleStart, setGentleStart] = useState(false);
   const animFrameRef = useRef<number>(0);
@@ -284,7 +282,9 @@ function BreathingPageInner() {
 
   useEffect(() => {
     if (screen === "session" && currentStep && voiceOn) {
-      voiceGuidance.speak(currentStep.label);
+      // Play MP3 clip; fall back to TTS if file missing
+      const filename = currentStep.label.toLowerCase().replace(/\s+/g, "-");
+      breathingAudio.play(filename);
     }
   }, [currentStepIndex, currentCycle, screen]);
 

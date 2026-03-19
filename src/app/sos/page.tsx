@@ -41,10 +41,10 @@ const EXTENDED_EXHALE_CYCLES = 5;
 // ─── 5-4-3-2-1 Grounding ────────────────────────────────────────────
 
 const groundingSenses = [
-  { count: 5, sense: "See", prompt: "What are 5 things you can see?" },
-  { count: 4, sense: "Touch", prompt: "What are 4 things you can feel?" },
-  { count: 3, sense: "Hear", prompt: "What are 3 sounds?" },
-  { count: 2, sense: "Smell", prompt: "What are 2 things you can smell?" },
+  { count: 5, sense: "See", prompt: "Name 5 things you can see right now." },
+  { count: 4, sense: "Touch", prompt: "Notice 4 things you can physically feel." },
+  { count: 3, sense: "Hear", prompt: "What are 3 sounds around you?" },
+  { count: 2, sense: "Smell", prompt: "Can you notice 2 smells?" },
   { count: 1, sense: "Taste", prompt: "What's 1 thing you can taste?" },
 ];
 
