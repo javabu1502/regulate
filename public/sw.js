@@ -1,7 +1,7 @@
 // Regulate — Service Worker
 // Cache-first for static assets, network-first for pages, offline fallback
 
-const CACHE_VERSION = "regulate-v7";
+const CACHE_VERSION = "regulate-v8";
 const STATIC_CACHE = "regulate-static-v7";
 const PAGES_CACHE = "regulate-pages-v7";
 const AUDIO_CACHE = "regulate-audio-v7";
@@ -291,17 +291,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Audio files — cache-first (these are large, avoid re-downloading)
-  if (isAudioFile(url)) {
-    event.respondWith(
-      cacheFirst(request, AUDIO_CACHE).then(
-        (response) =>
-          response ||
-          new Response("Audio unavailable offline", { status: 503 })
-      )
-    );
-    return;
-  }
+  // Audio files — let the browser handle natively (range requests
+  // and replay work better without SW interception)
+  if (isAudioFile(url)) return;
 
   // Next.js bundles (JS/CSS chunks) — cache-first (content-hashed filenames)
   if (isNextBundle(url)) {
