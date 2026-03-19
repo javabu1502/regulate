@@ -8,6 +8,7 @@ import AftercareFlow from "@/components/AftercareFlow";
 import MicroExplanation from "@/components/MicroExplanation";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
+import { useAudioGuide } from "@/hooks/useAudioGuide";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
 
@@ -138,6 +139,9 @@ function GroundingPageInner() {
   // Ambient audio
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
 
+  // Voice audio
+  const groundingAudio = useAudioGuide("grounding");
+
   // Cleanup ambient on unmount
   useEffect(() => {
     return () => { ambientAudio.stop(); };
@@ -149,6 +153,23 @@ function GroundingPageInner() {
       setChecked(Array(senseSteps[stepIndex].count).fill(false));
     }
   }, [stepIndex, screen, groundingType]);
+
+  // Play voice clips when steps change
+  const senseFileMap = ["see-5", "touch-4", "hear-3", "smell-2", "taste-1"];
+  useEffect(() => {
+    if (screen === "session" && groundingType === "sensory") {
+      groundingAudio.play(senseFileMap[stepIndex]);
+    }
+  }, [stepIndex, screen]);
+
+  useEffect(() => {
+    if (screen === "session" && groundingType === "body") {
+      groundingAudio.play(`body-${simpleStepIndex + 1}`);
+    }
+    if (screen === "session" && groundingType === "object") {
+      groundingAudio.play(`object-${simpleStepIndex + 1}`);
+    }
+  }, [simpleStepIndex, screen]);
 
   const currentSense = senseSteps[stepIndex];
   const totalItems = senseSteps.reduce((sum, s) => sum + s.count, 0);
