@@ -82,6 +82,9 @@ export function useAudioGuide(module: string) {
     };
   }, [module]);
 
+  // Track current play request so stale timeouts don't replay
+  const playIdRef = useRef(0);
+
   const play = useCallback(
     (step: string) => {
       if (!isVoiceEnabled()) return;
@@ -94,10 +97,11 @@ export function useAudioGuide(module: string) {
       // If already playing this exact file, let it continue
       if (audio.src.endsWith(path) && !audio.paused && !audio.ended) return;
 
+      // Bump play ID so any previous fallback timeout becomes stale
+      const id = ++playIdRef.current;
+
       // Abort any pending load/play before starting a new one
       audio.pause();
-
-      // Remove any previous canplay listener
       audio.oncanplay = null;
 
       // Change source and start loading
@@ -107,24 +111,20 @@ export function useAudioGuide(module: string) {
       // Wait for the browser to actually buffer enough data, then play
       audio.oncanplay = () => {
         audio.oncanplay = null;
-        // Only play if this is still the file we want (hasn't been replaced by another play() call)
-        if (audio.src.endsWith(path)) {
+        if (playIdRef.current === id) {
           audio.play().catch(() => {
             setIsPlaying(false);
           });
         }
       };
 
-      // Fallback: if canplay doesn't fire within 3s, try playing anyway
-      // (handles edge cases where canplay already fired before listener attached)
-      setTimeout(() => {
-        if (audio.src.endsWith(path) && audio.paused && audio.readyState >= 2) {
-          audio.oncanplay = null;
-          audio.play().catch(() => {
-            setIsPlaying(false);
-          });
-        }
-      }, 3000);
+      // Fallback: if canplay already fired before listener was attached
+      if (audio.readyState >= 3) {
+        audio.oncanplay = null;
+        audio.play().catch(() => {
+          setIsPlaying(false);
+        });
+      }
     },
     [module]
   );
