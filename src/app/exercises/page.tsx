@@ -234,7 +234,7 @@ export default function ExercisesPage() {
                     </svg>
                   </button>
                   {isActive && (
-                    <div className="mt-2 flex flex-col gap-1.5 pl-2">
+                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 pl-4">
                       {feeling.exercises.map((name) => {
                         const ex = exerciseByName.get(name);
                         if (!ex) return null;
@@ -242,15 +242,9 @@ export default function ExercisesPage() {
                           <Link
                             key={name}
                             href={ex.href}
-                            className="group flex items-center justify-between rounded-lg border border-slate-blue/10 bg-deep/30 px-3.5 py-2.5 transition-all hover:border-teal/20"
+                            className="text-sm text-teal-soft transition-colors hover:text-teal-soft/80"
                           >
-                            <div className="min-w-0">
-                              <span className="text-sm text-cream">{ex.name}</span>
-                              <p className="mt-0.5 text-xs text-cream-dim/40">{ex.description}{ex.time && <span className="text-cream-dim/25"> · {ex.time}</span>}</p>
-                            </div>
-                            <svg className="ml-2 h-3.5 w-3.5 shrink-0 text-cream-dim/25 transition-colors group-hover:text-cream-dim/50" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M6 4l4 4-4 4" />
-                            </svg>
+                            {ex.name}{ex.time ? <span className="ml-1 text-[10px] text-cream-dim/30">{ex.time}</span> : null} &rarr;
                           </Link>
                         );
                       })}
