@@ -94,13 +94,37 @@ export function useAudioGuide(module: string) {
       // If already playing this exact file, let it continue
       if (audio.src.endsWith(path) && !audio.paused && !audio.ended) return;
 
-      // Change source and play
+      // Abort any pending load/play before starting a new one
+      audio.pause();
+
+      // Remove any previous canplay listener
+      audio.oncanplay = null;
+
+      // Change source and start loading
       audio.src = path;
       audio.load();
-      audio.play().catch(() => {
-        // File missing or blocked — silently fail
-        setIsPlaying(false);
-      });
+
+      // Wait for the browser to actually buffer enough data, then play
+      audio.oncanplay = () => {
+        audio.oncanplay = null;
+        // Only play if this is still the file we want (hasn't been replaced by another play() call)
+        if (audio.src.endsWith(path)) {
+          audio.play().catch(() => {
+            setIsPlaying(false);
+          });
+        }
+      };
+
+      // Fallback: if canplay doesn't fire within 3s, try playing anyway
+      // (handles edge cases where canplay already fired before listener attached)
+      setTimeout(() => {
+        if (audio.src.endsWith(path) && audio.paused && audio.readyState >= 2) {
+          audio.oncanplay = null;
+          audio.play().catch(() => {
+            setIsPlaying(false);
+          });
+        }
+      }, 3000);
     },
     [module]
   );
