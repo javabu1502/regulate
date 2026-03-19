@@ -435,7 +435,7 @@ function GroundingPageInner() {
         </div>
 
         {/* Ambient audio toggle */}
-        <div className="fixed right-4 top-6 z-10 flex gap-1.5">
+        <div className="fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top">
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}
@@ -495,7 +495,7 @@ function GroundingPageInner() {
         </div>
 
         {/* Ambient audio toggle */}
-        <div className="fixed right-4 top-6 z-10 flex gap-1.5">
+        <div className="fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top">
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}

@@ -406,7 +406,7 @@ export default function SleepPage() {
         </div>
 
         {/* Ambient sound toggle */}
-        <div className="fixed bottom-16 left-0 right-0 flex justify-center gap-1">
+        <div className="fixed bottom-20 left-0 right-0 flex flex-wrap justify-center gap-1">
           {(["off", "rain", "ocean", "forest"] as const).map((s) => (
             <button
               key={s}
@@ -477,7 +477,7 @@ export default function SleepPage() {
         </div>
 
         {/* Ambient sound toggle */}
-        <div className="fixed bottom-16 left-0 right-0 flex justify-center gap-1">
+        <div className="fixed bottom-20 left-0 right-0 flex flex-wrap justify-center gap-1">
           {(["off", "rain", "ocean", "forest"] as const).map((s) => (
             <button
               key={s}

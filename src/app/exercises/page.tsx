@@ -134,6 +134,7 @@ export default function ExercisesPage() {
   const [goalFilter, setGoalFilter] = useState<string>("all");
   const [timeFilter, setTimeFilter] = useState<string>("any");
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
   const filtersActive = goalFilter !== "all" || timeFilter !== "any";
 
@@ -256,48 +257,65 @@ export default function ExercisesPage() {
           </button>
         )}
 
-        {/* Exercise groups */}
-        <div className="flex flex-col gap-8">
-          {filteredGroups.map((group) => (
-            <section key={group.label}>
-              <p className="mb-3 text-[10px] uppercase tracking-widest text-cream-dim/40">
-                {group.label}
-              </p>
-              <div className="flex flex-col gap-2">
-                {group.exercises.map((exercise) => (
-                  <div key={exercise.name} className="relative">
-                    <Link
-                      href={exercise.href}
-                      className="group block rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/50"
-                    >
-                      <div className={`flex items-center justify-between gap-3 rounded-xl border border-slate-blue/15 bg-deep/40 px-4 py-3.5 transition-all duration-300 hover:border-teal/25 active:scale-[0.99]${exercise.why ? " pr-12" : ""}`}>
-                        <div className="min-w-0">
-                          <h3 className="text-sm font-medium text-cream">{exercise.name}</h3>
-                          <p className="mt-0.5 text-xs text-cream-dim/50">{exercise.description}{exercise.time && <span className="text-cream-dim/30"> · {exercise.time}</span>}</p>
-                        </div>
-                        <svg className="h-4 w-4 shrink-0 text-cream-dim/30 transition-colors group-hover:text-cream-dim/60" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M6 4l4 4-4 4" />
-                        </svg>
-                      </div>
-                    </Link>
-                    {exercise.why && (
-                      <MicroExplanation
-                        text={exercise.why}
-                        isOpen={expandedExplanation === exercise.name}
-                        onToggle={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setExpandedExplanation(
-                            expandedExplanation === exercise.name ? null : exercise.name
-                          );
-                        }}
-                      />
-                    )}
+        {/* Exercise groups (collapsible) */}
+        <div className="flex flex-col gap-3">
+          {filteredGroups.map((group) => {
+            const isOpen = expandedGroup === group.label;
+            return (
+              <section key={group.label}>
+                <button
+                  onClick={() => setExpandedGroup(isOpen ? null : group.label)}
+                  className="flex w-full items-center justify-between rounded-xl border border-slate-blue/15 bg-deep/40 px-4 py-3 transition-all hover:border-teal/25"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-cream">{group.label}</span>
+                    <span className="text-[10px] text-cream-dim/30">{group.exercises.length}</span>
                   </div>
-                ))}
-              </div>
-            </section>
-          ))}
+                  <svg
+                    width="14" height="14" viewBox="0 0 16 16" fill="none"
+                    className={`text-cream-dim/40 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                {isOpen && (
+                  <div className="mt-2 flex flex-col gap-2">
+                    {group.exercises.map((exercise) => (
+                      <div key={exercise.name} className="relative">
+                        <Link
+                          href={exercise.href}
+                          className="group block rounded-xl focus:outline-none focus:ring-2 focus:ring-teal/50"
+                        >
+                          <div className={`flex items-center justify-between gap-3 rounded-xl border border-slate-blue/15 bg-deep/40 px-4 py-3.5 transition-all duration-300 hover:border-teal/25 active:scale-[0.99]${exercise.why ? " pr-12" : ""}`}>
+                            <div className="min-w-0">
+                              <h3 className="text-sm font-medium text-cream">{exercise.name}</h3>
+                              <p className="mt-0.5 text-xs text-cream-dim/50">{exercise.description}{exercise.time && <span className="text-cream-dim/30"> · {exercise.time}</span>}</p>
+                            </div>
+                            <svg className="h-4 w-4 shrink-0 text-cream-dim/30 transition-colors group-hover:text-cream-dim/60" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M6 4l4 4-4 4" />
+                            </svg>
+                          </div>
+                        </Link>
+                        {exercise.why && (
+                          <MicroExplanation
+                            text={exercise.why}
+                            isOpen={expandedExplanation === exercise.name}
+                            onToggle={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setExpandedExplanation(
+                                expandedExplanation === exercise.name ? null : exercise.name
+                              );
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
         </div>
       </main>
     </div>

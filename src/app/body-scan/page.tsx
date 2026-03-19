@@ -286,7 +286,7 @@ export default function BodyScanPage() {
         </div>
 
         {/* Voice + ambient toggles */}
-        <div className="fixed right-4 top-4 z-20 flex gap-1.5">
+        <div className="fixed left-0 right-0 top-0 z-20 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top">
           <button
             onClick={() => {
               const next = voiceGuidance.toggle();
@@ -349,7 +349,7 @@ export default function BodyScanPage() {
         </div>
 
         {/* Controls */}
-        <div className="fixed bottom-8 flex items-center gap-6">
+        <div className="fixed bottom-20 flex items-center gap-6">
           <button
             onClick={() => setIsPaused((p) => !p)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:text-cream"

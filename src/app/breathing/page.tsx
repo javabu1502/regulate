@@ -611,7 +611,7 @@ function BreathingPageInner() {
         </div>
 
         {/* Controls */}
-        <div className="fixed bottom-10 z-30 flex items-center gap-6">
+        <div className="fixed bottom-20 z-30 flex items-center gap-6">
           <button
             onClick={() => setIsPaused((p) => !p)}
             className="flex h-12 w-12 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:border-teal/40 hover:text-cream focus:outline-none focus:ring-2 focus:ring-teal/50"
