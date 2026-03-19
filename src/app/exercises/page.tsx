@@ -87,9 +87,9 @@ const exerciseGroups: ExerciseGroup[] = [
   {
     label: "Grounding",
     exercises: [
-      { name: "5-4-3-2-1 Senses", description: "Use your senses to come back to now", href: "/grounding", time: "3-5 min", why: "When your brain is busy noticing real things around you, it can't stay stuck in anxious thoughts." },
-      { name: "Body Grounding", description: "Feel your body's connection to the ground", href: "/grounding", time: "3 min" },
-      { name: "Object Grounding", description: "Focus on something you can hold", href: "/grounding", time: "2 min" },
+      { name: "5-4-3-2-1 Senses", description: "Use your senses to come back to now", href: "/grounding?type=sensory", time: "3-5 min", why: "When your brain is busy noticing real things around you, it can't stay stuck in anxious thoughts." },
+      { name: "Body Grounding", description: "Feel your body's connection to the ground", href: "/grounding?type=body", time: "3 min" },
+      { name: "Object Grounding", description: "Focus on something you can hold", href: "/grounding?type=object", time: "2 min" },
     ],
   },
   {

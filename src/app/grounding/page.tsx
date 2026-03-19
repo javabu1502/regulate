@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { GroundingIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
@@ -110,9 +110,21 @@ type Screen = "select" | "intro" | "session" | "complete";
 type GroundingType = "sensory" | "body" | "object";
 
 export default function GroundingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-midnight" />}>
+      <GroundingPageInner />
+    </Suspense>
+  );
+}
+
+function GroundingPageInner() {
   const router = useRouter();
-  const [screen, setScreen] = useState<Screen>("select");
-  const [groundingType, setGroundingType] = useState<GroundingType>("sensory");
+  const searchParams = useSearchParams();
+  const typeParam = searchParams.get("type") as GroundingType | null;
+  const validTypes: GroundingType[] = ["sensory", "body", "object"];
+  const initialType = typeParam && validTypes.includes(typeParam) ? typeParam : null;
+  const [screen, setScreen] = useState<Screen>(initialType ? "intro" : "select");
+  const [groundingType, setGroundingType] = useState<GroundingType>(initialType || "sensory");
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
 
   // Sensory grounding state

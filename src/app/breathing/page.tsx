@@ -524,56 +524,54 @@ function BreathingPageInner() {
           <SessionProgressBar current={currentCycle + 1} total={TOTAL_CYCLES} />
         </div>
 
-        {/* Gentle start toggle */}
-        <div className="fixed left-4 top-4 z-20">
-          <button
-            onClick={() => setGentleStart((g) => !g)}
-            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              gentleStart ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
-            }`}
-            aria-pressed={gentleStart}
-          >
-            Gentle start
-          </button>
-        </div>
-
-        {/* Voice, ambient & eyes-free toggles */}
-        <div className="fixed right-4 top-4 z-30 flex gap-1">
-          <button
-            onClick={() => setEyesFree((v) => !v)}
-            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              eyesFree ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
-            }`}
-            aria-label="Toggle eyes-free mode"
-            aria-pressed={eyesFree}
-          >
-            Eyes-free
-          </button>
-          <button
-            onClick={() => {
-              const next = voiceGuidance.toggle();
-              setVoiceOn(next);
-            }}
-            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
-            }`}
-          >
-            Voice
-          </button>
-          {(["rain", "ocean", "forest", "off"] as const).map((s) => (
+        {/* Session controls toolbar */}
+        <div className="fixed left-0 right-0 top-0 z-20 px-3 pt-3 pb-2 safe-top">
+          <div className="flex flex-wrap items-center justify-center gap-1">
             <button
-              key={s}
+              onClick={() => setGentleStart((g) => !g)}
+              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+                gentleStart ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+              }`}
+              aria-pressed={gentleStart}
+            >
+              Gentle start
+            </button>
+            <button
+              onClick={() => setEyesFree((v) => !v)}
+              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+                eyesFree ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+              }`}
+              aria-label="Toggle eyes-free mode"
+              aria-pressed={eyesFree}
+            >
+              Eyes-free
+            </button>
+            <button
               onClick={() => {
-                if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
-                else { ambientAudio.start(s); setAmbientSound(s); }
+                const next = voiceGuidance.toggle();
+                setVoiceOn(next);
               }}
               className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+                voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
               }`}
             >
-              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
+              Voice
             </button>
-          ))}
+            {(["rain", "ocean", "forest", "off"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => {
+                  if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+                  else { ambientAudio.start(s); setAmbientSound(s); }
+                }}
+                className={`rounded-full px-2 py-1 text-[10px] transition-all ${
+                  ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+                }`}
+              >
+                {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Cycle dots */}
