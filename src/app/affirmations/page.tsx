@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { AffirmationsIcon } from "@/components/Icons";
 import { haptics } from "@/lib/haptics";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
+import { useAudioGuide } from "@/hooks/useAudioGuide";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
@@ -189,6 +190,7 @@ function AffirmationsPageInner() {
   const [newPersonal, setNewPersonal] = useState("");
   const [recommendedCats, setRecommendedCats] = useState<Category[]>([]);
   const [autoStarted, setAutoStarted] = useState(false);
+  const affirmationAudio = useAudioGuide("affirmations");
 
   const searchParams = useSearchParams();
   const queryState = searchParams.get("state");
@@ -216,8 +218,16 @@ function AffirmationsPageInner() {
   ];
 
   const filtered = allAffirmations.filter((a) => a.category === activeCategory);
-  const current = filtered[currentIndex % Math.max(1, filtered.length)];
+  const currentIdx = currentIndex % Math.max(1, filtered.length);
+  const current = filtered[currentIdx];
   const isFaved = current ? favorites.includes(current.text) : false;
+
+  // Play audio clip when affirmation changes
+  useEffect(() => {
+    if (view === "flow" && current && activeCategory !== "personal") {
+      affirmationAudio.play(`${activeCategory}-${currentIdx + 1}`);
+    }
+  }, [currentIdx, activeCategory, view]);
 
   const advance = useCallback(() => {
     haptics.subtle();
