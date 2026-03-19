@@ -92,14 +92,17 @@ export function useAudioGuide(module: string) {
       audio.setAttribute("playsinline", "true");
       audio.preload = "auto";
 
-      const onReady = () => {
+      let started = false;
+      const tryPlay = () => {
+        if (started) return;
+        started = true;
         audio.play().catch(() => {
           // Audio file doesn't exist or can't play - silently fail
         });
         setIsPlaying(true);
       };
 
-      audio.addEventListener("canplaythrough", onReady, { once: true });
+      audio.addEventListener("canplaythrough", tryPlay, { once: true });
 
       audio.addEventListener("ended", () => {
         setIsPlaying(false);
@@ -113,8 +116,12 @@ export function useAudioGuide(module: string) {
       });
 
       audioRef.current = audio;
-      // Force load to ensure canplaythrough fires even for cached files
       audio.load();
+
+      // For cached files, readyState may already be sufficient — play immediately
+      if (audio.readyState >= 3) {
+        tryPlay();
+      }
     },
     [module]
   );
