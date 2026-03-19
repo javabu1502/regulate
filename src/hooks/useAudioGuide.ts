@@ -13,6 +13,46 @@ function isVoiceEnabled(): boolean {
   }
 }
 
+// ─── iOS Audio Unlock ──────────────────────────────────────────────
+// iOS Safari blocks audio playback until a user gesture "unlocks" it.
+// We create a shared AudioContext and resume it on the first tap/click.
+// Once unlocked, all subsequent Audio() calls work normally.
+
+let audioUnlocked = false;
+let sharedCtx: AudioContext | null = null;
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  try {
+    if (!sharedCtx) {
+      sharedCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    }
+    if (sharedCtx.state === "suspended") {
+      sharedCtx.resume();
+    }
+    // Play a silent buffer to fully unlock HTML5 Audio on iOS
+    const buffer = sharedCtx.createBuffer(1, 1, 22050);
+    const source = sharedCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(sharedCtx.destination);
+    source.start(0);
+    audioUnlocked = true;
+  } catch {
+    // Ignore — non-critical
+  }
+}
+
+if (typeof window !== "undefined") {
+  const events = ["touchstart", "touchend", "click", "keydown"];
+  const handler = () => {
+    unlockAudio();
+    events.forEach((e) => document.removeEventListener(e, handler, true));
+  };
+  events.forEach((e) => document.addEventListener(e, handler, { capture: true, once: false, passive: true }));
+}
+
+// ─── Hook ──────────────────────────────────────────────────────────
+
 /**
  * Hook for playing voice guidance audio files.
  * Falls back silently if audio file doesn't exist or voice is disabled.
@@ -47,6 +87,9 @@ export function useAudioGuide(module: string) {
 
       const path = `/audio/${module}/${step}.mp3`;
       const audio = new Audio(path);
+
+      // iOS: set playback attributes for inline playback
+      audio.setAttribute("playsinline", "true");
 
       audio.addEventListener("canplaythrough", () => {
         audio.play().catch(() => {
