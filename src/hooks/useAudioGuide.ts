@@ -103,6 +103,7 @@ export function useAudioGuide(module: string) {
       };
 
       audio.addEventListener("canplaythrough", tryPlay, { once: true });
+      audio.addEventListener("canplay", tryPlay, { once: true });
 
       audio.addEventListener("ended", () => {
         setIsPlaying(false);
@@ -118,9 +119,12 @@ export function useAudioGuide(module: string) {
       audioRef.current = audio;
       audio.load();
 
-      // For cached files, readyState may already be sufficient — play immediately
-      if (audio.readyState >= 3) {
+      // For cached files, readyState may already be sufficient
+      if (audio.readyState >= 2) {
         tryPlay();
+      } else {
+        // Safety net: if no event fires within 500ms, try playing anyway
+        setTimeout(() => tryPlay(), 500);
       }
     },
     [module]
