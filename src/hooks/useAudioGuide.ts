@@ -87,23 +87,7 @@ export function useAudioGuide(module: string) {
 
       const path = `/audio/${module}/${step}.mp3`;
       const audio = new Audio(path);
-
-      // iOS: set playback attributes for inline playback
       audio.setAttribute("playsinline", "true");
-      audio.preload = "auto";
-
-      let started = false;
-      const tryPlay = () => {
-        if (started) return;
-        started = true;
-        audio.play().catch(() => {
-          // Audio file doesn't exist or can't play - silently fail
-        });
-        setIsPlaying(true);
-      };
-
-      audio.addEventListener("canplaythrough", tryPlay, { once: true });
-      audio.addEventListener("canplay", tryPlay, { once: true });
 
       audio.addEventListener("ended", () => {
         setIsPlaying(false);
@@ -111,21 +95,21 @@ export function useAudioGuide(module: string) {
       });
 
       audio.addEventListener("error", () => {
-        // File doesn't exist - silently fall back
         setIsPlaying(false);
         audioRef.current = null;
       });
 
       audioRef.current = audio;
-      audio.load();
 
-      // For cached files, readyState may already be sufficient
-      if (audio.readyState >= 2) {
-        tryPlay();
-      } else {
-        // Safety net: if no event fires within 500ms, try playing anyway
-        setTimeout(() => tryPlay(), 500);
-      }
+      // Just play directly — the browser handles buffering.
+      // .play() returns a promise; it will buffer and start automatically.
+      audio.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {
+          // File missing or blocked — silently fail
+          setIsPlaying(false);
+          audioRef.current = null;
+        });
     },
     [module]
   );
