@@ -11,7 +11,6 @@ import {
 import PremiumGate from "@/components/PremiumGate";
 import { isPremium } from "@/lib/premium";
 import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
-import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 
 // ─── Daily Suggestion ───────────────────────────────────────────────
 
@@ -73,54 +72,6 @@ function DailySuggestion() {
   );
 }
 
-// ─── Session Stats ──────────────────────────────────────────────────
-
-function SessionStats() {
-  const [stats, setStats] = useState<{ total: number; streak: number } | null>(null);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("regulate-sessions");
-      if (!raw) return;
-      const sessions = JSON.parse(raw) as { date: string }[];
-      if (sessions.length === 0) return;
-
-      // Unique dates sorted descending
-      const dates = [...new Set(sessions.map((s) => s.date))].sort().reverse();
-
-      // Calculate streak: consecutive days ending today or yesterday
-      const today = new Date().toISOString().slice(0, 10);
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      let streak = 0;
-      if (dates[0] === today || dates[0] === yesterday) {
-        let expected = dates[0];
-        for (const d of dates) {
-          if (d === expected) {
-            streak++;
-            const prev = new Date(expected + "T00:00:00");
-            prev.setDate(prev.getDate() - 1);
-            expected = prev.toISOString().slice(0, 10);
-          } else if (d < expected) {
-            break;
-          }
-        }
-      }
-
-      setStats({ total: sessions.length, streak });
-    } catch { /* */ }
-  }, []);
-
-  if (!stats) return null;
-
-  return (
-    <div className="flex items-center gap-4 mb-4 text-xs text-cream-dim/50">
-      <span><span className="text-cream font-medium">{stats.total}</span> session{stats.total !== 1 ? "s" : ""}</span>
-      {stats.streak > 0 && (
-        <span><span className="text-cream font-medium">{stats.streak}</span> day streak</span>
-      )}
-    </div>
-  );
-}
 
 // ─── Component ──────────────────────────────────────────────────────
 
@@ -136,15 +87,11 @@ export default function Home() {
     label: string;
     href: string;
   } | null>(null);
-  const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
-
   const [checkBack, setCheckBack] = useState<{
     ts: number;
     tool: string;
     state: string;
   } | null>(null);
-  const [showQuiz, setShowQuiz] = useState(false);
-
   // First-open detection — runs before anything else
   useEffect(() => {
     try {
@@ -164,11 +111,6 @@ export default function Home() {
   useEffect(() => {
     const h = new Date().getHours();
     setIsNightTime(h >= 22 || h < 6);
-  }, []);
-
-  // Stop ambient audio when leaving home page
-  useEffect(() => {
-    return () => { ambientAudio.stop(); };
   }, []);
 
   // First-session nudge: show once after onboarding
@@ -378,25 +320,6 @@ export default function Home() {
           <p className="mt-1.5 text-xs text-cream-dim/60">
             You&apos;re here. That&apos;s a good start.
           </p>
-          {/* Ambient sound toggle */}
-          <div className="mt-3 flex items-center justify-center gap-1.5">
-            {(["rain", "ocean", "forest", "off"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => {
-                  if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
-                  else { ambientAudio.start(s); setAmbientSound(s); }
-                }}
-                className={`rounded-full px-2.5 py-1 text-[10px] transition-all ${
-                  ambientSound === s
-                    ? "bg-teal/20 text-teal-soft"
-                    : "text-cream-dim/30 hover:text-cream-dim/50"
-                }`}
-              >
-                {s === "off" ? "Quiet" : s.charAt(0).toUpperCase() + s.slice(1)}
-              </button>
-            ))}
-          </div>
         </header>
 
         {/* Panic shortcut — always visible */}
@@ -485,42 +408,8 @@ export default function Home() {
           </Link>
         )}
 
-        {/* Body check-in */}
-        {!showQuiz ? (
-          <button
-            onClick={() => setShowQuiz(true)}
-            className="mb-4 w-full rounded-2xl border border-teal/15 bg-deep/40 px-5 py-3 text-center text-sm text-cream-dim/60 transition-all hover:border-teal/25 hover:text-cream-dim"
-          >
-            How does your body feel right now?
-          </button>
-        ) : (
-          <div className="mb-4 rounded-2xl border border-teal/20 bg-deep/60 p-5">
-            <p className="mb-4 text-center text-sm font-medium text-cream">How does your body feel right now?</p>
-            <div className="flex flex-col gap-2">
-              <button onClick={() => { setShowQuiz(false); router.push("/sos?state=panicking"); }} className="rounded-xl border border-candle/15 bg-candle/5 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10">
-                Tight, racing, can&apos;t sit still
-              </button>
-              <button onClick={() => { setShowQuiz(false); router.push("/breathing"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
-                Tense but managing
-              </button>
-              <button onClick={() => { setShowQuiz(false); router.push("/somatic"); }} className="rounded-xl border border-teal/15 bg-teal/5 py-3 text-sm text-teal-soft transition-colors hover:bg-teal/10">
-                Numb or disconnected
-              </button>
-              <button onClick={() => { setShowQuiz(false); router.push("/sleep"); }} className="rounded-xl border border-lavender/15 bg-lavender/5 py-3 text-sm text-lavender transition-colors hover:bg-lavender/10">
-                Restless, can&apos;t sleep
-              </button>
-              <button onClick={() => setShowQuiz(false)} className="mt-1 text-xs text-cream-dim/30 hover:text-cream-dim/60">
-                Fine — just exploring
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Daily suggested exercise */}
         <DailySuggestion />
-
-        {/* Session stats */}
-        <SessionStats />
 
         {/* ── Main hub cards ── */}
         <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/30">

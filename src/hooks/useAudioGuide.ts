@@ -15,30 +15,26 @@ function isVoiceEnabled(): boolean {
 
 // ─── iOS Audio Unlock ──────────────────────────────────────────────
 // iOS Safari blocks audio playback until a user gesture "unlocks" it.
-// We create a shared AudioContext and resume it on the first tap/click.
-// Once unlocked, all subsequent Audio() calls work normally.
+// We create a shared Audio element and play silence on the first tap.
+// After that, changing .src and calling .play() works reliably.
 
-let audioUnlocked = false;
-let sharedCtx: AudioContext | null = null;
+let sharedAudioUnlocked = false;
 
 function unlockAudio() {
-  if (audioUnlocked) return;
+  if (sharedAudioUnlocked) return;
   try {
-    if (!sharedCtx) {
-      sharedCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    }
-    if (sharedCtx.state === "suspended") {
-      sharedCtx.resume();
-    }
-    // Play a silent buffer to fully unlock HTML5 Audio on iOS
-    const buffer = sharedCtx.createBuffer(1, 1, 22050);
-    const source = sharedCtx.createBufferSource();
+    // AudioContext unlock
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new Ctx();
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(sharedCtx.destination);
+    source.connect(ctx.destination);
     source.start(0);
-    audioUnlocked = true;
+    if (ctx.state === "suspended") ctx.resume();
+    sharedAudioUnlocked = true;
   } catch {
-    // Ignore — non-critical
+    // Non-critical
   }
 }
 
@@ -55,7 +51,7 @@ if (typeof window !== "undefined") {
 
 /**
  * Hook for playing voice guidance audio files.
- * Falls back silently if audio file doesn't exist or voice is disabled.
+ * Reuses a single Audio element per module for iOS reliability.
  *
  * Usage:
  *   const audio = useAudioGuide("body-scan");
@@ -65,51 +61,46 @@ export function useAudioGuide(module: string) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Cleanup on unmount
+  // Create a persistent Audio element for this module
   useEffect(() => {
+    const audio = new Audio();
+    audio.setAttribute("playsinline", "true");
+    audio.preload = "auto";
+
+    audio.addEventListener("ended", () => setIsPlaying(false));
+    audio.addEventListener("error", () => setIsPlaying(false));
+    audio.addEventListener("pause", () => setIsPlaying(false));
+    audio.addEventListener("playing", () => setIsPlaying(true));
+
+    audioRef.current = audio;
+
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load(); // Release resources
+      audioRef.current = null;
     };
-  }, []);
+  }, [module]);
 
   const play = useCallback(
     (step: string) => {
       if (!isVoiceEnabled()) return;
 
-      // Stop any currently playing audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      const audio = audioRef.current;
+      if (!audio) return;
 
       const path = `/audio/${module}/${step}.mp3`;
-      const audio = new Audio(path);
-      audio.setAttribute("playsinline", "true");
 
-      audio.addEventListener("ended", () => {
+      // If already playing this exact file, let it continue
+      if (audio.src.endsWith(path) && !audio.paused && !audio.ended) return;
+
+      // Change source and play
+      audio.src = path;
+      audio.load();
+      audio.play().catch(() => {
+        // File missing or blocked — silently fail
         setIsPlaying(false);
-        audioRef.current = null;
       });
-
-      audio.addEventListener("error", () => {
-        setIsPlaying(false);
-        audioRef.current = null;
-      });
-
-      audioRef.current = audio;
-
-      // Just play directly — the browser handles buffering.
-      // .play() returns a promise; it will buffer and start automatically.
-      audio.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => {
-          // File missing or blocked — silently fail
-          setIsPlaying(false);
-          audioRef.current = null;
-        });
     },
     [module]
   );
@@ -117,7 +108,6 @@ export function useAudioGuide(module: string) {
   const pause = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
-      setIsPlaying(false);
     }
   }, []);
 
@@ -125,7 +115,6 @@ export function useAudioGuide(module: string) {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      audioRef.current = null;
       setIsPlaying(false);
     }
   }, []);
