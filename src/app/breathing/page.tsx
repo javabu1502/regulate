@@ -524,71 +524,60 @@ function BreathingPageInner() {
           <SessionProgressBar current={currentCycle + 1} total={TOTAL_CYCLES} />
         </div>
 
-        {/* Session controls toolbar */}
-        <div className="fixed left-0 right-0 top-0 z-20 px-3 pt-3 pb-2 safe-top">
-          <div className="flex flex-wrap items-center justify-center gap-1">
-            <button
-              onClick={() => setGentleStart((g) => !g)}
-              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-                gentleStart ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
-              }`}
-              aria-pressed={gentleStart}
-            >
-              Gentle start
-            </button>
-            <button
-              onClick={() => setEyesFree((v) => !v)}
-              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-                eyesFree ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
-              }`}
-              aria-label="Toggle eyes-free mode"
-              aria-pressed={eyesFree}
-            >
-              Eyes-free
-            </button>
+        {/* Minimal top bar: cycle dots + key toggles */}
+        <div className="fixed left-0 right-0 top-0 z-20 safe-top">
+          {/* Cycle dots */}
+          <div className="flex justify-center pt-3 pb-1">
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: TOTAL_CYCLES }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    i < currentCycle
+                      ? "w-4 bg-teal-soft/50"
+                      : i === currentCycle
+                        ? "w-6 bg-teal-soft"
+                        : "w-3 bg-slate-blue/50"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+          {/* Toggles row */}
+          <div className="flex items-center justify-center gap-3 pb-2">
             <button
               onClick={() => {
                 const next = voiceGuidance.toggle();
                 setVoiceOn(next);
               }}
-              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-                voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
+              className={`text-[10px] transition-all ${
+                voiceOn ? "text-teal-soft" : "text-cream-dim/30"
               }`}
             >
-              Voice
+              {voiceOn ? "Voice on" : "Voice off"}
             </button>
-            {(["rain", "ocean", "forest", "off"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => {
-                  if (s === "off") { ambientAudio.stop(); setAmbientSound("off"); }
-                  else { ambientAudio.start(s); setAmbientSound(s); }
-                }}
-                className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-                  ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
-                }`}
-              >
-                {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : "Forest"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Cycle dots */}
-        <div className="fixed left-0 right-0 top-16 flex justify-center">
-          <div className="flex items-center gap-1.5">
-            {Array.from({ length: TOTAL_CYCLES }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-1.5 rounded-full transition-all duration-500 ${
-                  i < currentCycle
-                    ? "w-4 bg-teal-soft/50"
-                    : i === currentCycle
-                      ? "w-6 bg-teal-soft"
-                      : "w-3 bg-slate-blue/50"
-                }`}
-              />
-            ))}
+            <span className="text-cream-dim/15">|</span>
+            <button
+              onClick={() => {
+                const sounds: AmbientSound[] = ["off", "rain", "ocean", "forest"];
+                const idx = sounds.indexOf(ambientSound);
+                const next = sounds[(idx + 1) % sounds.length];
+                if (next === "off") { ambientAudio.stop(); setAmbientSound("off"); }
+                else { ambientAudio.start(next); setAmbientSound(next); }
+              }}
+              className="text-[10px] text-cream-dim/30 transition-all"
+            >
+              {ambientSound === "off" ? "Sound off" : ambientSound === "rain" ? "Rain" : ambientSound === "ocean" ? "Ocean" : "Forest"}
+            </button>
+            <span className="text-cream-dim/15">|</span>
+            <button
+              onClick={() => setEyesFree((v) => !v)}
+              className={`text-[10px] transition-all ${
+                eyesFree ? "text-teal-soft" : "text-cream-dim/30"
+              }`}
+            >
+              {eyesFree ? "Eyes-free on" : "Eyes-free"}
+            </button>
           </div>
         </div>
 

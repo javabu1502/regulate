@@ -90,13 +90,16 @@ export function useAudioGuide(module: string) {
 
       // iOS: set playback attributes for inline playback
       audio.setAttribute("playsinline", "true");
+      audio.preload = "auto";
 
-      audio.addEventListener("canplaythrough", () => {
+      const onReady = () => {
         audio.play().catch(() => {
           // Audio file doesn't exist or can't play - silently fail
         });
         setIsPlaying(true);
-      });
+      };
+
+      audio.addEventListener("canplaythrough", onReady, { once: true });
 
       audio.addEventListener("ended", () => {
         setIsPlaying(false);
@@ -110,6 +113,8 @@ export function useAudioGuide(module: string) {
       });
 
       audioRef.current = audio;
+      // Force load to ensure canplaythrough fires even for cached files
+      audio.load();
     },
     [module]
   );
