@@ -12,66 +12,6 @@ import PremiumGate from "@/components/PremiumGate";
 import { isPremium } from "@/lib/premium";
 import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
 
-// ─── Daily Suggestion ───────────────────────────────────────────────
-
-const DAILY_SUGGESTIONS: Record<number, { label: string; href: string }> = {
-  0: { label: "Body scan", href: "/body-scan" },
-  1: { label: "Start with a Physiological Sigh", href: "/breathing?pattern=sigh" },
-  2: { label: "Try 5-4-3-2-1 Grounding", href: "/grounding" },
-  3: { label: "Gentle body shake", href: "/somatic?exercise=body-shaking" },
-  4: { label: "Start with a Physiological Sigh", href: "/breathing?pattern=sigh" },
-  5: { label: "Try 5-4-3-2-1 Grounding", href: "/grounding" },
-  6: { label: "Gentle body shake", href: "/somatic?exercise=body-shaking" },
-};
-
-function DailySuggestion() {
-  const [suggestion, setSuggestion] = useState<{
-    label: string;
-    href: string;
-    isRepeat: boolean;
-  } | null>(null);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("regulate-last-helped");
-      if (raw) {
-        const data = JSON.parse(raw);
-        const daysSince = (Date.now() - data.ts) / (1000 * 60 * 60 * 24);
-        if (daysSince <= 7 && data.name && data.href) {
-          setSuggestion({
-            label: data.name,
-            href: data.href,
-            isRepeat: true,
-          });
-          return;
-        }
-      }
-    } catch {}
-
-    const day = new Date().getDay();
-    const pick = DAILY_SUGGESTIONS[day];
-    setSuggestion({ label: pick.label, href: pick.href, isRepeat: false });
-  }, []);
-
-  if (!suggestion) return null;
-
-  return (
-    <Link
-      href={suggestion.href}
-      className="mb-4 block rounded-2xl border border-teal/20 bg-teal/5 px-5 py-4 transition-all hover:border-teal/30"
-    >
-      <p className="mb-1 text-[10px] uppercase tracking-widest text-teal-soft/50">
-        Suggested for you
-      </p>
-      <p className="text-sm font-medium text-cream">
-        {suggestion.isRepeat
-          ? `Last time, ${suggestion.label} helped. Try it again?`
-          : suggestion.label}
-      </p>
-    </Link>
-  );
-}
-
 
 // ─── Component ──────────────────────────────────────────────────────
 
@@ -407,9 +347,6 @@ export default function Home() {
             <p className="mt-0.5 text-xs text-cream-dim/50">Try the sleep sequence</p>
           </Link>
         )}
-
-        {/* Daily suggested exercise */}
-        <DailySuggestion />
 
         {/* ── Main hub cards ── */}
         <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/30">
