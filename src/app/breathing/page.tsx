@@ -178,6 +178,7 @@ function BreathingPageInner() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [orbProgress, setOrbProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [controlsHidden, setControlsHidden] = useState(true);
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
   const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
   const breathingAudio = useAudioGuide("breathing");
@@ -518,14 +519,22 @@ function BreathingPageInner() {
 
   if (screen === "session" && selectedPattern && currentStep) {
     return (
-      <div key="session" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+      <div
+        key="session"
+        className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5"
+        onClick={(e) => {
+          // Toggle controls unless user tapped a button
+          if ((e.target as HTMLElement).closest("button")) return;
+          setControlsHidden((h) => !h);
+        }}
+      >
         {/* Progress bar */}
-        <div className="fixed left-0 right-0 top-4 z-20 px-6">
+        <div className={`fixed left-0 right-0 top-4 z-20 px-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <SessionProgressBar current={currentCycle + 1} total={TOTAL_CYCLES} />
         </div>
 
         {/* Minimal top bar: cycle dots + key toggles */}
-        <div className="fixed left-0 right-0 top-0 z-20 safe-top">
+        <div className={`fixed left-0 right-0 top-0 z-20 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {/* Cycle dots */}
           <div className="flex justify-center pt-3 pb-1">
             <div className="flex items-center gap-1.5">
@@ -600,7 +609,7 @@ function BreathingPageInner() {
         </div>
 
         {/* Controls */}
-        <div className="fixed bottom-20 z-30 flex items-center gap-6">
+        <div className={`fixed bottom-20 z-30 flex items-center gap-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <button
             onClick={() => setIsPaused((p) => !p)}
             className="flex h-12 w-12 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:border-teal/40 hover:text-cream focus:outline-none focus:ring-2 focus:ring-teal/50"
