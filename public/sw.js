@@ -1,10 +1,10 @@
 // Regulate — Service Worker
 // Cache-first for static assets, network-first for pages, offline fallback
 
-const CACHE_VERSION = "regulate-v6";
-const STATIC_CACHE = "regulate-static-v6";
-const PAGES_CACHE = "regulate-pages-v6";
-const AUDIO_CACHE = "regulate-audio-v6";
+const CACHE_VERSION = "regulate-v7";
+const STATIC_CACHE = "regulate-static-v7";
+const PAGES_CACHE = "regulate-pages-v7";
+const AUDIO_CACHE = "regulate-audio-v7";
 
 // App shell — precached on install
 const APP_SHELL = [
