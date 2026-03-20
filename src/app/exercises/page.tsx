@@ -169,6 +169,7 @@ function ExerciseCard({ exercise }: { exercise: Exercise }) {
 
 export default function ExercisesPage() {
   const [activeFeeling, setActiveFeeling] = useState<string | null>(null);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
   const activeFeelingData = FEELINGS.find((f) => f.key === activeFeeling);
   const matchingNames = activeFeelingData ? new Set(activeFeelingData.exercises) : null;
@@ -242,19 +243,38 @@ export default function ExercisesPage() {
 
         {/* Browse all — flat list grouped by category, always visible */}
         {!activeFeeling && (
-          <div className="flex flex-col gap-4">
-            {exerciseGroups.map((group) => (
-              <section key={group.label}>
-                <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/25">
-                  {group.label}
-                </p>
-                <div className="flex flex-col gap-0.5">
-                  {group.exercises.map((exercise) => (
-                    <ExerciseCard key={exercise.name} exercise={exercise} />
-                  ))}
-                </div>
-              </section>
-            ))}
+          <div className="flex flex-col gap-1.5">
+            {exerciseGroups.map((group) => {
+              const isOpen = openGroup === group.label;
+              return (
+                <section key={group.label}>
+                  <button
+                    onClick={() => setOpenGroup(isOpen ? null : group.label)}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-deep/40"
+                  >
+                    <span className="text-sm text-cream-dim/60">{group.label}</span>
+                    <svg
+                      className={`h-3.5 w-3.5 text-cream-dim/25 transition-transform ${isOpen ? "rotate-90" : ""}`}
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M6 4l4 4-4 4" />
+                    </svg>
+                  </button>
+                  {isOpen && (
+                    <div className="flex flex-col gap-0.5 pl-2">
+                      {group.exercises.map((exercise) => (
+                        <ExerciseCard key={exercise.name} exercise={exercise} />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
           </div>
         )}
       </main>
