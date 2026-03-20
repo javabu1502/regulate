@@ -31,31 +31,31 @@ const FEELINGS: FeelingOption[] = [
     key: "calmer",
     label: "Anxious",
     subtext: "Slow your nervous system down",
-    exercises: ["Box Breathing", "4-7-8 Breathing", "Physiological Sigh", "Coherence", "Body Scan", "Self-Havening", "Gentle Swaying"],
+    exercises: ["Physiological Sigh", "Box Breathing", "4-7-8 Breathing", "Extended Exhale", "Coherence", "Self-Havening", "Gentle Swaying", "Vagus Nerve Massage", "Eye Press Reset", "Humming / Voo Sound", "Bearing Down", "Body Scan"],
   },
   {
     key: "grounded",
     label: "Racing thoughts",
     subtext: "Come back to your body and the present",
-    exercises: ["5-4-3-2-1 Senses", "Body Grounding", "Object Grounding", "Orienting", "Body Scan"],
+    exercises: ["5-4-3-2-1 Senses", "Body Grounding", "Object Grounding", "Orienting", "Bilateral Tapping", "Vestibular Eye Movement", "Humming / Voo Sound", "Extended Exhale", "Coherence", "Body Scan"],
   },
   {
     key: "awake",
     label: "Frozen",
     subtext: "Wake your body up gently",
-    exercises: ["Body Shaking", "Air Punching", "Free Movement / Dancing", "Bilateral Tapping", "Butterfly Hug"],
+    exercises: ["Body Shaking", "Air Punching", "Free Movement / Dancing", "Bilateral Tapping", "Gentle Swaying", "Bearing Down", "Return to Safety"],
   },
   {
     key: "sleepy",
     label: "Can\u2019t sleep",
     subtext: "Slow everything down for rest",
-    exercises: ["4-7-8 Breathing", "Sleep Sequence", "Extended Exhale", "Body Scan"],
+    exercises: ["4-7-8 Breathing", "Sleep Sequence", "Extended Exhale", "Coherence", "Body Scan", "Gentle Swaying", "Self-Havening", "Vagus Nerve Massage"],
   },
   {
     key: "less-pain",
     label: "In pain",
     subtext: "Work with your body, not against it",
-    exercises: ["Pendulation", "Body Scan", "Gentle Swaying", "Self-Havening"],
+    exercises: ["Pendulation", "Body Scan", "Gentle Swaying", "Self-Havening", "Orienting", "Eye Press Reset", "Humming / Voo Sound", "Vagus Nerve Massage", "Vestibular Eye Movement"],
   },
 ];
 
