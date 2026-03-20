@@ -366,26 +366,6 @@ export default function Home() {
             </div>
           </Link>
           <Link
-            href="/meditations"
-            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
-              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="4" r="2" />
-                <path d="M12 6v4" />
-                <path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" />
-                <path d="M6 18l2-4" />
-                <path d="M18 18l-2-4" />
-                <path d="M9 22l1-4" />
-                <path d="M15 22l-1-4" />
-              </svg>
-            </div>
-            <div>
-              <span className="block text-sm font-medium text-cream">Guided Meditations</span>
-              <span className="block text-xs text-cream-dim/50">A calm voice walks you through it <span className="text-cream-dim/30">· 5-15 min</span></span>
-            </div>
-          </Link>
-          <Link
             href="/games"
             className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
           >
