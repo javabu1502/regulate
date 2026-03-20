@@ -65,8 +65,8 @@ const techniques: ExerciseInfo[] = [
   {
     id: "bilateral-tapping",
     name: "Butterfly Hug",
-    description: "Bilateral tapping, alternating left/right rhythm",
-    why: "Bilateral stimulation - alternating left and right - gives your brain something steady to follow. Instead of spinning on whatever's overwhelming you, it can start to actually process it. People often feel a noticeable shift after just a couple of minutes.",
+    description: "A gentle left-right tapping rhythm",
+    why: "Bilateral stimulation — alternating left and right — gives your brain something steady to follow. Instead of spinning on whatever's overwhelming you, it can start to actually process it. People often feel a noticeable shift after just a couple of minutes. Go at whatever pace feels right.",
     regulation: "down",
     tags: ["processing", "calming"],
     duration: 5,
@@ -196,30 +196,30 @@ const techniques: ExerciseInfo[] = [
   {
     id: "body-shaking",
     name: "Body Shaking / TRE",
-    description: "Shake it ALL out — big, wild, whole-body",
-    why: "Animals shake after a near-death experience and then walk away fine. Your body knows how to do this too. Shaking literally discharges stress hormones — adrenaline, cortisol, all of it. This isn't gentle. Let yourself be loud, be messy, be ridiculous. The bigger you shake, the more you let go.",
+    description: "Shake your body to release what it's holding",
+    why: "Animals naturally shake after a stressful experience — it's how the body discharges stress hormones like adrenaline and cortisol. Your body knows how to do this too. You can be as big or as gentle as you want. There's no wrong way. Even small shaking counts.",
     regulation: "up",
     tags: ["release", "energizing"],
     duration: 5,
     sessionSteps: [
-      { text: "Start with your hands. Shake them HARD — like you're trying to fling something off.", duration: 30 },
-      { text: "Arms now. Let them fly. Loose, wild, no control needed.", duration: 30 },
-      { text: "Shoulders, torso — let it take over. Make noise if you want to. Grunt, yell, whatever.", duration: 30 },
-      { text: "SHAKE. Everything. Arms, legs, whole body. Bounce your knees, let your jaw go loose. Be a mess. This is the point.", duration: 60 },
-      { text: "Start to slow down. Feel the tingling — that buzzing in your muscles? That's your body releasing.", duration: 30 },
-      { text: "Stand still. Don't move. Just feel what's different. Let the stillness hit you.", duration: 30 },
+      { text: "Start with your hands. Shake them out — loose and easy.", duration: 30 },
+      { text: "Let it move into your arms. Loose, floppy, no control needed.", duration: 30 },
+      { text: "Shoulders, torso — let it spread. Make sounds if you want to, or stay quiet. Both are fine.", duration: 30 },
+      { text: "Shake as much of your body as feels right. Arms, legs, knees. Let your jaw go loose.", duration: 60 },
+      { text: "Start to slow down. Notice the tingling — that buzzing in your muscles? That's your body releasing.", duration: 30 },
+      { text: "Stand still. Just notice what's different. There's no rush.", duration: 30 },
     ],
     position: "standing",
   },
   {
     id: "air-punching",
     name: "Air Punching",
-    description: "Let it OUT — punch hard, be fierce",
-    why: "You've got fight energy in your body and it needs to GO somewhere. Anger, frustration, that tight feeling in your chest — your body wants to push back. So let it. Punch the air like you mean it. Make sounds. Be fierce. The physical exertion metabolizes the adrenaline and cortisol flooding your system. This is one of the fastest ways to move through anger.",
+    description: "Move that energy out through your arms",
+    why: "Sometimes your body is holding energy that needs to move — tension, frustration, restlessness. Punching the air gives that energy somewhere to go. The physical movement helps your body process what it's carrying. Go at your own intensity — even light punching works.",
     regulation: "up",
-    tags: ["release", "energizing", "fight response"],
+    tags: ["release", "energizing"],
     duration: 3,
-    sessionInstruction: "Stand with feet shoulder-width. Punch forward with alternating arms. Don't hold back. Punch HARD. Make sounds — grunt, yell, exhale forcefully. This is yours. Let out whatever wants to come out. Punch harder. Mean it.",
+    sessionInstruction: "Stand with feet shoulder-width. Punch forward with alternating arms. Find an intensity that feels right for you. You can add sounds — exhale forcefully, or stay quiet. This is yours. Let out whatever wants to come out.",
     position: "standing",
   },
   {
@@ -245,12 +245,12 @@ const techniques: ExerciseInfo[] = [
   {
     id: "dancing",
     name: "Free Movement / Dancing",
-    description: "MOVE — dance like nobody's watching",
-    why: "This isn't a gentle sway. This is your body remembering it's ALIVE. When you move big — stomp, jump, spin, thrash — your whole nervous system shifts. Full-body movement with music rewires your emotional state in minutes. There's no right way to do this. The wilder, the better. Let your body do whatever it wants.",
+    description: "Move however your body wants to",
+    why: "Full-body movement shifts your whole nervous system. When you move — even gently — your body starts to process what it's holding. There's no right way to do this. Big or small, fast or slow. Put on music if you want, or move in silence. Let your body lead.",
     regulation: "up",
     tags: ["expression", "energizing"],
     duration: 5,
-    sessionInstruction: "Put on music if you can. Move however your body wants to — and go BIG. Stomp, jump, spin, throw your arms, shake your hips. There are no rules and nobody's watching. Let your body lead. The more you let go, the more this works.",
+    sessionInstruction: "Put on music if you can. Move however your body wants to. Sway, stretch, stomp, spin — whatever feels right. There are no rules. Let your body lead. You can go big or stay small. Both count.",
     position: "standing",
   },
   {
@@ -297,10 +297,10 @@ const somaticExplanations: Record<string, string> = {
   "vagus-nerve-massage": "Gentle pressure on the vagus nerve behind your ears slows your heart rate. Works surprisingly fast.",
   "eye-press": "Light pressure on closed eyes can actually slow your heart rate. Gentle pressure only.",
   "havening": "Slow, gentle stroking sends a strong safety signal. Like being soothed, but you\u2019re doing it for yourself.",
-  "body-shaking": "Shaking discharges stress hormones directly. Animals do it after danger — it\u2019s one of the most primal regulation tools your body has. Go big.",
-  "air-punching": "Punching safely channels your fight energy. The physical exertion metabolizes the adrenaline and cortisol your body is flooded with.",
+  "body-shaking": "Shaking helps your body discharge stress hormones naturally. Go as big or as gentle as feels right for you.",
+  "air-punching": "Punching the air gives restless energy somewhere to go. The movement helps your body process what it\u2019s carrying.",
   "bearing-down": "A vagal maneuver that creates internal pressure to quickly slow your heart rate. Strong one.",
-  "dancing": "Full-body movement rewires your emotional state. When you move big, your whole nervous system shifts — it\u2019s one of the fastest ways to change how you feel.",
+  "dancing": "Movement shifts your emotional state. When you let your body move freely, your nervous system starts to settle.",
   "vestibular-eyes": "Slow eye movements engage the vestibular system, which has a direct calming effect.",
   "pendulation": "Going back and forth between tension and comfort teaches your body it doesn\u2019t have to stay stuck.",
 };
@@ -888,20 +888,23 @@ function SomaticPageInner() {
             </p>
           </div>
 
-          {/* Eyes closed tip for bilateral tapping */}
+          {/* How-to for bilateral tapping */}
           {technique === "bilateral-tapping" && (
-            <div className="mb-4 rounded-2xl border border-candle/15 bg-candle/5 p-4 backdrop-blur-sm">
+            <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-4 backdrop-blur-sm">
               <p className="text-xs leading-relaxed text-cream-dim">
-                <span className="font-medium text-candle/80">Tip:</span> For deeper processing, try this with eyes closed. Keep eyes open if you feel ungrounded.
+                Cross your arms over your chest, hands on opposite shoulders. Tap one hand at a time, alternating left and right with the rhythm on screen.
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-cream-dim/60">
+                You can close your eyes if that feels comfortable, or keep them open. Go at whatever pace feels right. You can stop at any time.
               </p>
             </div>
           )}
 
-          {/* High-energy exercise note */}
+          {/* Movement exercises */}
           {(technique === "body-shaking" || technique === "air-punching" || technique === "dancing") && (
             <div className="mb-4 rounded-2xl border border-candle/15 bg-candle/5 p-4 backdrop-blur-sm">
               <p className="text-xs leading-relaxed text-cream-dim">
-                <span className="font-medium text-candle/80">Heads up:</span> This one&apos;s meant to be big. Turn up some music if you can. Give yourself permission to be loud.
+                Go at your own pace and intensity. Music can help if you have it. You can be as big or as gentle as you want — both work. Stop any time if you need to.
               </p>
             </div>
           )}
@@ -1008,13 +1011,6 @@ function SomaticPageInner() {
               }`}
             />
           </button>
-        </div>
-
-        <div className="fixed bottom-16 left-0 right-0 px-8 text-center">
-          <p className="text-sm leading-relaxed text-cream-dim/60">
-            Cross your arms over your chest, hands on opposite shoulders.
-            Tap one hand at a time, alternating left and right with the rhythm.
-          </p>
         </div>
 
         <PresenceCue active={!isPaused} />
