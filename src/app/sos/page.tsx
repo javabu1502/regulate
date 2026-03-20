@@ -27,13 +27,13 @@ const sighSteps: BreathStep[] = [
   { phase: "inhale", duration: 2, label: "Inhale" },
   { phase: "inhale", duration: 2, label: "Sip in more" },
   { phase: "exhale", duration: 6, label: "Long exhale" },
-  { phase: "rest", duration: 1, label: "Rest" },
+  { phase: "rest", duration: 2, label: "Rest" },
 ];
 
 const extendedExhaleSteps: BreathStep[] = [
   { phase: "inhale", duration: 4, label: "Breathe in" },
   { phase: "exhale", duration: 8, label: "Slow exhale" },
-  { phase: "rest", duration: 1, label: "Rest" },
+  { phase: "rest", duration: 2, label: "Rest" },
 ];
 
 const SOS_SIGH_CYCLES = 3;
