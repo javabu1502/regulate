@@ -1010,8 +1010,11 @@ function SomaticPageInner() {
           </button>
         </div>
 
-        <div className="fixed bottom-16 left-0 right-0 text-center">
-          <p className="text-sm text-cream-dim/60">Tap along with the rhythm</p>
+        <div className="fixed bottom-16 left-0 right-0 px-8 text-center">
+          <p className="text-sm leading-relaxed text-cream-dim/60">
+            Cross your arms over your chest, hands on opposite shoulders.
+            Tap one hand at a time, alternating left and right with the rhythm.
+          </p>
         </div>
 
         <PresenceCue active={!isPaused} />
@@ -1066,7 +1069,10 @@ function SomaticPageInner() {
           </div>
 
           <p className="mt-4 text-lg font-light text-cream/80">Sway with the rhythm</p>
-          <p className="mt-2 text-sm text-cream-dim/60">Feel your feet. Let your body move.</p>
+          <p className="mt-2 max-w-xs text-sm leading-relaxed text-cream-dim/60">
+            Stand with feet hip-width apart, knees soft. Let your body rock gently side to side
+            with the movement on screen. Feel your weight shift from foot to foot.
+          </p>
         </div>
 
         <PresenceCue active={!isPaused} />
@@ -1137,7 +1143,10 @@ function SomaticPageInner() {
         <SessionHeader />
 
         <div className="flex flex-col items-center">
-          <p className="mb-4 text-sm text-cream-dim/60">Follow the dot with your eyes, not your head</p>
+          <p className="mb-2 text-sm text-cream-dim/60">Follow the dot with your eyes, not your head</p>
+          <p className="mb-4 max-w-xs text-center text-xs leading-relaxed text-cream-dim/40">
+            Keep your head still and relaxed. Let only your eyes track the dot as it moves. Blink naturally.
+          </p>
           <p className="mb-6 text-xs text-teal-soft/70">{phaseNames[phaseIndex]} tracking</p>
 
           <div className="relative h-[300px] w-[300px] rounded-2xl border border-slate-blue/20 bg-deep/40">
