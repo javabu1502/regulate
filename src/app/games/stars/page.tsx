@@ -696,14 +696,31 @@ export default function StarCreatorPage() {
           className="pointer-events-auto flex items-center gap-3 rounded-full px-1 py-1"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <button
-            onClick={toggleMode}
+          <div
+            className="flex rounded-full bg-deep/70 p-1 backdrop-blur-sm"
             onPointerDown={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 rounded-full bg-deep/70 px-4 py-2.5 text-sm text-cream-dim backdrop-blur-sm transition-colors hover:text-cream active:scale-95"
-            aria-label={`Switch to ${mode === "draw" ? "tap" : "draw"} mode`}
           >
-            {mode === "draw" ? "Draw" : "Tap"}
-          </button>
+            <button
+              onClick={() => { if (mode !== "draw") toggleMode(); }}
+              className={`rounded-full px-3.5 py-1.5 text-sm transition-all ${
+                mode === "draw"
+                  ? "bg-cream/10 text-cream"
+                  : "text-cream-dim/40 hover:text-cream-dim/60"
+              }`}
+            >
+              Draw
+            </button>
+            <button
+              onClick={() => { if (mode !== "tap") toggleMode(); }}
+              className={`rounded-full px-3.5 py-1.5 text-sm transition-all ${
+                mode === "tap"
+                  ? "bg-cream/10 text-cream"
+                  : "text-cream-dim/40 hover:text-cream-dim/60"
+              }`}
+            >
+              Tap
+            </button>
+          </div>
           <button
             onClick={() => {
               const canvas = canvasRef.current;
