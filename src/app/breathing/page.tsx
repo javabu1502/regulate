@@ -66,7 +66,7 @@ const patterns: BreathPattern[] = [
       { phase: "inhale", duration: 2, label: "Inhale" },
       { phase: "inhale", duration: 2, label: "Sip in more" },
       { phase: "exhale", duration: 6, label: "Long exhale" },
-      { phase: "rest", duration: 2, label: "Rest" },
+      { phase: "rest", duration: 2, label: "Hold" },
     ],
   },
   {
