@@ -64,20 +64,20 @@ const exerciseGroups: ExerciseGroup[] = [
   {
     label: "Quick Reset",
     exercises: [
-      { name: "Physiological Sigh", description: "Two quick inhales, one long exhale", href: "/breathing?pattern=sigh", time: "1 min" },
-      { name: "30-Second Shake", description: "Shake your whole body", href: "/somatic?exercise=body-shaking", time: "30 sec" },
-      { name: "Eye Press Reset", description: "Gentle pressure on closed eyes", href: "/somatic?exercise=eye-press", time: "1 min" },
-      { name: "Three Deep Breaths", description: "Just three slow breaths", href: "/breathing?pattern=extended-exhale", time: "1 min" },
+      { name: "Physiological Sigh", description: "Two quick inhales, one long exhale", href: "/breathing?pattern=sigh", time: "5 min" },
+      { name: "30-Second Shake", description: "Shake your whole body", href: "/somatic?exercise=body-shaking", time: "1-3 min" },
+      { name: "Eye Press Reset", description: "Gentle pressure on closed eyes", href: "/somatic?exercise=eye-press", time: "2 min" },
+      { name: "Three Deep Breaths", description: "Just three slow breaths", href: "/breathing?pattern=extended-exhale", time: "5 min" },
     ],
   },
   {
     label: "Breathing",
     exercises: [
-      { name: "Box Breathing", description: "In, hold, out, hold — equal rhythm", href: "/breathing?pattern=box", time: "3 min" },
-      { name: "4-7-8 Breathing", description: "In 4, hold 7, out 8", href: "/breathing?pattern=478", time: "5 min" },
-      { name: "Physiological Sigh", description: "Two inhales, long exhale", href: "/breathing?pattern=sigh", time: "3 min" },
-      { name: "Coherence", description: "5 seconds in, 5 out", href: "/breathing?pattern=coherence", time: "5 min" },
-      { name: "Extended Exhale", description: "Longer out-breath", href: "/breathing?pattern=extended-exhale", time: "3 min" },
+      { name: "Box Breathing", description: "In, hold, out, hold — equal rhythm", href: "/breathing?pattern=box", time: "7 min" },
+      { name: "4-7-8 Breathing", description: "In 4, hold 7, out 8", href: "/breathing?pattern=478", time: "8 min" },
+      { name: "Physiological Sigh", description: "Two inhales, long exhale", href: "/breathing?pattern=sigh", time: "5 min" },
+      { name: "Coherence", description: "5 seconds in, 5 out", href: "/breathing?pattern=coherence", time: "4 min" },
+      { name: "Extended Exhale", description: "Longer out-breath", href: "/breathing?pattern=extended-exhale", time: "5 min" },
     ],
   },
   {
@@ -91,44 +91,44 @@ const exerciseGroups: ExerciseGroup[] = [
   {
     label: "Movement & Energy",
     exercises: [
-      { name: "Body Shaking", description: "Shake it all out", href: "/somatic?exercise=body-shaking", time: "2-3 min" },
-      { name: "Air Punching", description: "Let it out — punch hard", href: "/somatic?exercise=air-punching", time: "2-3 min" },
-      { name: "Free Movement / Dancing", description: "Move — dance like nobody's watching", href: "/somatic?exercise=dancing", time: "3-5 min" },
-      { name: "Gentle Swaying", description: "Rock gently, like the ocean", href: "/somatic?exercise=gentle-swaying", time: "3 min" },
-      { name: "Bearing Down", description: "Engage your core against resistance", href: "/somatic?exercise=bearing-down", time: "1-2 min" },
+      { name: "Body Shaking", description: "Shake it all out", href: "/somatic?exercise=body-shaking", time: "1-3 min" },
+      { name: "Air Punching", description: "Let it out — punch hard", href: "/somatic?exercise=air-punching", time: "1-3 min" },
+      { name: "Free Movement / Dancing", description: "Move — dance like nobody's watching", href: "/somatic?exercise=dancing", time: "1-5 min" },
+      { name: "Gentle Swaying", description: "Rock gently, like the ocean", href: "/somatic?exercise=gentle-swaying", time: "1-5 min" },
+      { name: "Bearing Down", description: "Engage your core against resistance", href: "/somatic?exercise=bearing-down", time: "2 min" },
     ],
   },
   {
     label: "Touch & Tapping",
     exercises: [
-      { name: "Bilateral Tapping", description: "Left-right rhythm to process", href: "/somatic?exercise=bilateral-tapping", time: "3-5 min" },
-      { name: "Self-Havening", description: "Gentle self-touch for safety", href: "/somatic?exercise=havening", time: "3-5 min" },
-      { name: "Butterfly Hug", description: "Cross your arms and tap", href: "/somatic?exercise=bilateral-tapping", time: "2-3 min" },
-      { name: "Vagus Nerve Massage", description: "Gentle pressure on calming points", href: "/somatic?exercise=vagus-nerve-massage", time: "2-3 min" },
+      { name: "Bilateral Tapping", description: "Left-right rhythm to process", href: "/somatic?exercise=bilateral-tapping", time: "1-5 min" },
+      { name: "Self-Havening", description: "Gentle self-touch for safety", href: "/somatic?exercise=havening", time: "3 min" },
+      { name: "Butterfly Hug", description: "Cross your arms and tap", href: "/somatic?exercise=bilateral-tapping", time: "1-5 min" },
+      { name: "Vagus Nerve Massage", description: "Gentle pressure on calming points", href: "/somatic?exercise=vagus-nerve-massage", time: "3 min" },
     ],
   },
   {
     label: "Eyes & Senses",
     exercises: [
       { name: "Orienting", description: "Slowly look around to signal safety", href: "/somatic?exercise=orienting", time: "2 min" },
-      { name: "Eye Press Reset", description: "Gentle pressure to slow your heart", href: "/somatic?exercise=eye-press", time: "1-2 min" },
-      { name: "Vestibular Eye Movement", description: "Slow eye tracking to settle", href: "/somatic?exercise=vestibular-eyes", time: "2-3 min" },
-      { name: "Humming / Voo Sound", description: "Deep vibration to calm your vagus nerve", href: "/somatic?exercise=humming", time: "3 min" },
+      { name: "Eye Press Reset", description: "Gentle pressure to slow your heart", href: "/somatic?exercise=eye-press", time: "2 min" },
+      { name: "Vestibular Eye Movement", description: "Slow eye tracking to settle", href: "/somatic?exercise=vestibular-eyes", time: "1-5 min" },
+      { name: "Humming / Voo Sound", description: "Deep vibration to calm your vagus nerve", href: "/somatic?exercise=humming", time: "1-5 min" },
     ],
   },
   {
     label: "Deeper Work",
     exercises: [
       { name: "Body Scan", description: "Notice your body, one area at a time", href: "/body-scan", time: "3-10 min" },
-      { name: "Pendulation", description: "Shift between tension and comfort", href: "/somatic?exercise=pendulation", time: "5 min" },
-      { name: "Return to Safety", description: "Re-orient after feeling unsafe", href: "/somatic?exercise=return-to-safety", time: "3 min" },
+      { name: "Pendulation", description: "Shift between tension and comfort", href: "/somatic?exercise=pendulation", time: "3 min" },
+      { name: "Return to Safety", description: "Re-orient after feeling unsafe", href: "/somatic?exercise=return-to-safety", time: "4 min" },
       { name: "Affirmations", description: "Words that meet you where you are", href: "/affirmations", time: "2 min" },
     ],
   },
   {
     label: "Sleep",
     exercises: [
-      { name: "Sleep Sequence", description: "Breathing and relaxation for restless nights", href: "/sleep", time: "10-15 min" },
+      { name: "Sleep Sequence", description: "Breathing and relaxation for restless nights", href: "/sleep", time: "3-5 min" },
     ],
   },
 ];
