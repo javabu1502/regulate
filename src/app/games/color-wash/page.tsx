@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
+import { isGameSoundEnabled } from "@/lib/game-sound";
 
 // ── Colors ────────────────────────────────────────────────────────────
 const PALETTE = [
@@ -23,6 +24,7 @@ function getAudioContext(): AudioContext {
 
 function playDabSound() {
   try {
+    if (!isGameSoundEnabled()) return;
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;

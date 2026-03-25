@@ -78,13 +78,23 @@ body {
   animation: screen-enter 0.4s ease-out;
 }
 
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-breathe,
   .animate-float,
   .animate-pulse-soft,
   .animate-page-in,
-  .animate-screen-enter {
+  .animate-screen-enter,
+  .animate-fade-in {
     animation: none !important;
   }
 

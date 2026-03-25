@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
+import { isGameSoundEnabled } from "@/lib/game-sound";
 
 // ─── Colors ─────────────────────────────────────────────────────────
 
@@ -102,6 +103,7 @@ function getAudioContext(): AudioContext {
 
 function playSandSound() {
   try {
+    if (!isGameSoundEnabled()) return;
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
@@ -673,7 +675,10 @@ export default function SandGardenPage() {
       if (dist > 3) {
         const angle = Math.atan2(dy, dx);
         rakePositionRef.current = { x: e.clientX, y: e.clientY, angle };
-        points.push({ x: e.clientX, y: e.clientY });
+        // Smooth the stroke with low-pass filter
+        const smoothX = last.x * 0.25 + e.clientX * 0.75;
+        const smoothY = last.y * 0.25 + e.clientY * 0.75;
+        points.push({ x: smoothX, y: smoothY });
         // Play sand scratch sound occasionally
         if (points.length % 8 === 0) playSandSound();
         drawScene();
@@ -690,6 +695,15 @@ export default function SandGardenPage() {
     isDraggingRef.current = false;
     rakePositionRef.current = null;
     drawScene();
+  }, [drawScene]);
+
+  // ── Undo last stroke ────────────────────────────────────────
+  const undoStroke = useCallback(() => {
+    if (rakeLinesRef.current.length > 0) {
+      rakeLinesRef.current.pop();
+      haptics.light();
+      drawScene();
+    }
   }, [drawScene]);
 
   // ── Clear garden ──────────────────────────────────────────────
@@ -793,6 +807,20 @@ export default function SandGardenPage() {
               {size === "small" ? "Fine" : size === "medium" ? "Medium" : "Wide"}
             </button>
           ))}
+
+          {/* Undo button */}
+          <button
+            onClick={undoStroke}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="rounded-full px-3 py-1.5 text-sm backdrop-blur-sm transition-opacity hover:opacity-80"
+            style={{
+              backgroundColor: "rgba(200, 185, 155, 0.8)",
+              color: "rgb(75, 65, 48)",
+              border: "1px solid rgba(160, 145, 115, 0.4)",
+            }}
+          >
+            Undo
+          </button>
 
           {/* Save button */}
           <button

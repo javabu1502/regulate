@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
+import { isGameSoundEnabled } from "@/lib/game-sound";
 
 // ─── Audio ──────────────────────────────────────────────────────────
 
@@ -15,6 +16,7 @@ function getAudioContext(): AudioContext {
 
 function playGrowSound() {
   try {
+    if (!isGameSoundEnabled()) return;
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
@@ -49,6 +51,7 @@ function playGrowSound() {
 
 function playBloomSound() {
   try {
+    if (!isGameSoundEnabled()) return;
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;

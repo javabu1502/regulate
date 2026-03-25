@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import AmbientAudio from "@/components/AmbientAudio";
 import PageTransition from "@/components/PageTransition";
+import { isGameSoundEnabled, setGameSoundEnabled } from "@/lib/game-sound";
 
 const games = [
   {
@@ -197,6 +199,8 @@ const games = [
 ];
 
 export default function GamesPage() {
+  const [soundOn, setSoundOn] = useState(() => isGameSoundEnabled());
+
   return (
     <PageTransition>
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
@@ -223,7 +227,30 @@ export default function GamesPage() {
           </svg>
           Home
         </Link>
-        <AmbientAudio />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              const next = !soundOn;
+              setSoundOn(next);
+              setGameSoundEnabled(next);
+            }}
+            className={`transition-colors ${soundOn ? "text-cream-dim/60" : "text-cream-dim/25"}`}
+            aria-label={soundOn ? "Sound effects on" : "Sound effects off"}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 5L6 9H2v6h4l5 4V5z" />
+              {soundOn ? (
+                <>
+                  <path d="M15.54 8.46a5 5 0 010 7.07" />
+                  <path d="M19.07 4.93a10 10 0 010 14.14" />
+                </>
+              ) : (
+                <line x1="23" y1="9" x2="17" y2="15" />
+              )}
+            </svg>
+          </button>
+          <AmbientAudio />
+        </div>
         </div>
 
         <header className="mb-8 mt-6 text-center">

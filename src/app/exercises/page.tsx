@@ -207,14 +207,14 @@ export default function ExercisesPage() {
           <p className="mb-4 text-lg text-cream">
             What are you feeling?
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {FEELINGS.map((feeling) => {
               const isActive = activeFeeling === feeling.key;
               return (
                 <button
                   key={feeling.key}
                   onClick={() => setActiveFeeling(isActive ? null : feeling.key)}
-                  className={`rounded-full border px-5 py-2.5 text-base transition-all ${
+                  className={`rounded-full border px-4 py-2 text-sm transition-all sm:px-5 sm:py-2.5 sm:text-base ${
                     isActive
                       ? "border-teal/40 bg-teal/20 text-cream"
                       : "border-slate-blue/25 bg-deep/50 text-cream-dim/70 hover:border-teal/25 hover:text-cream"

@@ -398,7 +398,7 @@ function GroundingPageInner() {
         }}
       >
         {/* Progress bar */}
-        <div className={`fixed left-0 right-0 top-0 z-20 h-1 bg-slate-blue/30 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+        <div className={`fixed left-0 right-0 top-0 z-30 h-1 bg-slate-blue/30 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <div
             className="h-full bg-teal-soft/60 transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
@@ -425,12 +425,12 @@ function GroundingPageInner() {
           <p className="mt-2 text-sm leading-relaxed text-cream-dim">{currentSense.prompt}</p>
 
           {/* Checkoff items */}
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-2.5">
             {checked.map((isChecked, i) => (
               <button
                 key={i}
                 onClick={() => checkItem(i)}
-                className={`flex h-14 w-14 items-center justify-center rounded-2xl border text-lg transition-all duration-300 ${
+                className={`flex h-12 w-12 items-center justify-center rounded-xl border text-lg transition-all duration-300 sm:h-14 sm:w-14 sm:rounded-2xl ${
                   isChecked
                     ? "scale-90 border-teal/40 bg-teal/20 text-teal-soft"
                     : "border-slate-blue/40 bg-deep/60 text-cream-dim hover:border-teal/30 hover:bg-deep/80 active:scale-95"
@@ -464,7 +464,7 @@ function GroundingPageInner() {
         </div>
 
         {/* Ambient audio toggle */}
-        <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+        <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}
@@ -531,7 +531,7 @@ function GroundingPageInner() {
         </div>
 
         {/* Ambient audio toggle */}
-        <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1 px-3 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+        <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}

@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
+import { isGameSoundEnabled } from "@/lib/game-sound";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ function getAudioContext(): AudioContext {
 
 function playCrackle() {
   try {
+    if (!isGameSoundEnabled()) return;
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
@@ -396,23 +398,50 @@ export default function BurnNotePage() {
       let maxDist = 0;
       if (hasIgnited) {
         maxDist = maxBurnDist(ignition!.x, ignition!.y);
-        // Ease-in-out: starts slow, speeds up, then slows at the end
         const t = Math.min(elapsed / BURN_DURATION, 1);
         const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        burnRadius = eased * (maxDist + 40); // +40 to ensure full coverage
+        burnRadius = eased * (maxDist + 40);
+      }
+
+      // ── Organic burn shape helpers ────────────────────────
+      const BURN_SEGS = 72;
+
+      function burnNoiseAt(angle: number): number {
+        if (!hasIgnited) return 1;
+        return 1
+          + Math.sin(angle * 3.71 + ignition!.x * 0.047) * 0.2
+          + Math.sin(angle * 7.29 + ignition!.y * 0.071 + elapsed * 1.1) * 0.13
+          + Math.sin(angle * 13.13 + (ignition!.x + ignition!.y) * 0.031) * 0.08
+          + Math.sin(angle * 21.71 + ignition!.x * 0.113 + elapsed * 0.47) * 0.05
+          + Math.cos(angle * 5.09 + elapsed * 2.3) * 0.06;
+      }
+
+      function distToEdgeInDir(angle: number): number {
+        const dx = Math.cos(angle);
+        const dy = Math.sin(angle);
+        let t = Infinity;
+        if (dx > 0.001) t = Math.min(t, (noteRight - ignition!.x) / dx);
+        if (dx < -0.001) t = Math.min(t, (noteLeft - ignition!.x) / dx);
+        if (dy > 0.001) t = Math.min(t, (noteBottom - ignition!.y) / dy);
+        if (dy < -0.001) t = Math.min(t, (noteTop - ignition!.y) / dy);
+        return Math.max(0, t);
+      }
+
+      function burnRadiusAt(angle: number): number {
+        const noise = burnNoiseAt(angle);
+        const edgeDist = distToEdgeInDir(angle);
+        const edgeBoost = maxDist > 0 && edgeDist < maxDist * 0.5
+          ? 1 + (1 - edgeDist / (maxDist * 0.5)) * 0.3
+          : 1;
+        return burnRadius * noise * edgeBoost;
       }
 
       // ── Update burn mask ──────────────────────────────────
       if (hasIgnited && burnRadius > 0) {
         burnCtx.beginPath();
-        // Jagged edge for organic look
-        const segments = 48;
-        for (let i = 0; i <= segments; i++) {
-          const angle = (i / segments) * Math.PI * 2;
-          const jag = 1 + Math.sin(angle * 11 + ignition!.x * 0.1) * 0.04
-                        + Math.sin(angle * 17 + ignition!.y * 0.1) * 0.03
-                        + Math.sin(angle * 7 + elapsed * 2) * 0.02;
-          const r = burnRadius * jag;
+        for (let i = 0; i <= BURN_SEGS; i++) {
+          const angle = ((i % BURN_SEGS) / BURN_SEGS) * Math.PI * 2;
+          const r = burnRadiusAt(angle);
           const px = ignition!.x + Math.cos(angle) * r;
           const py = ignition!.y + Math.sin(angle) * r;
           if (i === 0) burnCtx.moveTo(px, py);
@@ -432,18 +461,34 @@ export default function BurnNotePage() {
 
       // ── Char edge around burn front ───────────────────────
       if (hasIgnited && burnRadius > 3) {
-        const charWidth = 12;
+        const charWidth = 14;
         ctx2d.save();
-        // Clip to a ring around the burn edge
+        // Clip to a ring following the organic burn edge
         ctx2d.beginPath();
-        ctx2d.arc(ignition!.x, ignition!.y, burnRadius + charWidth, 0, Math.PI * 2);
-        ctx2d.arc(ignition!.x, ignition!.y, Math.max(0, burnRadius - 4), 0, Math.PI * 2, true);
+        for (let i = 0; i <= BURN_SEGS; i++) {
+          const angle = ((i % BURN_SEGS) / BURN_SEGS) * Math.PI * 2;
+          const r = burnRadiusAt(angle) + charWidth;
+          const px = ignition!.x + Math.cos(angle) * r;
+          const py = ignition!.y + Math.sin(angle) * r;
+          if (i === 0) ctx2d.moveTo(px, py);
+          else ctx2d.lineTo(px, py);
+        }
         ctx2d.closePath();
-        ctx2d.clip();
+        for (let i = BURN_SEGS; i >= 0; i--) {
+          const angle = ((i % BURN_SEGS) / BURN_SEGS) * Math.PI * 2;
+          const r = Math.max(0, burnRadiusAt(angle) - 4);
+          const px = ignition!.x + Math.cos(angle) * r;
+          const py = ignition!.y + Math.sin(angle) * r;
+          if (i === BURN_SEGS) ctx2d.moveTo(px, py);
+          else ctx2d.lineTo(px, py);
+        }
+        ctx2d.closePath();
+        ctx2d.clip("evenodd");
 
+        const maxR = burnRadius * 1.6 + charWidth;
         const charGrad = ctx2d.createRadialGradient(
-          ignition!.x, ignition!.y, Math.max(0, burnRadius - 4),
-          ignition!.x, ignition!.y, burnRadius + charWidth,
+          ignition!.x, ignition!.y, Math.max(0, burnRadius * 0.5),
+          ignition!.x, ignition!.y, maxR,
         );
         charGrad.addColorStop(0, "rgba(8, 3, 0, 0.85)");
         charGrad.addColorStop(0.25, "rgba(30, 12, 2, 0.6)");
@@ -451,8 +496,7 @@ export default function BurnNotePage() {
         charGrad.addColorStop(0.8, "rgba(75, 40, 10, 0.1)");
         charGrad.addColorStop(1, "rgba(80, 40, 10, 0)");
         ctx2d.fillStyle = charGrad;
-        const s = burnRadius + charWidth + 4;
-        ctx2d.fillRect(ignition!.x - s, ignition!.y - s, s * 2, s * 2);
+        ctx2d.fillRect(ignition!.x - maxR, ignition!.y - maxR, maxR * 2, maxR * 2);
         ctx2d.restore();
       }
 
@@ -461,12 +505,9 @@ export default function BurnNotePage() {
         ctx2d.save();
         ctx2d.globalCompositeOperation = "lighter";
 
-        // Sample points along the burn front, only draw where it intersects the paper
-        const numPoints = 24;
-        for (let i = 0; i < numPoints; i++) {
-          const angle = (i / numPoints) * Math.PI * 2;
-          const jag = 1 + Math.sin(angle * 11 + ignition!.x * 0.1) * 0.04;
-          const r = burnRadius * jag;
+        for (let i = 0; i < BURN_SEGS; i++) {
+          const angle = (i / BURN_SEGS) * Math.PI * 2;
+          const r = burnRadiusAt(angle);
           const px = ignition!.x + Math.cos(angle) * r;
           const py = ignition!.y + Math.sin(angle) * r;
 
@@ -489,19 +530,20 @@ export default function BurnNotePage() {
 
       // ── Spawn embers and smoke at burn front ──────────────
       if (hasIgnited && elapsed < BURN_DURATION + 1) {
-        if (frameRef.current % 4 === 0) {
+        if (frameRef.current % 3 === 0) {
           const angle = Math.random() * Math.PI * 2;
-          const jag = 1 + Math.sin(angle * 11) * 0.04;
-          const ex = ignition!.x + Math.cos(angle) * burnRadius * jag;
-          const ey = ignition!.y + Math.sin(angle) * burnRadius * jag;
+          const r = burnRadiusAt(angle);
+          const ex = ignition!.x + Math.cos(angle) * r;
+          const ey = ignition!.y + Math.sin(angle) * r;
           if (isOnPaper(ex, ey)) {
-            spawnEmbersAt(ex, ey, 1);
+            spawnEmbersAt(ex, ey, 1 + Math.floor(Math.random() * 2));
           }
         }
-        if (frameRef.current % 6 === 0) {
+        if (frameRef.current % 5 === 0) {
           const angle = Math.random() * Math.PI * 2;
-          const sx = ignition!.x + Math.cos(angle) * burnRadius * 0.85;
-          const sy = ignition!.y + Math.sin(angle) * burnRadius * 0.85;
+          const r = burnRadiusAt(angle) * (0.8 + Math.random() * 0.15);
+          const sx = ignition!.x + Math.cos(angle) * r;
+          const sy = ignition!.y + Math.sin(angle) * r;
           if (isOnPaper(sx, sy)) {
             spawnSmokeAt(sx, sy);
           }

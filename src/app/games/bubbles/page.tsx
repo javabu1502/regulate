@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
+import { isGameSoundEnabled } from "@/lib/game-sound";
 
 // ─── Colors ─────────────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ function getAudioContext(): AudioContext {
 
 function playPopSound() {
   try {
+    if (!isGameSoundEnabled()) return;
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;

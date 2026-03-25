@@ -151,9 +151,58 @@ function PatternIcon({ id }: { id: string }) {
   }
 }
 
+// ─── Get Ready countdown ────────────────────────────────────────────
+
+function GetReadyScreen({ onReady, onCancel }: { onReady: () => void; onCancel: () => void }) {
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [fade, setFade] = useState(false);
+
+  useEffect(() => {
+    // Show "Get comfortable" for 2s, then 3-2-1 countdown
+    const startTimer = setTimeout(() => setCountdown(3), 2000);
+    return () => clearTimeout(startTimer);
+  }, []);
+
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown === 0) {
+      setFade(true);
+      const t = setTimeout(onReady, 400);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setCountdown(countdown - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown, onReady]);
+
+  return (
+    <div className={`flex min-h-screen flex-col items-center justify-center px-5 transition-opacity duration-400 ${fade ? "opacity-0" : "opacity-100"}`}>
+      <div className="flex flex-col items-center text-center">
+        {countdown === null ? (
+          <p className="animate-fade-in text-lg text-cream/80">
+            Get comfortable and settle in
+          </p>
+        ) : (
+          <p
+            key={countdown}
+            className="animate-fade-in font-mono text-6xl font-extralight text-teal-soft"
+          >
+            {countdown}
+          </p>
+        )}
+      </div>
+      <button
+        onClick={onCancel}
+        className="fixed bottom-12 text-sm text-cream-dim/30 transition-colors hover:text-cream-dim/60"
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
-type Screen = "select" | "intro" | "session" | "complete";
+type Screen = "select" | "intro" | "getready" | "session" | "complete";
 
 export default function BreathingPage() {
   return (
@@ -349,7 +398,7 @@ function BreathingPageInner() {
     setIsPaused(false);
     elapsedRef.current = 0;
     prevStepKeyRef.current = "";
-    setScreen("session");
+    setScreen("getready");
   }
 
   function resetToSelect() {
@@ -515,6 +564,12 @@ function BreathingPageInner() {
     );
   }
 
+  // ─── GET READY SCREEN ────────────────────────────────────────
+
+  if (screen === "getready" && selectedPattern) {
+    return <GetReadyScreen onReady={() => setScreen("session")} onCancel={() => setScreen("intro")} />;
+  }
+
   // ─── SESSION SCREEN ───────────────────────────────────────────
 
   if (screen === "session" && selectedPattern && currentStep) {
@@ -529,8 +584,8 @@ function BreathingPageInner() {
         }}
       >
         {/* Cycle dots — always visible */}
-        <div className="fixed left-0 right-0 top-4 z-10 flex justify-center">
-          <div className="flex items-center gap-1.5">
+        <div className="fixed left-0 right-0 top-14 z-10 flex justify-center safe-top">
+          <div className="flex items-center gap-2">
             {Array.from({ length: TOTAL_CYCLES }).map((_, i) => (
               <div
                 key={i}
@@ -647,7 +702,7 @@ function BreathingPageInner() {
         {/* Paused overlay */}
         {isPaused && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-midnight/60 backdrop-blur-sm">
-            <div className="flex w-full max-w-xs flex-col items-center text-center px-5">
+            <div className="flex w-full max-w-xs flex-col items-center text-center px-6">
               <p className="text-lg text-cream/80">Paused</p>
               <p className="mt-2 text-xs text-cream-dim/40 leading-relaxed">
                 {currentStep.phase === "hold"
