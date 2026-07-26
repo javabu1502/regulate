@@ -2,8 +2,11 @@
 
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
+import { Caveat } from "next/font/google";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+
+const caveat = Caveat({ subsets: ["latin"], weight: ["500"] });
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -30,6 +33,8 @@ interface Smoke {
   maxLife: number;
   gray: number;
 }
+
+type Point = { x: number; y: number };
 
 // ─── Audio ──────────────────────────────────────────────────────────
 
@@ -74,9 +79,75 @@ function playCrackle() {
   }
 }
 
+// ─── Stroke rendering helper ────────────────────────────────────────
+
+function renderStrokes(
+  ctx: CanvasRenderingContext2D,
+  strokes: Point[][],
+  offsetX: number,
+  offsetY: number,
+  scaleX: number,
+  scaleY: number,
+) {
+  ctx.save();
+  ctx.strokeStyle = "#2a1f10";
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  for (const stroke of strokes) {
+    if (stroke.length < 2) {
+      if (stroke.length === 1) {
+        ctx.beginPath();
+        const px = offsetX + stroke[0].x * scaleX;
+        const py = offsetY + stroke[0].y * scaleY;
+        ctx.arc(px, py, 1, 0, Math.PI * 2);
+        ctx.fillStyle = "#2a1f10";
+        ctx.fill();
+      }
+      continue;
+    }
+
+    ctx.beginPath();
+    const startX = offsetX + stroke[0].x * scaleX;
+    const startY = offsetY + stroke[0].y * scaleY;
+    ctx.moveTo(startX, startY);
+
+    for (let i = 1; i < stroke.length - 1; i++) {
+      const cx = offsetX + stroke[i].x * scaleX;
+      const cy = offsetY + stroke[i].y * scaleY;
+      const nx = offsetX + stroke[i + 1].x * scaleX;
+      const ny = offsetY + stroke[i + 1].y * scaleY;
+      const midX = (cx + nx) / 2;
+      const midY = (cy + ny) / 2;
+      ctx.quadraticCurveTo(cx, cy, midX, midY);
+    }
+
+    const last = stroke[stroke.length - 1];
+    ctx.lineTo(offsetX + last.x * scaleX, offsetY + last.y * scaleY);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ─── Match geometry ─────────────────────────────────────────────────
+
+const MATCH_LEN = 90;
+const MATCH_ANGLE = Math.PI * 0.62;
+const MATCH_COS = Math.cos(MATCH_ANGLE);
+const MATCH_SIN = Math.sin(MATCH_ANGLE);
+
+function matchTipFromBase(baseX: number, baseY: number) {
+  return {
+    x: baseX - MATCH_COS * MATCH_LEN,
+    y: baseY - MATCH_SIN * MATCH_LEN,
+  };
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 type Phase = "write" | "burning" | "done";
+type InputMode = "draw" | "type";
 
 export default function BurnNotePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -87,7 +158,13 @@ export default function BurnNotePage() {
   const frameRef = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Match drag state
+  // Drawing canvas refs
+  const drawCanvasRef = useRef<HTMLCanvasElement>(null);
+  const strokesRef = useRef<Point[][]>([]);
+  const isDrawingRef = useRef(false);
+  const drawSizeRef = useRef<{ w: number; h: number }>({ w: 380, h: 336 });
+
+  // Match drag state — now tracks the BASE (handle) of the match
   const matchPosRef = useRef<{ x: number; y: number } | null>(null);
   const isDraggingMatchRef = useRef(false);
 
@@ -96,22 +173,120 @@ export default function BurnNotePage() {
 
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("write");
+  const [inputMode, setInputMode] = useState<InputMode>("draw");
   const [showHelp, setShowHelp] = useState(false);
+  // Mirrors strokesRef.current.length so drawing triggers a re-render;
+  // refs alone can't update the placeholder/Clear/Burn button states.
+  const [strokeCount, setStrokeCount] = useState(0);
+  // Mirrors ignitionRef so the drag hint hides when the paper catches
+  const [ignited, setIgnited] = useState(false);
 
-  // Auto-focus
+  const hasContent = inputMode === "draw"
+    ? strokeCount > 0
+    : text.trim().length > 0;
+
+  // Auto-focus textarea in type mode
   useEffect(() => {
-    if (phase === "write" && textareaRef.current) {
+    if (phase === "write" && inputMode === "type" && textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [phase]);
+  }, [phase, inputMode]);
+
+  // ── Setup drawing canvas ───────────────────────────────────────
+
+  useEffect(() => {
+    if (phase !== "write" || inputMode !== "draw") return;
+    const canvas = drawCanvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext("2d")!;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawSizeRef.current = { w: rect.width, h: rect.height };
+
+    // Redraw existing strokes
+    renderStrokes(ctx, strokesRef.current, 0, 0, 1, 1);
+  }, [phase, inputMode]);
+
+  // ── Drawing event handlers ─────────────────────────────────────
+
+  const handleDrawPointerDown = useCallback((e: React.PointerEvent) => {
+    if (phase !== "write" || inputMode !== "draw") return;
+    const canvas = drawCanvasRef.current;
+    if (!canvas) return;
+
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    isDrawingRef.current = true;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    strokesRef.current.push([{ x, y }]);
+    setStrokeCount(strokesRef.current.length);
+
+    const ctx = canvas.getContext("2d")!;
+    ctx.beginPath();
+    ctx.arc(x, y, 1, 0, Math.PI * 2);
+    ctx.fillStyle = "#2a1f10";
+    ctx.fill();
+  }, [phase, inputMode]);
+
+  const handleDrawPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDrawingRef.current) return;
+    const canvas = drawCanvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const currentStroke = strokesRef.current[strokesRef.current.length - 1];
+    if (!currentStroke) return;
+
+    const prev = currentStroke[currentStroke.length - 1];
+    currentStroke.push({ x, y });
+
+    const ctx = canvas.getContext("2d")!;
+    ctx.strokeStyle = "#2a1f10";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  }, []);
+
+  const handleDrawPointerUp = useCallback(() => {
+    isDrawingRef.current = false;
+  }, []);
+
+  const clearDrawing = useCallback(() => {
+    strokesRef.current = [];
+    setStrokeCount(0);
+    const canvas = drawCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const dpr = window.devicePixelRatio || 1;
+        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      }
+    }
+  }, []);
 
   // ── Start burn phase ──────────────────────────────────────────
 
   const startBurn = useCallback(() => {
-    if (!text.trim()) return;
+    if (inputMode === "draw" && strokesRef.current.length === 0) return;
+    if (inputMode === "type" && !text.trim()) return;
+    setIgnited(false);
     setPhase("burning");
     haptics.tap();
-  }, [text]);
+  }, [text, inputMode]);
 
   // ── Canvas animation ─────────────────────────────────────────
 
@@ -146,8 +321,6 @@ export default function BurnNotePage() {
     const noteBottom = Math.min(h * 0.68, noteTop + 480);
     const noteW = noteRight - noteLeft;
     const noteH = noteBottom - noteTop;
-    const noteCx = noteLeft + noteW / 2;
-    const noteCy = noteTop + noteH / 2;
 
     // Max distance from any ignition point to the farthest corner
     function maxBurnDist(ix: number, iy: number) {
@@ -165,14 +338,12 @@ export default function BurnNotePage() {
       return max;
     }
 
-    // Match resting position (bottom right of paper)
-    const matchRestX = noteRight - 20;
-    const matchRestY = noteBottom + 60;
-
-    // Initialize match position
+    // Match resting position — BASE (handle) of the match
+    const matchRestX = noteRight - 50;
+    const matchRestY = noteBottom + 130;
     matchPosRef.current = { x: matchRestX, y: matchRestY };
 
-    // Pre-render the paper + text
+    // Pre-render the paper + content
     const paperCanvas = document.createElement("canvas");
     paperCanvas.width = w * dpr;
     paperCanvas.height = h * dpr;
@@ -224,23 +395,41 @@ export default function BurnNotePage() {
       paperCtx.stroke();
     }
 
-    // Draw text
+    // Draw content onto paper
     const textPadding = 24;
-    const fontSize = 18;
-    paperCtx.font = `${fontSize}px 'Georgia', 'Times New Roman', serif`;
-    paperCtx.fillStyle = "#2a1f10";
-    paperCtx.textBaseline = "bottom";
-    const maxTextW = noteW - textPadding * 2;
-    const lines = wrapText(paperCtx, text, maxTextW);
-    for (let li = 0; li < lines.length; li++) {
-      const y = firstLine + li * lineSpacing;
-      if (y > noteBottom - 20) break;
-      const ox = (Math.random() - 0.5) * 1;
-      const oy = (Math.random() - 0.5) * 1;
-      paperCtx.fillText(lines[li], noteLeft + textPadding + ox, y + oy);
+    if (inputMode === "draw") {
+      // Render finger-drawn strokes with a uniform scale (letterboxed)
+      // so the handwriting isn't stretched
+      const drawW = drawSizeRef.current.w;
+      const drawH = drawSizeRef.current.h;
+      const scale = Math.min(noteW / drawW, noteH / drawH);
+      const offsetX = noteLeft + (noteW - drawW * scale) / 2;
+      const offsetY = noteTop + (noteH - drawH * scale) / 2;
+
+      // Clip to paper area
+      paperCtx.save();
+      drawPaperPath(paperCtx);
+      paperCtx.clip();
+      renderStrokes(paperCtx, strokesRef.current, offsetX, offsetY, scale, scale);
+      paperCtx.restore();
+    } else {
+      // Render typed text with handwriting font
+      const fontSize = 20;
+      paperCtx.font = `500 ${fontSize}px ${caveat.style.fontFamily}, 'Caveat', cursive`;
+      paperCtx.fillStyle = "#2a1f10";
+      paperCtx.textBaseline = "bottom";
+      const maxTextW = noteW - textPadding * 2;
+      const lines = wrapText(paperCtx, text, maxTextW);
+      for (let li = 0; li < lines.length; li++) {
+        const y = firstLine + li * lineSpacing;
+        if (y > noteBottom - 20) break;
+        const ox = (Math.random() - 0.5) * 1.5;
+        const oy = (Math.random() - 0.5) * 1.5;
+        paperCtx.fillText(lines[li], noteLeft + textPadding + ox, y + oy);
+      }
     }
 
-    // Paper edge
+    // Paper edge shadow
     paperCtx.save();
     paperCtx.shadowColor = "rgba(0,0,0,0.12)";
     paperCtx.shadowBlur = 12;
@@ -295,14 +484,14 @@ export default function BurnNotePage() {
       });
     }
 
-    // ── Match drawing ──────────────────────────────────────────
-    const matchLen = 90;
+    // ── Match drawing (takes BASE/handle position) ──────────────
+
     const matchW = 4;
 
-    function drawMatch(ctx: CanvasRenderingContext2D, tipX: number, tipY: number, lit: boolean) {
-      const angle = Math.PI * 0.62;
-      const baseX = tipX + Math.cos(angle) * matchLen;
-      const baseY = tipY + Math.sin(angle) * matchLen;
+    function drawMatch(ctx: CanvasRenderingContext2D, baseX: number, baseY: number, lit: boolean) {
+      const tip = matchTipFromBase(baseX, baseY);
+      const tipX = tip.x;
+      const tipY = tip.y;
 
       ctx.save();
       ctx.lineCap = "round";
@@ -381,8 +570,7 @@ export default function BurnNotePage() {
 
     // ── Main draw loop ─────────────────────────────────────────
 
-    const BURN_DURATION = 12; // seconds for fire to consume the paper
-    const BURN_SPEED_PPS = 1; // will be calculated per-frame
+    const BURN_DURATION = 12;
 
     function draw() {
       if (!ctx2d) return;
@@ -463,7 +651,6 @@ export default function BurnNotePage() {
       if (hasIgnited && burnRadius > 3) {
         const charWidth = 14;
         ctx2d.save();
-        // Clip to a ring following the organic burn edge
         ctx2d.beginPath();
         for (let i = 0; i <= BURN_SEGS; i++) {
           const angle = ((i % BURN_SEGS) / BURN_SEGS) * Math.PI * 2;
@@ -614,7 +801,7 @@ export default function BurnNotePage() {
       }
       ctx2d.restore();
 
-      // ── Draw match ────────────────────────────────────────
+      // ── Draw match (before ignition) ───────────────────────
       const mPos = matchPosRef.current;
       if (mPos && !hasIgnited) {
         drawMatch(ctx2d, mPos.x, mPos.y, true);
@@ -634,18 +821,61 @@ export default function BurnNotePage() {
     return () => {
       cancelAnimationFrame(animFrameRef.current);
     };
-  }, [phase, text]);
+  }, [phase, text, inputMode]);
 
-  // ── Pointer handlers ──────────────────────────────────────────
+  // ── Pointer handlers for match (burning phase) ─────────────────
+
+  const getNoteGeometry = useCallback(() => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const noteMaxW = Math.min(w - 48, 380);
+    const noteLeft = (w - noteMaxW) / 2;
+    const noteRight = noteLeft + noteMaxW;
+    const noteTop = h * 0.1;
+    const noteBottom = Math.min(h * 0.68, noteTop + 480);
+    return { noteLeft, noteRight, noteTop, noteBottom };
+  }, []);
+
+  const tryIgnite = useCallback((baseX: number, baseY: number): boolean => {
+    const tip = matchTipFromBase(baseX, baseY);
+    const { noteLeft, noteRight, noteTop, noteBottom } = getNoteGeometry();
+
+    if (tip.x >= noteLeft && tip.x <= noteRight && tip.y >= noteTop && tip.y <= noteBottom) {
+      // Snap ignition to nearest edge for realistic edge-lighting
+      const distToLeft = tip.x - noteLeft;
+      const distToRight = noteRight - tip.x;
+      const distToTop = tip.y - noteTop;
+      const distToBottom = noteBottom - tip.y;
+      const minEdgeDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+
+      let ix = tip.x;
+      let iy = tip.y;
+      if (minEdgeDist < 40) {
+        if (minEdgeDist === distToLeft) ix = noteLeft;
+        else if (minEdgeDist === distToRight) ix = noteRight;
+        else if (minEdgeDist === distToTop) iy = noteTop;
+        else iy = noteBottom;
+      }
+
+      ignitionRef.current = { x: ix, y: iy, time: performance.now() };
+      isDraggingMatchRef.current = false;
+      matchPosRef.current = null;
+      setIgnited(true);
+      haptics.tap();
+      playCrackle();
+      return true;
+    }
+    return false;
+  }, [getNoteGeometry]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (phase !== "burning") return;
-    if (ignitionRef.current) return; // Already ignited
+    if (ignitionRef.current) return;
 
     const pos = { x: e.clientX, y: e.clientY };
     const mPos = matchPosRef.current;
 
-    // Check if pointer is near the match (within 60px)
+    // Check if pointer is near the match BASE (handle) — within 60px
     if (mPos) {
       const dx = pos.x - mPos.x;
       const dy = pos.y - mPos.y;
@@ -656,7 +886,7 @@ export default function BurnNotePage() {
       }
     }
 
-    // If tapping on the paper directly, move match there and ignite
+    // If tapping elsewhere, move match base there
     isDraggingMatchRef.current = true;
     matchPosRef.current = pos;
   }, [phase]);
@@ -668,89 +898,29 @@ export default function BurnNotePage() {
     const pos = { x: e.clientX, y: e.clientY };
     matchPosRef.current = pos;
 
-    // Check if match tip is on the paper — ignite!
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    const noteMaxW = Math.min(w - 48, 380);
-    const noteLeft = (w - noteMaxW) / 2;
-    const noteRight = noteLeft + noteMaxW;
-    const noteTop = h * 0.1;
-    const noteBottom = Math.min(h * 0.68, noteTop + 480);
-
-    if (pos.x >= noteLeft && pos.x <= noteRight && pos.y >= noteTop && pos.y <= noteBottom) {
-      // Snap ignition to nearest edge for realistic edge-lighting
-      const distToLeft = pos.x - noteLeft;
-      const distToRight = noteRight - pos.x;
-      const distToTop = pos.y - noteTop;
-      const distToBottom = noteBottom - pos.y;
-      const minEdgeDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
-
-      let ix = pos.x;
-      let iy = pos.y;
-
-      // If close to an edge (within 40px), snap to that edge
-      if (minEdgeDist < 40) {
-        if (minEdgeDist === distToLeft) ix = noteLeft;
-        else if (minEdgeDist === distToRight) ix = noteRight;
-        else if (minEdgeDist === distToTop) iy = noteTop;
-        else iy = noteBottom;
-      }
-
-      ignitionRef.current = { x: ix, y: iy, time: performance.now() };
-      isDraggingMatchRef.current = false;
-      matchPosRef.current = null; // Hide match after ignition
-      haptics.tap();
-      playCrackle();
-    }
-  }, []);
+    // Check if match TIP is on the paper — ignite!
+    tryIgnite(pos.x, pos.y);
+  }, [tryIgnite]);
 
   const handlePointerUp = useCallback(() => {
     if (ignitionRef.current) return;
 
-    // If match was released on the paper, ignite
     const mPos = matchPosRef.current;
     if (mPos && isDraggingMatchRef.current) {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const noteMaxW = Math.min(w - 48, 380);
-      const noteLeft = (w - noteMaxW) / 2;
-      const noteRight = noteLeft + noteMaxW;
-      const noteTop = h * 0.1;
-      const noteBottom = Math.min(h * 0.68, noteTop + 480);
-
-      if (mPos.x >= noteLeft && mPos.x <= noteRight && mPos.y >= noteTop && mPos.y <= noteBottom) {
-        const distToLeft = mPos.x - noteLeft;
-        const distToRight = noteRight - mPos.x;
-        const distToTop = mPos.y - noteTop;
-        const distToBottom = noteBottom - mPos.y;
-        const minEdgeDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
-
-        let ix = mPos.x;
-        let iy = mPos.y;
-        if (minEdgeDist < 40) {
-          if (minEdgeDist === distToLeft) ix = noteLeft;
-          else if (minEdgeDist === distToRight) ix = noteRight;
-          else if (minEdgeDist === distToTop) iy = noteTop;
-          else iy = noteBottom;
-        }
-
-        ignitionRef.current = { x: ix, y: iy, time: performance.now() };
-        matchPosRef.current = null;
-        haptics.tap();
-        playCrackle();
-      }
+      tryIgnite(mPos.x, mPos.y);
     }
 
     isDraggingMatchRef.current = false;
-  }, []);
+  }, [tryIgnite]);
 
   // ── Reset ─────────────────────────────────────────────────────
 
   function reset() {
     setText("");
+    strokesRef.current = [];
+    setStrokeCount(0);
     setPhase("write");
+    setIgnited(false);
     embersRef.current = [];
     smokeRef.current = [];
     ignitionRef.current = null;
@@ -795,6 +965,30 @@ export default function BurnNotePage() {
           </p>
 
           <div className="relative w-full max-w-[380px]">
+            {/* Input mode toggle */}
+            <div className="mb-3 flex items-center justify-center gap-1">
+              <button
+                onClick={() => setInputMode("draw")}
+                className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                  inputMode === "draw"
+                    ? "bg-candle/15 text-candle/80"
+                    : "text-cream-dim/30 hover:text-cream-dim/50"
+                }`}
+              >
+                Draw
+              </button>
+              <button
+                onClick={() => setInputMode("type")}
+                className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                  inputMode === "type"
+                    ? "bg-candle/15 text-candle/80"
+                    : "text-cream-dim/30 hover:text-cream-dim/50"
+                }`}
+              >
+                Type
+              </button>
+            </div>
+
             <div
               className="rounded-sm"
               style={{
@@ -809,41 +1003,76 @@ export default function BurnNotePage() {
                   backgroundPosition: "0 12px",
                 }}
               />
-              <textarea
-                ref={textareaRef}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Write here..."
-                rows={12}
-                autoFocus
-                className="relative w-full rounded-sm bg-transparent px-6 py-4 text-lg leading-[28px] text-[#2a1f10] placeholder:text-[#2a1f10]/25 focus:outline-none resize-none"
-                style={{
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
-                  caretColor: "#2a1f10",
-                }}
-              />
+
+              {inputMode === "draw" ? (
+                /* Drawing canvas */
+                <div className="relative" style={{ height: 336 }}>
+                  <canvas
+                    ref={drawCanvasRef}
+                    className="absolute inset-0 w-full h-full touch-none cursor-crosshair"
+                    onPointerDown={handleDrawPointerDown}
+                    onPointerMove={handleDrawPointerMove}
+                    onPointerUp={handleDrawPointerUp}
+                    onPointerCancel={handleDrawPointerUp}
+                    onPointerLeave={handleDrawPointerUp}
+                  />
+                  {strokeCount === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <p className="text-[#2a1f10]/20 text-lg" style={{ fontFamily: "'Georgia', serif" }}>
+                        Write with your finger...
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Typed textarea with handwriting font */
+                <textarea
+                  ref={textareaRef}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Write here..."
+                  rows={12}
+                  autoFocus
+                  className={`relative w-full rounded-sm bg-transparent px-6 py-4 text-xl leading-[28px] text-[#2a1f10] placeholder:text-[#2a1f10]/25 focus:outline-none resize-none ${caveat.className}`}
+                  style={{
+                    caretColor: "#2a1f10",
+                    fontWeight: 500,
+                  }}
+                />
+              )}
             </div>
 
-            <button
-              onClick={startBurn}
-              disabled={!text.trim()}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-candle/10 px-6 py-3 text-sm text-candle/70 transition-colors hover:bg-candle/20 hover:text-candle disabled:opacity-20 disabled:cursor-not-allowed"
-            >
-              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" className="shrink-0">
-                <path d="M9 2C9 2 6 5 6 8.5C6 10.5 7.5 12 9 12C10.5 12 12 10.5 12 8.5C12 5 9 2 9 2Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M9 12V16" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-              </svg>
-              Burn it
-            </button>
+            {/* Action buttons */}
+            <div className="mt-5 flex items-center gap-3">
+              {inputMode === "draw" && strokeCount > 0 && (
+                <button
+                  onClick={clearDrawing}
+                  className="flex items-center justify-center rounded-lg bg-cream-dim/5 px-4 py-3 text-sm text-cream-dim/40 transition-colors hover:bg-cream-dim/10 hover:text-cream-dim/60"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                onClick={startBurn}
+                disabled={!hasContent}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-candle/10 px-6 py-3 text-sm text-candle/70 transition-colors hover:bg-candle/20 hover:text-candle disabled:opacity-20 disabled:cursor-not-allowed"
+              >
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" className="shrink-0">
+                  <path d="M9 2C9 2 6 5 6 8.5C6 10.5 7.5 12 9 12C10.5 12 12 10.5 12 8.5C12 5 9 2 9 2Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 12V16" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+                Burn it
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Burning phase hint */}
-      {phase === "burning" && !ignitionRef.current && (
+      {phase === "burning" && !ignited && (
         <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 text-center">
           <p className="text-sm text-cream/30">
-            Drag the match to the paper to light it
+            Grab the match and drag it to the paper
           </p>
         </div>
       )}
