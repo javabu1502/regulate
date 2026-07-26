@@ -9,7 +9,7 @@ import { useWakeLock } from "@/hooks/useWakeLock";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { getPersonalizedRecommendations } from "@/lib/recommendations";
-import { isPremium } from "@/lib/premium";
+import { getInstructions, type Scenario } from "@/lib/sos-scenarios";
 import PresenceCue from "@/components/PresenceCue";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
 
@@ -84,9 +84,9 @@ const locationContextOptions: { id: LocationContext; label: string; sub: string;
 const contextAllowedExercises: Record<LocationContext, string[] | "all"> = {
   anywhere: "all",
   home: "all",
-  work: ["breathing", "extended", "grounding", "body-scan", "affirmations"],
-  bed: ["breathing", "extended", "body-scan", "sleep", "affirmations"],
-  people: ["breathing", "extended", "grounding", "affirmations"],
+  work: ["breathing", "extended", "grounding", "cold-water", "orienting", "body-scan", "affirmations"],
+  bed: ["breathing", "extended", "cold-water", "body-scan", "sleep", "affirmations"],
+  people: ["breathing", "extended", "grounding", "cold-water", "orienting", "affirmations"],
   driving: ["breathing", "extended"],
 };
 
@@ -97,6 +97,17 @@ const contextLabels: Record<LocationContext, string> = {
   bed: "In bed",
   people: "With people",
   driving: "Driving",
+};
+
+// Map location context to the scenario-specific instruction set.
+// "anywhere"/"home" use each screen's default copy (null scenario).
+const contextToScenario: Record<LocationContext, Scenario> = {
+  anywhere: null,
+  home: null,
+  work: "work",
+  bed: "night",
+  people: "public",
+  driving: "public",
 };
 
 function filterByContext(exercises: Exercise[], context: LocationContext): Exercise[] {
@@ -125,7 +136,9 @@ const allExercises: Exercise[] = [
   { id: "tapping", label: "Bilateral tapping", icon: "\u{1F932}", desc: "Tap left, tap right. The rhythm gives your brain something to hold onto.", time: "2 min", type: "inline" },
   { id: "grounding", label: "5-4-3-2-1 Grounding", icon: "\u{1F441}\uFE0F", desc: "Name what you see, hear, and feel. Gets you out of your head.", time: "~3 min", type: "inline" },
   { id: "gentle-movement", label: "Gentle movement", icon: "\u{1F30A}", desc: "Wiggle, rock, stretch. Even tiny movements help.", time: "1 min", type: "inline" },
+  { id: "cold-water", label: "Cold water", icon: "\u{1F4A7}", desc: "Cold on your face triggers your dive reflex. Slows your heart fast.", time: "30 sec", type: "inline" },
   // Links (navigate to module pages)
+  { id: "orienting", label: "Orienting", icon: "\u{1F9ED}", desc: "Slowly look around. Let your eyes find what feels okay to look at.", time: "2 min", type: "link", href: "/somatic?exercise=orienting" },
   { id: "body-scan", label: "Body scan", icon: "\u{1F9D8}", desc: "Go through your body slowly. Notice what's tight, let it soften.", time: "5 min", type: "link", href: "/body-scan" },
   { id: "somatic", label: "Somatic exercises", icon: "\u{1FAE8}", desc: "Shake it out, hum, move. Let your body release what it's holding.", time: "2-5 min", type: "link", href: "/somatic" },
   { id: "affirmations", label: "Affirmations", icon: "\u{1F4AC}", desc: "Simple words that meet you where you are.", time: "~2 min", type: "link", href: "/affirmations" },
@@ -156,6 +169,8 @@ const exerciseWhyMap: Record<BodyStateKey, Record<string, string>> = {
     tapping: "Bilateral stimulation - the left-right rhythm - gives your brain something to focus on besides the panic. It helps you process what's happening instead of just spinning.",
     grounding: "Panic pulls you into the future - into what might happen. Your senses bring you back to right now, where you're actually okay.",
     "gentle-movement": "When you're frozen in panic, even wiggling your toes can help. Small movements remind your body that it can move, that it's not stuck.",
+    "cold-water": "Cold on your face triggers your dive reflex - an automatic response that slows your heart within seconds. One of the fastest ways to interrupt panic.",
+    orienting: "Panic locks your eyes forward, scanning for danger. Slowly looking around shows your nervous system there's no threat here. It's how animals settle after stress.",
     "body-scan": "Instead of fighting the panic, you just notice your body. Where's the tension? Where's it okay? It gives your mind somewhere to go besides the spiral.",
     somatic: "Panic creates a lot of physical energy. Shaking, humming, and moving help your body actually discharge it instead of keeping it locked up.",
     affirmations: "When panic is loud, a few simple words can cut through. Not positive thinking - just something steady to hold onto.",
@@ -167,6 +182,8 @@ const exerciseWhyMap: Record<BodyStateKey, Record<string, string>> = {
     tapping: "The left-right rhythm helps your brain process anxious thoughts instead of just looping on them. Think of it like giving your brain a track to run on.",
     grounding: "Anxiety lives in worried thoughts about what might happen. Your five senses bring you back to what's actually happening right now.",
     "gentle-movement": "Rocking and swaying are naturally calming. It's why we do it instinctively. Gentle movement settles your body when your mind won't stop.",
+    "cold-water": "Cold gives your nervous system one strong, simple signal that cuts through the buzz. Your heart rate slows without you having to think your way there.",
+    orienting: "Letting your eyes wander and land on whatever draws them tells the oldest part of your brain that you're safe. Your body follows your gaze.",
     "body-scan": "Anxiety hides in your body as tension you don't even notice. Jaw, shoulders, stomach. Scanning helps you find it and let it soften.",
     somatic: "Your body holds anxiety as muscle tension and restlessness. These exercises give all that energy somewhere to go.",
     affirmations: "Anxious thoughts repeat themselves. Affirmations aren't about positive thinking - they give your mind a different track, one you chose.",
@@ -178,6 +195,8 @@ const exerciseWhyMap: Record<BodyStateKey, Record<string, string>> = {
     tapping: "The gentle left-right sensation gives your body some input without overwhelming it. Just enough to start waking things up.",
     grounding: "When you feel numb or far away, your senses are a way back in. Each thing you notice reconnects you a little more.",
     "gentle-movement": "Small movements tell your body it's okay to come back. Wiggling, rocking, stretching. Nothing big - just enough.",
+    "cold-water": "When everything feels muted, a little cold on your skin is a clear sensation you can actually feel. A gentle way to start coming back.",
+    orienting: "When you feel far away, letting your eyes slowly explore the room is a gentle way back in. No pressure to feel anything - just look.",
     "body-scan": "When everything feels muted, scanning helps you find the places where you can still feel something. That's your starting point.",
     somatic: "Gentle shaking, humming, and movement help your body shift from shutdown back toward feeling present. Go as slow as you need to.",
     affirmations: "When shutdown makes everything feel far away, simple warm words can still reach you. Not demanding, just an invitation.",
@@ -202,7 +221,6 @@ const bodyStateOptions: { id: BodyStateKey; label: string; sub: string }[] = [
 
 type SOSStep =
   | "body-check"
-  | "auto-start"
   | "context"
   | "recommend"
   | "all-tools"
@@ -237,8 +255,9 @@ function SOSPageInner() {
   // Local body state - set by URL param or user selection in body-check step
   const [selectedBodyState, setSelectedBodyState] = useState<string | null>(bodyStateParam);
 
-  // Core state - if body state provided via URL, show recommendations; otherwise ask
-  const [step, setStep] = useState<SOSStep>(() => bodyStateParam ? "recommend" : "body-check");
+  // Core state - if body state provided via URL, ask where they are, then recommend;
+  // otherwise start with the body check
+  const [step, setStep] = useState<SOSStep>(() => bodyStateParam ? "context" : "body-check");
   const [activeTool, setActiveTool] = useState("breathing");
 
   // Location context - defaults to "anywhere" (no filter)
@@ -308,20 +327,9 @@ function SOSPageInner() {
     } catch {}
   }, []);
 
-  // After context is selected, auto-start the #1 recommended exercise when a body state is provided.
-  // During panic the prefrontal cortex is offline - don't make users read and choose.
-  const autoStarted = useRef(false);
-  useEffect(() => {
-    if (step !== "auto-start" || autoStarted.current) return;
-    autoStarted.current = true;
-    const recommended = filterByContext(getRecommended(selectedBodyState), locationContext);
-    if (recommended.length > 0) {
-      startTool(recommended[0].id);
-    } else {
-      setStep("recommend");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  // Scenario-specific instructions for the current location context
+  const scenario = contextToScenario[locationContext];
+  const scenarioInstr = scenario ? getInstructions(scenario) : null;
 
   const currentBreathStep = breathingPattern[currentStepIndex] ?? null;
   const currentGrounding = groundingSenses[groundingStep];
@@ -352,13 +360,7 @@ function SOSPageInner() {
 
   function selectContext(ctx: LocationContext) {
     setLocationContext(ctx);
-    if (selectedBodyState) {
-      // Go to auto-start (will pick the best context-appropriate exercise)
-      autoStarted.current = false;
-      setStep("auto-start");
-    } else {
-      setStep("recommend");
-    }
+    setStep("recommend");
   }
 
   // ─── Start a specific tool ────────────────────────────────────────
@@ -385,6 +387,9 @@ function SOSPageInner() {
         break;
       case "gentle-movement":
         startGentleMovement();
+        break;
+      case "cold-water":
+        startColdWater();
         break;
     }
   }
@@ -567,8 +572,9 @@ function SOSPageInner() {
 
   // ─── Save what helped ─────────────────────────────────────────────
 
+  // Session history is recorded for everyone - it lives in localStorage only.
+  // Premium gates the insights *display*, never the data collection.
   function recordPartialSession() {
-    if (!isPremium()) return;
     const label = allExercises.find((t) => t.id === activeTool)?.label || "Exercise";
     try {
       const history = JSON.parse(localStorage.getItem("regulate-sos-history") || "[]");
@@ -578,7 +584,6 @@ function SOSPageInner() {
   }
 
   function recordHelped() {
-    if (!isPremium()) return;
     const label = allExercises.find((t) => t.id === activeTool)?.label || "Breathing";
     try {
       localStorage.setItem("regulate-last-helped", JSON.stringify({ id: activeTool, label, ts: new Date().toISOString() }));
@@ -679,7 +684,6 @@ function SOSPageInner() {
 
   // Context badge - small indicator showing current location filter with change option
   function ContextBadge() {
-    if (locationContext === "anywhere") return null;
     return (
       <div className="flex items-center justify-center gap-1.5">
         <span className="text-[10px] text-cream-dim/40">
@@ -736,7 +740,7 @@ function SOSPageInner() {
                 key={opt.id}
                 onClick={() => {
                   setSelectedBodyState(opt.id);
-                  setStep("recommend");
+                  setStep("context");
                 }}
                 className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 px-5 py-5 text-left transition-all hover:border-teal/30 active:scale-[0.98]"
               >
@@ -785,7 +789,7 @@ function SOSPageInner() {
 
     return (
       <div key="context" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
-        <BackButton onClick={goHome} />
+        <BackButton onClick={() => bodyStateParam ? goHome() : setStep("body-check")} />
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">Where are you right now?</h2>
@@ -827,12 +831,6 @@ function SOSPageInner() {
     );
   }
 
-  // ─── AUTO-START (brief loading state while exercise initializes) ────
-
-  if (step === "auto-start") {
-    return <div className="fixed inset-0 bg-midnight" />;
-  }
-
   // ─── RECOMMEND (top pick + why + alternatives) ──────────────────────
 
   if (step === "recommend") {
@@ -850,7 +848,7 @@ function SOSPageInner() {
 
     return (
       <div key="recommend" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
-        <BackButton onClick={() => bodyStateParam ? goHome() : setStep("body-check")} />
+        <BackButton onClick={() => setStep("context")} />
         {!bodyStateParam && <HomeButton />}
 
         <div className="w-full max-w-sm">
@@ -1096,8 +1094,12 @@ function SOSPageInner() {
           </div>
         </div>
 
-        <div className="fixed bottom-24 text-center">
-          <p className="text-sm text-cream-dim">Let&apos;s tap together. Left, right, left, right.</p>
+        <div className="fixed bottom-24 px-8 text-center">
+          <p className="text-sm text-cream-dim">
+            {scenarioInstr
+              ? scenarioInstr.bilateralTapping.body
+              : "Let’s tap together. Left, right, left, right."}
+          </p>
         </div>
 
         <div className="fixed bottom-10 flex flex-col items-center gap-3">
@@ -1141,9 +1143,13 @@ function SOSPageInner() {
             </div>
           </div>
 
-          <h2 className="text-2xl font-light text-cream">Let&apos;s activate your dive reflex</h2>
+          <h2 className="text-2xl font-light text-cream">
+            {scenarioInstr ? scenarioInstr.coldWater.title : "Let’s activate your dive reflex"}
+          </h2>
           <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-cream-dim">
-            Splash cold water on your face, or hold something cold against your cheeks and forehead. Let&apos;s stay here for 30 seconds.
+            {scenarioInstr
+              ? scenarioInstr.coldWater.body
+              : "Splash cold water on your face, or hold something cold against your cheeks and forehead. Let’s stay here for 30 seconds."}
           </p>
         </div>
 
@@ -1189,8 +1195,15 @@ function SOSPageInner() {
 
           <h2 className="text-2xl font-light text-cream">Let&apos;s wake your body up gently</h2>
           <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-cream-dim">
-            Wiggle your fingers and toes. Roll your shoulders slowly. Rock side to side. Small movements - just enough to feel something.
+            {scenarioInstr
+              ? scenarioInstr.gentleMovement.body
+              : "Wiggle your fingers and toes. Roll your shoulders slowly. Rock side to side. Small movements - just enough to feel something."}
           </p>
+          {scenarioInstr?.gentleMovement.detail && (
+            <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-cream-dim/60">
+              {scenarioInstr.gentleMovement.detail}
+            </p>
+          )}
         </div>
 
         <div className="fixed bottom-10 flex flex-col items-center gap-3">
@@ -1285,6 +1298,15 @@ function SOSPageInner() {
               className="w-full rounded-2xl bg-candle/15 py-4 text-base font-medium text-candle transition-all hover:bg-candle/25 active:scale-[0.98]"
             >
               I need something else
+            </button>
+            <button
+              onClick={() => {
+                recordPartialSession();
+                router.push("/crisis");
+              }}
+              className="w-full rounded-2xl border border-coral/25 bg-coral/10 py-4 text-base font-medium text-coral transition-all hover:bg-coral/20 active:scale-[0.98]"
+            >
+              I&apos;m feeling worse
             </button>
             <button
               onClick={() => {

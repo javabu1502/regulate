@@ -158,22 +158,22 @@ describe("getPersonalizedRecommendations", () => {
 
   it("returns defaults when no history exists", () => {
     const result = getPersonalizedRecommendations("panicking");
-    expect(result).toEqual(["breathing", "tapping", "grounding"]);
+    expect(result).toEqual(["breathing", "tapping", "body-scan"]);
   });
 
   it("returns defaults for anxious state", () => {
     const result = getPersonalizedRecommendations("anxious");
-    expect(result).toEqual(["extended", "body-scan", "grounding"]);
+    expect(result).toEqual(["extended", "grounding", "somatic"]);
   });
 
   it("returns defaults for shutdown state", () => {
     const result = getPersonalizedRecommendations("shutdown");
-    expect(result).toEqual(["gentle-movement", "somatic", "tapping"]);
+    expect(result).toEqual(["gentle-movement", "orienting", "grounding"]);
   });
 
   it("falls back to panicking defaults for unknown state", () => {
     const result = getPersonalizedRecommendations("unknown-state");
-    expect(result).toEqual(["breathing", "tapping", "grounding"]);
+    expect(result).toEqual(["breathing", "tapping", "body-scan"]);
   });
 
   it("always returns exactly 3 recommendations", () => {

@@ -37,6 +37,8 @@ const canonicalTechniqueId: Record<string, string> = {
   tapping: "tapping",
   grounding: "grounding",
   "gentle-movement": "gentle-movement",
+  "cold-water": "cold-water",
+  orienting: "orienting",
   "body-scan": "body-scan",
   somatic: "somatic",
   affirmations: "affirmations",
@@ -56,6 +58,8 @@ const canonicalTechniqueId: Record<string, string> = {
   "Gentle Swaying": "gentle-movement",
   "Gentle movement": "gentle-movement",
   "Swaying": "gentle-movement",
+  "Cold water": "cold-water",
+  "Orienting": "orienting",
   "Somatic exercises": "somatic",
   "Somatic Movement": "somatic",
   "Affirmations": "affirmations",
@@ -76,6 +80,7 @@ const techniqueToModule: Record<string, { href: string; title: string }> = {
   "body-scan": { href: "/body-scan", title: "Body Scan" },
   tapping: { href: "/somatic", title: "Somatic Movement" },
   "gentle-movement": { href: "/somatic", title: "Somatic Movement" },
+  orienting: { href: "/somatic", title: "Somatic Movement" },
   somatic: { href: "/somatic", title: "Somatic Movement" },
   affirmations: { href: "/affirmations", title: "Affirmations" },
   sleep: { href: "/sleep", title: "Sleep Sequence" },
@@ -88,6 +93,8 @@ const sosToolLabels: Record<string, string> = {
   tapping: "Bilateral tapping",
   grounding: "5-4-3-2-1 Grounding",
   "gentle-movement": "Gentle movement",
+  "cold-water": "Cold water",
+  orienting: "Orienting",
   "body-scan": "Body scan",
   somatic: "Somatic exercises",
   affirmations: "Affirmations",
@@ -198,7 +205,7 @@ export function getRecommendations(nsState?: string | null): Recommendation[] {
 const defaultRecommendations: Record<string, string[]> = {
   panicking: ["breathing", "tapping", "body-scan"],
   anxious: ["extended", "grounding", "somatic"],
-  shutdown: ["gentle-movement", "affirmations", "grounding"],
+  shutdown: ["gentle-movement", "orienting", "grounding"],
 };
 
 interface ToolScore {
