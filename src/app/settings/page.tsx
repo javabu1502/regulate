@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isPremium, purchasePremium, restorePurchases, PREMIUM_FEATURES, FREE_FEATURES, PRICE } from "@/lib/premium";
 import { getStorageUsage } from "@/lib/storage";
 import TherapistSummary from "@/components/TherapistSummary";
 
@@ -33,10 +32,6 @@ export default function SettingsPage() {
   const [crisisText, setCrisisText] = useState("");
   const [crisisSaved, setCrisisSaved] = useState(false);
   const [showCommonLines, setShowCommonLines] = useState(false);
-  const [premiumActive, setPremiumActive] = useState(false);
-  const [purchaseLoading, setPurchaseLoading] = useState(false);
-  const [restoreLoading, setRestoreLoading] = useState(false);
-  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [importConfirm, setImportConfirm] = useState<Record<string, unknown> | null>(null);
@@ -45,7 +40,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     try {
-      setPremiumActive(isPremium());
       const stored = localStorage.getItem("regulate-haptics-enabled");
       if (stored !== null) setHapticsOn(stored !== "0");
       const storedTextSize = localStorage.getItem("regulate-text-size");
@@ -235,17 +229,16 @@ export default function SettingsPage() {
   }
 
   function clearAllData() {
-    const keys = [
+    // Legacy keys that predate the "regulate-" prefix convention
+    const legacyKeys = [
       "onboarding_complete", "quick_access", "onboarding_data",
-      "regulate-journal", "regulate-favorites", "regulate-safety-plan",
-      "my_person", "regulate-headphones-dismissed",
-      "regulate-health-log", "regulate-health-enabled",
-      "regulate-voice-enabled", "regulate-learn-intro-seen",
-      "current_ns_state", "regulate-install-dismissed",
-      "regulate-custom-patterns", "regulate-personal-affirmations",
-      "regulate-favorites-v2", "regulate-haptics-enabled", "regulate-font-size",
-      "regulate-text-size", "regulate-custom-crisis", "regulate-premium", "regulate-night-mode",
+      "my_person", "current_ns_state",
     ];
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith("regulate-") || legacyKeys.includes(k))) keys.push(k);
+    }
     keys.forEach((k) => localStorage.removeItem(k));
     setConfirmClear(null);
     router.push("/");
@@ -374,124 +367,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-
-          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Regulate+</p>
-
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
-            {premiumActive ? (
-              <>
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal/15">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-teal-soft">
-                      <path d="M5 8L7.5 10.5L11 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-cream">You have Regulate+</h3>
-                    <p className="mt-0.5 text-xs text-cream-dim/50">All personal insight features are unlocked.</p>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="text-sm font-medium text-cream">Regulate+</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-cream-dim/50">
-                  All exercises and crisis tools are free forever. Regulate+ adds personal insights to help you understand your patterns.
-                </p>
-
-                <div className="mt-4 mb-1">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-teal-soft/40">Included with Regulate+</p>
-                  <div className="mt-2 flex flex-col gap-1.5">
-                    {PREMIUM_FEATURES.map((f) => (
-                      <div key={f} className="flex items-center gap-2">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-teal-soft/60">
-                          <path d="M3 6L5.25 8.25L9 3.75" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className="text-xs text-cream-dim/70">{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-4 mb-1">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-cream-dim/25">Always free</p>
-                  <div className="mt-2 flex flex-col gap-1.5">
-                    {FREE_FEATURES.map((f) => (
-                      <div key={f} className="flex items-center gap-2">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-cream-dim/30">
-                          <path d="M3 6L5.25 8.25L9 3.75" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className="text-xs text-cream-dim/40">{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={async () => {
-                    setPurchaseLoading(true);
-                    try {
-                      const success = await purchasePremium();
-                      if (success) setPremiumActive(true);
-                    } finally {
-                      setPurchaseLoading(false);
-                    }
-                  }}
-                  disabled={purchaseLoading || restoreLoading}
-                  className="mt-4 w-full rounded-xl bg-teal/15 py-3 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {purchaseLoading ? (
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" strokeDasharray="50 20" strokeLinecap="round" />
-                      </svg>
-                      Processing...
-                    </span>
-                  ) : (
-                    `Unlock - ${PRICE} one-time, yours forever`
-                  )}
-                </button>
-
-                <button
-                  onClick={async () => {
-                    setRestoreLoading(true);
-                    setRestoreMessage(null);
-                    try {
-                      const restored = await restorePurchases();
-                      if (restored) {
-                        setPremiumActive(true);
-                      } else {
-                        setRestoreMessage("No previous purchase found.");
-                      }
-                    } finally {
-                      setRestoreLoading(false);
-                    }
-                  }}
-                  disabled={purchaseLoading || restoreLoading}
-                  className="mt-2 w-full rounded-xl border border-slate-blue/20 py-2.5 text-xs text-cream-dim/50 transition-colors hover:text-cream-dim disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {restoreLoading ? (
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2.5" strokeDasharray="50 20" strokeLinecap="round" />
-                      </svg>
-                      Restoring...
-                    </span>
-                  ) : (
-                    "Restore purchases"
-                  )}
-                </button>
-
-                {restoreMessage && (
-                  <p className="mt-1.5 text-center text-[11px] text-cream-dim/40">{restoreMessage}</p>
-                )}
-
-                <p className="mt-2 text-center text-[11px] text-cream-dim/30">
-                  Every crisis tool stays free. Always.
-                </p>
-              </>
-            )}
-          </div>
 
           <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Privacy</p>
 

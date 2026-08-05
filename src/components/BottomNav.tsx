@@ -1,18 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { HomeIcon, LearnIcon, SettingsIcon, PracticeIcon } from "@/components/Icons";
-import { isPremium } from "@/lib/premium";
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const [premium, setPremium] = useState(false);
-
-  useEffect(() => {
-    setPremium(isPremium());
-  }, []);
 
   // Hide nav on onboarding and during SOS
   const hidden = pathname.startsWith("/onboarding") || pathname.startsWith("/sos");
@@ -24,10 +17,8 @@ export default function BottomNav() {
         {/* Home */}
         <NavTab href="/" label="Home" icon={HomeIcon} active={pathname === "/"} />
 
-        {/* Practice (premium only) */}
-        {premium && (
-          <NavTab href="/practice" label="Practice" icon={PracticeIcon} active={pathname === "/practice"} />
-        )}
+        {/* Practice */}
+        <NavTab href="/practice" label="Practice" icon={PracticeIcon} active={pathname === "/practice"} />
 
         {/* SOS Button - center */}
         <div className="flex flex-1 items-center justify-center py-1.5">

@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Regulate
 
-## Getting Started
+A nervous system regulation app. Body-first tools — somatic exercises, guided breathing, grounding, bilateral tapping — built on polyvagal theory and Somatic Experiencing research, for the moments when thinking your way out isn't working.
 
-First, run the development server:
+**Completely free. No accounts, no subscriptions, no ads, no tracking.** Everything lives in your browser's localStorage; nothing ever leaves your device.
+
+Live at [regulate-liart.vercel.app](https://regulate-liart.vercel.app).
+
+## What's inside
+
+- **SOS mode** — state-matched crisis flow: tell it how your body feels, get the right tool immediately
+- **14 somatic exercises** — shaking, havening, orienting, pendulation, vagus nerve massage, and more
+- **Guided breathing** — box, physiological sigh, coherence, with voice guidance and haptics
+- **Body scan, 5-4-3-2-1 grounding, affirmations, sleep tools, calming games**
+- **Guided meditations** — grounding, processing, self-compassion, regulation, sleep
+- **Safety plan & toolkit** — warning signs, reasons for living, your people
+- **Journal & practice insights** — what you tried, what actually helped
+
+Installable as a PWA and designed to work offline — a crisis tool can't depend on a connection.
+
+## Principles
+
+- **Somatic first.** The body leads; explanations come after.
+- **Crisis first.** Every screen assumes the user might be at their worst.
+- **No gamification.** No streaks, points, mascots, or guilt.
+- **Private by architecture.** localStorage only — there is no backend to trust.
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
+npm test        # vitest
+npm run build   # regenerates public/audio-manifest.json, then next build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Stack: Next.js (App Router), Tailwind v4, TypeScript. No database, no API routes for user data.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Audio lives in `public/audio/`; `scripts/generate-audio-manifest.mjs` builds the manifest the service worker uses to precache clips for offline playback. Recording scripts are in `RECORDING_SCRIPTS.md` and `MEDITATION_SCRIPTS.md` (the in-code copy in `somatic/page.tsx` is canonical where they differ).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed on Vercel; `npm run build` is the whole story.

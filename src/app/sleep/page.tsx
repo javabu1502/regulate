@@ -357,7 +357,14 @@ export default function SleepPage() {
               ))}
             </div>
 
-            <p className="mt-8 text-xs text-cream-dim/30">
+            <Link
+              href="/meditations"
+              className="mt-6 text-sm text-teal-soft/50 transition-colors hover:text-teal-soft/70"
+            >
+              Or try a sleep meditation &rarr;
+            </Link>
+
+            <p className="mt-6 text-xs text-cream-dim/30">
               Turn on calming tones for deeper relaxation
             </p>
           </div>

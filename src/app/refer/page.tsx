@@ -36,7 +36,7 @@ export default function ReferPage() {
           <ul className="flex flex-col gap-3">
             {[
               "SOS crisis flow",
-              "11 somatic exercises",
+              "14 somatic exercises",
               "Guided breathing",
               "Body scan",
               "5-4-3-2-1 grounding",

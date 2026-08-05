@@ -572,8 +572,8 @@ function SOSPageInner() {
 
   // ─── Save what helped ─────────────────────────────────────────────
 
-  // Session history is recorded for everyone - it lives in localStorage only.
-  // Premium gates the insights *display*, never the data collection.
+  // Session history lives in localStorage only - it powers the journal
+  // and personalized recommendations.
   function recordPartialSession() {
     const label = allExercises.find((t) => t.id === activeTool)?.label || "Exercise";
     try {

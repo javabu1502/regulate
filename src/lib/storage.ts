@@ -3,6 +3,26 @@
  * Keeps stored arrays trimmed and provides usage reporting.
  */
 
+/**
+ * Entries across the app store their time under different fields and formats:
+ * journal uses `timestamp` (ms number, older entries only had `date` ISO),
+ * sos-history uses `ts` (ISO string), sessions use `ts` (ms number).
+ */
+export function entryTime(entry: unknown): number {
+  if (typeof entry !== "object" || entry === null) return 0;
+  const e = entry as Record<string, unknown>;
+  for (const value of [e.timestamp, e.ts, e.date, e.id]) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const n = Number(value);
+      if (Number.isFinite(n) && n > 0) return n;
+      const parsed = Date.parse(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return 0;
+}
+
 export function pruneOldEntries(key: string, maxEntries: number): void {
   try {
     const raw = localStorage.getItem(key);
@@ -11,12 +31,8 @@ export function pruneOldEntries(key: string, maxEntries: number): void {
     const arr: unknown[] = JSON.parse(raw);
     if (!Array.isArray(arr) || arr.length <= maxEntries) return;
 
-    // Sort by timestamp descending, keep the most recent
-    const sorted = [...arr].sort((a, b) => {
-      const tA = typeof a === "object" && a !== null ? Number((a as Record<string, unknown>).timestamp ?? 0) : 0;
-      const tB = typeof b === "object" && b !== null ? Number((b as Record<string, unknown>).timestamp ?? 0) : 0;
-      return tB - tA;
-    });
+    // Sort by time descending, keep the most recent
+    const sorted = [...arr].sort((a, b) => entryTime(b) - entryTime(a));
 
     localStorage.setItem(key, JSON.stringify(sorted.slice(0, maxEntries)));
   } catch {

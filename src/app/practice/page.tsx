@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { isPremium } from "@/lib/premium";
 import { getTopTechniques, type TopTechnique } from "@/lib/recommendations";
 import { JournalIcon, WaveIcon } from "@/components/Icons";
-import PremiumGate from "@/components/PremiumGate";
 
 // ─── Daily practice rotation (7-day cycle) ─────────────────────────
 
@@ -111,7 +109,6 @@ function getWeekDays(): { label: string; date: string; practiced: boolean }[] {
 }
 
 export default function PracticePage() {
-  const [premium, setPremium] = useState(false);
   const [weekDays, setWeekDays] = useState<ReturnType<typeof getWeekDays>>([]);
   const [topTechniques, setTopTechniques] = useState<TopTechnique[] | null>(null);
   const [totalSessions, setTotalSessions] = useState(0);
@@ -124,8 +121,6 @@ export default function PracticePage() {
   } | null>(null);
 
   useEffect(() => {
-    setPremium(isPremium());
-
     // Week activity
     setWeekDays(getWeekDays());
 
@@ -177,19 +172,6 @@ export default function PracticePage() {
   const todaysPractice = dailyPractices[getDayOfYear() % dailyPractices.length];
   const practicedToday = weekDays.some((d) => d.date === new Date().toDateString() && d.practiced);
   const daysThisWeek = weekDays.filter((d) => d.practiced).length;
-
-  // If not premium, show upsell
-  if (!premium) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-5 pb-24">
-        <div className="w-full max-w-md">
-          <PremiumGate feature="See what's working for you, get a daily suggestion, and keep a journal of your practice.">
-            <div />
-          </PremiumGate>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
@@ -368,6 +350,29 @@ export default function PracticePage() {
             </div>
           </div>
         )}
+
+        {/* ── Meditations link ── */}
+        <Link
+          href="/meditations"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/25"
+        >
+          <svg className="h-5 w-5 text-teal-soft/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="4" r="2" />
+            <path d="M12 6v4" />
+            <path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" />
+            <path d="M6 18l2-4" />
+            <path d="M18 18l-2-4" />
+            <path d="M9 22l1-4" />
+            <path d="M15 22l-1-4" />
+          </svg>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-cream">Guided meditations</p>
+            <p className="text-xs text-cream-dim/50">Someone walks you through it</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-cream-dim/30">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
 
         {/* ── Journal link ── */}
         <Link

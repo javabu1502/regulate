@@ -8,8 +8,6 @@ import {
   BreathingIcon,
   WaveIcon,
 } from "@/components/Icons";
-import PremiumGate from "@/components/PremiumGate";
-import { isPremium } from "@/lib/premium";
 import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
 
 
@@ -429,15 +427,6 @@ export default function Home() {
             </div>
           </Link>
         </div>
-
-        {/* Premium upsell for free users */}
-        {!isPremium() && (
-          <div className="mt-8">
-            <PremiumGate feature="Track what works for your body, get daily practice suggestions, and journal your progress.">
-              <div />
-            </PremiumGate>
-          </div>
-        )}
 
         {/* My person */}
         <div className="mt-8">

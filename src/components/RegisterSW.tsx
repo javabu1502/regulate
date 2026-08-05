@@ -104,6 +104,12 @@ export default function RegisterSW() {
             registration.update();
           }, 30 * 60 * 1000);
 
+          // Ask the SW to fill the offline audio cache once the page has
+          // settled. Cheap on repeat visits — already-cached files are skipped.
+          setTimeout(() => {
+            registration.active?.postMessage({ type: "PRECACHE_AUDIO" });
+          }, 8000);
+
           // Check for scheduled notifications every 5 minutes
           // Also check once on load (in case notification came due while page was closed)
           checkScheduledNotification(registration);

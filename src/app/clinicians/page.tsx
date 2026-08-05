@@ -308,10 +308,10 @@ export default function CliniciansPage() {
           </div>
         </section>
 
-        {/* ─── 5. Free vs Premium ──────────────────────────────── */}
+        {/* ─── 5. Pricing ──────────────────────────────────────── */}
         <section className="mb-12">
           <h2 className="mb-4 text-lg font-semibold text-cream">
-            What&apos;s Free vs. Premium
+            Completely Free
           </h2>
           <div className="rounded-2xl border border-teal/12 bg-deep/50 px-6 py-5">
             <ul className="space-y-4 text-sm leading-relaxed text-cream-dim">
@@ -331,7 +331,7 @@ export default function CliniciansPage() {
                 </svg>
                 <span>
                   <span className="text-cream">
-                    Every crisis tool is free. Forever.
+                    Everything is free. Forever.
                   </span>{" "}
                   No paywall gates a client in distress.
                 </span>
@@ -351,8 +351,9 @@ export default function CliniciansPage() {
                   />
                 </svg>
                 <span>
-                  <span className="text-cream">$2.99 one-time</span> for
-                  personalized insights. No subscriptions. No recurring charges.
+                  <span className="text-cream">No purchases at all.</span>{" "}
+                  Journal, insights, and personalization included. No
+                  subscriptions. No recurring charges.
                 </span>
               </li>
               <li className="flex items-start gap-3">

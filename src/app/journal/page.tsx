@@ -6,8 +6,6 @@ import { useSearchParams } from "next/navigation";
 import NSStateSelector, { type NSState, getCurrentNSState } from "@/components/NSStateSelector";
 import { JournalIcon } from "@/components/Icons";
 import { getPrompts, getReflectionPrompt } from "@/lib/journal-prompts";
-import PremiumGate from "@/components/PremiumGate";
-import { isPremium } from "@/lib/premium";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -55,7 +53,16 @@ const STORAGE_KEY = "regulate-journal";
 function loadEntries(): JournalEntry[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const entries: JournalEntry[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    // Older aftercare/reflection entries were saved without `timestamp` —
+    // backfill from `date` or the numeric `id` so display and pruning work
+    return entries.map((e) => {
+      if (typeof e.timestamp === "number" && Number.isFinite(e.timestamp)) return e;
+      const fromDate = e.date ? Date.parse(e.date) : NaN;
+      const fromId = Number(e.id);
+      const timestamp = Number.isFinite(fromDate) ? fromDate : Number.isFinite(fromId) ? fromId : 0;
+      return { ...e, timestamp };
+    });
   } catch { return []; }
 }
 
@@ -628,31 +635,6 @@ function JournalPageInner() {
     );
   }
 
-  // ─── Premium gate ────────────────────────────────────────────
-
-  if (!isPremium()) {
-    return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
-        <div className="w-full max-w-md">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            Home
-          </Link>
-          <header className="mb-6 mt-6 text-center">
-            <div className="mb-3 flex justify-center"><JournalIcon className="h-8 w-8 text-candle-soft" /></div>
-            <h1 className="text-xl font-semibold tracking-tight text-cream">Journal</h1>
-            <p className="mt-2 text-sm leading-relaxed text-cream-dim">
-              Track episodes. Notice patterns. Witness your healing.
-            </p>
-          </header>
-          <PremiumGate feature="Track your practice, spot patterns, and see what works for you over time." >
-            <div />
-          </PremiumGate>
-        </div>
-      </div>
-    );
-  }
-
   // ─── LIST SCREEN ──────────────────────────────────────────────
 
   if (screen === "list") {
@@ -810,23 +792,20 @@ function JournalPageInner() {
                       <p className="text-xs text-cream-dim/60">Most helpful</p>
                     </div>
                   </div>
-                  <PremiumGate feature="Export a summary of your patterns to share with your therapist or counselor.">
-                    <button
-                      onClick={downloadTherapistSummary}
-                      className="w-full rounded-xl border border-teal/15 py-2.5 text-xs text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-1.5"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0">
-                        <path d="M8 2v8M8 10L5 7M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      Share with therapist
-                    </button>
-                  </PremiumGate>
+                  <button
+                    onClick={downloadTherapistSummary}
+                    className="w-full rounded-xl border border-teal/15 py-2.5 text-xs text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-1.5"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0">
+                      <path d="M8 2v8M8 10L5 7M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Share with therapist
+                  </button>
                 </div>
               )}
 
               {/* Insights dashboard */}
               {dashboard && entries.length >= 3 && (
-                <PremiumGate feature="See patterns in your practice - what helps, when you show up, and what your body is telling you.">
                   <div className="mb-6 rounded-2xl border border-teal/15 bg-deep/60 p-5">
                     <p className="mb-4 text-xs leading-relaxed text-cream-dim/60">
                       Here&apos;s what your body has been telling you
@@ -910,7 +889,6 @@ function JournalPageInner() {
                       </div>
                     )}
                   </div>
-                </PremiumGate>
               )}
 
               {/* Entries list */}
@@ -973,7 +951,7 @@ function JournalPageInner() {
 
           {/* SESSIONS TAB */}
           {tab === "sessions" && (
-            <PremiumGate feature="Review your SOS session history to see what helped and track your progress over time.">
+            <>
               {sosSessions.length === 0 ? (
                 <div className="mt-8 text-center">
                   <p className="text-sm text-cream-dim/60">No SOS sessions yet.</p>
@@ -1010,7 +988,7 @@ function JournalPageInner() {
                   })}
                 </div>
               )}
-            </PremiumGate>
+            </>
           )}
 
           {/* TIMELINE TAB */}
@@ -1191,38 +1169,34 @@ function JournalPageInner() {
 
               {/* Correlations */}
               {insights.correlations && insights.correlations.length > 0 && (
-                <PremiumGate feature="Personal pattern insights - correlations between your triggers, timing, and what helps most.">
-                  <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
-                    <h3 className="mb-3 text-sm font-medium text-cream">Patterns we noticed</h3>
-                    <div className="space-y-2.5">
-                      {insights.correlations.map((c: string, i: number) => (
-                        <p key={i} className="text-sm leading-relaxed text-cream-dim">
-                          {c}
-                        </p>
-                      ))}
-                    </div>
+                <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+                  <h3 className="mb-3 text-sm font-medium text-cream">Patterns we noticed</h3>
+                  <div className="space-y-2.5">
+                    {insights.correlations.map((c: string, i: number) => (
+                      <p key={i} className="text-sm leading-relaxed text-cream-dim">
+                        {c}
+                      </p>
+                    ))}
                   </div>
-                </PremiumGate>
+                </div>
               )}
 
               {/* Share with therapist */}
-              <PremiumGate feature="Export a summary of your patterns to share with your therapist or counselor.">
-                <button
-                  onClick={downloadTherapistSummary}
-                  className="mt-2 w-full rounded-2xl border border-teal/15 bg-deep/60 py-4 text-sm text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-2"
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
-                    <path d="M8 2v8M8 10L5 7M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Download summary for therapist
-                </button>
-                <button
-                  onClick={shareInsights}
-                  className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/60 transition-colors hover:text-cream-dim"
-                >
-                  {copied ? "Copied to clipboard" : "Or copy summary to clipboard"}
-                </button>
-              </PremiumGate>
+              <button
+                onClick={downloadTherapistSummary}
+                className="mt-2 w-full rounded-2xl border border-teal/15 bg-deep/60 py-4 text-sm text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
+                  <path d="M8 2v8M8 10L5 7M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Download summary for therapist
+              </button>
+              <button
+                onClick={shareInsights}
+                className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/60 transition-colors hover:text-cream-dim"
+              >
+                {copied ? "Copied to clipboard" : "Or copy summary to clipboard"}
+              </button>
             </div>
           )}
         </div>

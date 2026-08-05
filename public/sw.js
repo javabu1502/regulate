@@ -1,9 +1,15 @@
 // Regulate — Service Worker
 // Cache-first for static assets, network-first for pages, offline fallback
 
-const CACHE_VERSION = "regulate-v8";
-const STATIC_CACHE = "regulate-static-v7";
-const PAGES_CACHE = "regulate-pages-v7";
+// Stamped by scripts/generate-audio-manifest.mjs on each build. A changed
+// byte here is what makes browsers reinstall the SW and re-precache the
+// app shell — without it, offline copies of unvisited pages go stale.
+const BUILD_ID = "1785953943686";
+
+const STATIC_CACHE = "regulate-static-v8";
+const PAGES_CACHE = "regulate-pages-v8";
+// Audio cache is intentionally unversioned — 11MB shouldn't re-download on
+// every SW update. Missing files are filled in from the manifest on activate.
 const AUDIO_CACHE = "regulate-audio-v7";
 
 // App shell — precached on install
@@ -28,7 +34,15 @@ const APP_SHELL = [
   "/games/bubbles",
   "/games/burn",
   "/toolkit",
+  "/practice",
+  "/exercises",
+  "/programs",
+  "/programs/first-week",
+  "/meditations",
 ];
+
+// Injected from src/lib/meditations.ts by scripts/generate-audio-manifest.mjs
+const MEDITATION_PAGES = ["/meditations/safe-place","/meditations/body-as-home","/meditations/feet-on-the-floor","/meditations/letting-the-wave-pass","/meditations/putting-it-down","/meditations/the-container","/meditations/the-younger-you","/meditations/you-did-your-best-today","/meditations/permission-to-rest","/meditations/warming-your-hands","/meditations/heavy-and-warm","/meditations/following-the-breath-home","/meditations/drifting","/meditations/night-sky","/meditations/rain-on-the-roof"];
 
 const STATIC_ASSETS = [
   "/manifest.json",
@@ -98,6 +112,62 @@ const OFFLINE_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
+// ─── Precache helpers ──────────────────────────────────────────────────
+
+// Cache each app-shell page AND the content-hashed /_next/static assets its
+// HTML references (JS chunks, CSS). Without the chunks, a precached page
+// renders but can't hydrate offline — buttons dead, timers frozen.
+async function precacheAppShell() {
+  const pagesCache = await caches.open(PAGES_CACHE);
+  const staticCache = await caches.open(STATIC_CACHE);
+  const assetUrls = new Set();
+
+  await Promise.all(
+    [...APP_SHELL, ...MEDITATION_PAGES].map(async (path) => {
+      try {
+        const response = await fetch(path);
+        if (!response.ok) return;
+        await pagesCache.put(path, response.clone());
+        const html = await response.text();
+        // Matches src/href attributes and escaped refs inside inline flight data
+        for (const m of html.matchAll(/\/_next\/static\/[^"'\\\s)>]+/g)) {
+          assetUrls.add(m[0]);
+        }
+      } catch {
+        // Page precache is best-effort; runtime caching covers the rest
+      }
+    })
+  );
+
+  await Promise.all(
+    [...assetUrls].map(async (url) => {
+      try {
+        if (await staticCache.match(url)) return;
+        const response = await fetch(url);
+        if (response.ok) await staticCache.put(url, response);
+      } catch { /* best-effort */ }
+    })
+  );
+}
+
+// Fill the audio cache from the build-time manifest. Tolerates individual
+// failures (e.g. clips not yet recorded) so one 404 never blocks the rest.
+async function precacheAudio() {
+  try {
+    const response = await fetch("/audio-manifest.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    const files = await response.json();
+    const cache = await caches.open(AUDIO_CACHE);
+    for (const url of files) {
+      try {
+        if (await cache.match(url)) continue;
+        const audioResponse = await fetch(url);
+        if (audioResponse.ok) await cache.put(url, audioResponse);
+      } catch { /* skip this file, keep going */ }
+    }
+  } catch { /* offline install — runtime caching will fill in later */ }
+}
+
 // ─── Install ───────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -113,8 +183,8 @@ self.addEventListener("install", (event) => {
       ),
       // Precache static assets (cache-first, so these must be in cache)
       caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)),
-      // Precache app shell pages
-      caches.open(PAGES_CACHE).then((cache) => cache.addAll(APP_SHELL)),
+      // Precache app shell pages + the JS/CSS they need to hydrate
+      precacheAppShell(),
     ])
   );
   self.skipWaiting();
@@ -228,6 +298,12 @@ self.addEventListener("message", (event) => {
     self.skipWaiting();
     return;
   }
+  // Client asks us to fill the audio cache once the page is loaded and idle.
+  // Runs here (not in activate) so it never delays activation or page fetches.
+  if (event.data && event.data.type === "PRECACHE_AUDIO") {
+    event.waitUntil(precacheAudio());
+    return;
+  }
   if (event.data && event.data.type === "SHOW_NOTIFICATION") {
     const { title, body, icon, tag, data } = event.data.payload;
     event.waitUntil(
@@ -263,6 +339,54 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
+// ─── Audio: cache-first with Range support ─────────────────────────────
+// Audio must work offline — this is a crisis app. We cache the full file
+// and slice 206 responses ourselves because <audio> sends Range requests
+// (Safari requires a valid 206 back or playback fails).
+async function handleAudio(request) {
+  const cache = await caches.open(AUDIO_CACHE);
+  const url = new URL(request.url);
+  let full = await cache.match(url.pathname);
+
+  if (!full) {
+    try {
+      // Fetch WITHOUT the Range header so we cache the whole file
+      const response = await fetch(url.pathname);
+      if (!response.ok || response.status !== 200) return response;
+      await cache.put(url.pathname, response.clone());
+      full = response;
+    } catch {
+      return new Response("", { status: 503 });
+    }
+  }
+
+  const range = request.headers.get("range");
+  if (!range) return full;
+
+  const match = /bytes=(\d+)-(\d+)?/.exec(range);
+  const buffer = await full.arrayBuffer();
+  if (!match) return new Response(buffer, { status: 200, headers: { "Content-Type": "audio/mpeg" } });
+
+  const start = Number(match[1]);
+  const end = match[2] ? Math.min(Number(match[2]), buffer.byteLength - 1) : buffer.byteLength - 1;
+  if (start >= buffer.byteLength) {
+    return new Response("", {
+      status: 416,
+      headers: { "Content-Range": `bytes */${buffer.byteLength}` },
+    });
+  }
+
+  return new Response(buffer.slice(start, end + 1), {
+    status: 206,
+    headers: {
+      "Content-Type": full.headers.get("Content-Type") || "audio/mpeg",
+      "Content-Range": `bytes ${start}-${end}/${buffer.byteLength}`,
+      "Content-Length": String(end - start + 1),
+      "Accept-Ranges": "bytes",
+    },
+  });
+}
+
 // ─── Fetch handler ─────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   const { request } = event;
@@ -291,9 +415,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Audio files — let the browser handle natively (range requests
-  // and replay work better without SW interception)
-  if (isAudioFile(url)) return;
+  // Audio files — cache-first with Range support so playback works offline
+  if (isAudioFile(url)) {
+    event.respondWith(handleAudio(request));
+    return;
+  }
 
   // Next.js bundles (JS/CSS chunks) — cache-first (content-hashed filenames)
   if (isNextBundle(url)) {

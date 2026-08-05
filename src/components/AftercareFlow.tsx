@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import SafetyCheck from "@/components/SafetyCheck";
 import ShareCard from "@/components/ShareCard";
-import { isPremium } from "@/lib/premium";
 
 type Feeling = "better" | "same" | "harder" | "skipped";
 
@@ -181,7 +180,7 @@ function MicroJournal({ technique }: { technique: string }) {
   );
 }
 
-// ─── Quick-journal component (premium) ───────────────────────────────
+// ─── Quick-journal component ─────────────────────────────────────────
 
 function QuickJournal({ technique }: { technique: string }) {
   const [open, setOpen] = useState(false);
@@ -189,12 +188,13 @@ function QuickJournal({ technique }: { technique: string }) {
   const [saved, setSaved] = useState(false);
 
   function save() {
-    if (!text.trim() || !isPremium()) return;
+    if (!text.trim()) return;
     try {
       const raw = localStorage.getItem("regulate-journal");
       const entries = raw ? JSON.parse(raw) : [];
       entries.push({
         id: Date.now().toString(),
+        timestamp: Date.now(),
         date: new Date().toISOString(),
         type: "reflection",
         technique,
@@ -359,21 +359,20 @@ export default function AftercareFlow({
     setFeeling(f);
     setStep("response");
 
-    // Auto-log to journal (premium only)
-    if (isPremium()) {
-      try {
-        const raw = localStorage.getItem("regulate-journal");
-        const entries = raw ? JSON.parse(raw) : [];
-        entries.push({
-          id: Date.now().toString(),
-          date: new Date().toISOString(),
-          type: "aftercare",
-          technique,
-          aftercareResponse: f,
-        });
-        localStorage.setItem("regulate-journal", JSON.stringify(entries));
-      } catch { /* */ }
-    }
+    // Auto-log to journal
+    try {
+      const raw = localStorage.getItem("regulate-journal");
+      const entries = raw ? JSON.parse(raw) : [];
+      entries.push({
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        date: new Date().toISOString(),
+        type: "aftercare",
+        technique,
+        aftercareResponse: f,
+      });
+      localStorage.setItem("regulate-journal", JSON.stringify(entries));
+    } catch { /* */ }
 
     // Track session for outcomes measurement
     try {
@@ -507,19 +506,10 @@ export default function AftercareFlow({
               {completionSubtext}
             </p>
 
-            {/* Quick journal (premium only) */}
-            {isPremium() && (
-              <div className="mt-5">
-                <QuickJournal technique={technique} />
-              </div>
-            )}
-
-            {/* Micro-journal (free users only — premium already has QuickJournal) */}
-            {!isPremium() && (
-              <div className="mt-5">
-                <MicroJournal technique={technique} />
-              </div>
-            )}
+            {/* Quick journal */}
+            <div className="mt-5">
+              <QuickJournal technique={technique} />
+            </div>
 
             {/* Learn link */}
             <Link
@@ -538,19 +528,10 @@ export default function AftercareFlow({
               That&apos;s normal. Sometimes it takes a bit for your body to catch up.
             </p>
 
-            {/* Quick journal (premium only) */}
-            {isPremium() && (
-              <div className="mt-5">
-                <QuickJournal technique={technique} />
-              </div>
-            )}
-
-            {/* Micro-journal (free users only — premium already has QuickJournal) */}
-            {!isPremium() && (
-              <div className="mt-5">
-                <MicroJournal technique={technique} />
-              </div>
-            )}
+            {/* Quick journal */}
+            <div className="mt-5">
+              <QuickJournal technique={technique} />
+            </div>
           </>
         )}
 

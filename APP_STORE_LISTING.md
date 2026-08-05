@@ -41,7 +41,7 @@ Regulate is not trying to make nervous system regulation fun. It is trying to ma
 
 PRICING
 
-Every crisis tool is free. Forever. $2.99 one-time for personalized insights — recommendations based on what works for you, session history, and pattern tracking. No subscription. No recurring charges. No surprise billing. One price. Lifetime.
+Everything is free. Forever. Every crisis tool, the journal, and personalized insights — recommendations based on what works for you, session history, and pattern tracking. No subscription. No purchases. No surprise billing. No ads. Ever.
 
 PRIVACY
 
@@ -63,12 +63,12 @@ Screenshot 1: "When panic hits, your body knows what to do"
 Screenshot 2: "SOS tools that work when thinking can't"
 Screenshot 3: "14 somatic exercises. No other app has this."
 Screenshot 4: "State-matched — different tools for different states"
-Screenshot 5: "Free for every crisis. $2.99 makes it yours."
+Screenshot 5: "Completely free. No subscriptions, no ads, ever."
 Screenshot 6: "Built on polyvagal theory. Trusted by therapists."
 
 ## 7. What's New (Version 1.0)
 
-Regulate 1.0. Fourteen somatic exercises built on polyvagal theory and Somatic Experiencing research. SOS mode for immediate crisis support. State-matched tools that meet your nervous system where it is. Every crisis tool is free — forever.
+Regulate 1.0. Fourteen somatic exercises built on polyvagal theory and Somatic Experiencing research. SOS mode for immediate crisis support. State-matched tools that meet your nervous system where it is. Completely free — forever.
 
 ## 8. Category
 

@@ -344,6 +344,14 @@ function BreathingPageInner() {
     }
   }, [screen]);
 
+  // Stop voice + ambient on unmount
+  useEffect(() => {
+    return () => {
+      voiceGuidance.stop();
+      ambientAudio.stop();
+    };
+  }, []);
+
   // ─── Eyes-free haptic guide ───────────────────────────────────
 
   useEffect(() => {
@@ -402,6 +410,9 @@ function BreathingPageInner() {
   }
 
   function resetToSelect() {
+    voiceGuidance.stop();
+    ambientAudio.stop();
+    setAmbientSound("off");
     setScreen("select");
     setSelectedPattern(null);
     setIsPaused(false);
