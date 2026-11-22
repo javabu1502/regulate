@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { appUrl } from "@/lib/app-url";
 
-const APP_URL = typeof window !== "undefined" && window.location.hostname !== "localhost"
-  ? window.location.origin
-  : "https://regulate-liart.vercel.app";
+
 
 /**
  * Infer the route path from technique name and category.
@@ -49,8 +48,10 @@ export default function ShareCard({ technique, category }: ShareCardProps) {
   const [copied, setCopied] = useState(false);
 
   const route = getRoute(category);
-  const shareUrl = `${APP_URL}${route}`;
-  const shareText = `${technique} helped me today. Try it: ${shareUrl}. Regulate - somatic tools for your nervous system.`;
+  const shareUrl = `${appUrl()}${route}`;
+  const shareText = appUrl()
+    ? `${technique} helped me today. Try it: ${shareUrl}. Regulate - somatic tools for your nervous system.`
+    : `${technique} helped me today. Regulate - somatic tools for your nervous system.`;
 
   async function handleShare() {
     // Try native share first

@@ -73,7 +73,7 @@ const exerciseGroups: ExerciseGroup[] = [
   {
     label: "Breathing",
     exercises: [
-      { name: "Box Breathing", description: "In, hold, out, hold — equal rhythm", href: "/breathing?pattern=box", time: "7 min" },
+      { name: "Box Breathing", description: "In, hold, out, hold, equal rhythm", href: "/breathing?pattern=box", time: "7 min" },
       { name: "4-7-8 Breathing", description: "In 4, hold 7, out 8", href: "/breathing?pattern=478", time: "8 min" },
       { name: "Physiological Sigh", description: "Two inhales, long exhale", href: "/breathing?pattern=sigh", time: "5 min" },
       { name: "Coherence", description: "5 seconds in, 5 out", href: "/breathing?pattern=coherence", time: "4 min" },
@@ -92,8 +92,8 @@ const exerciseGroups: ExerciseGroup[] = [
     label: "Movement & Energy",
     exercises: [
       { name: "Body Shaking", description: "Shake it all out", href: "/somatic?exercise=body-shaking", time: "1-3 min" },
-      { name: "Air Punching", description: "Let it out — punch hard", href: "/somatic?exercise=air-punching", time: "1-3 min" },
-      { name: "Free Movement / Dancing", description: "Move — dance like nobody's watching", href: "/somatic?exercise=dancing", time: "1-5 min" },
+      { name: "Air Punching", description: "Let it out. Punch hard", href: "/somatic?exercise=air-punching", time: "1-3 min" },
+      { name: "Free Movement / Dancing", description: "Move. Dance like nobody's watching", href: "/somatic?exercise=dancing", time: "1-5 min" },
       { name: "Gentle Swaying", description: "Rock gently, like the ocean", href: "/somatic?exercise=gentle-swaying", time: "1-5 min" },
       { name: "Bearing Down", description: "Engage your core against resistance", href: "/somatic?exercise=bearing-down", time: "2 min" },
     ],

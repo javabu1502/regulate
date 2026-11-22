@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { appHost } from "@/lib/app-url";
 import Link from "next/link";
 import { WaveIcon } from "@/components/Icons";
 
@@ -108,6 +109,12 @@ const techniques = [
 // ─── Page ───────────────────────────────────────────────────────────
 
 export default function CliniciansPage() {
+  // Read after mount so the static prerender and the client agree.
+  const [host, setHost] = useState("");
+  useEffect(() => {
+    setHost(appHost());
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-20 pt-12">
       <div className="w-full max-w-2xl">
@@ -395,7 +402,7 @@ export default function CliniciansPage() {
                   href="/refer"
                   className="text-teal-soft underline underline-offset-2 transition-colors hover:text-teal"
                 >
-                  regulate-liart.vercel.app/refer
+                  {host ? `${host}/refer` : "the referral page"}
                 </Link>
               </p>
               <p className="mt-2 text-xs text-cream-dim/50">

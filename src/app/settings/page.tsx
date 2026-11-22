@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getStorageUsage } from "@/lib/storage";
 import TherapistSummary from "@/components/TherapistSummary";
+import { voiceGuidance } from "@/lib/voice-guidance";
 
 interface CustomCrisisLine {
   name: string;
@@ -26,6 +27,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const [confirmClear, setConfirmClear] = useState<string | null>(null);
   const [hapticsOn, setHapticsOn] = useState(true);
+  const [voiceOn, setVoiceOn] = useState(false);
   const [textSize, setTextSize] = useState<"default" | "large" | "xl">("default");
   const [crisisName, setCrisisName] = useState("");
   const [crisisNumber, setCrisisNumber] = useState("");
@@ -42,6 +44,7 @@ export default function SettingsPage() {
     try {
       const stored = localStorage.getItem("regulate-haptics-enabled");
       if (stored !== null) setHapticsOn(stored !== "0");
+      setVoiceOn(localStorage.getItem("regulate-voice-enabled") === "1");
       const storedTextSize = localStorage.getItem("regulate-text-size");
       if (storedTextSize === "large" || storedTextSize === "xl") {
         setTextSize(storedTextSize);
@@ -326,10 +329,21 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-medium text-cream">Voice guidance</h3>
-                <p className="mt-1 text-xs text-cream-dim/60">Spoken cues during exercises</p>
+                <p className="mt-1 text-xs text-cream-dim/60">A spoken voice walks you through breathing, grounding, body scans, somatic exercises, and SOS.</p>
               </div>
-              <span className="rounded-full bg-slate-blue/20 px-2.5 py-0.5 text-[10px] font-medium text-cream-dim/40">Coming soon</span>
+              <button
+                onClick={() => {
+                  const next = !voiceOn;
+                  setVoiceOn(next);
+                  voiceGuidance.setEnabled(next);
+                }}
+                className={`relative ml-4 h-7 w-12 shrink-0 rounded-full transition-colors ${voiceOn ? "bg-teal" : "bg-slate-blue/40"}`}
+                aria-label={voiceOn ? "Turn off voice guidance" : "Turn on voice guidance"}
+              >
+                <span className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-cream transition-transform ${voiceOn ? "translate-x-5" : "translate-x-0"}`} />
+              </button>
             </div>
+            <p className="mt-3 text-xs text-cream-dim/40">You can also turn it on or off from inside any exercise.</p>
           </div>
 
           {/* Night mode */}

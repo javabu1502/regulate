@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { appHost } from "@/lib/app-url";
 
 interface JournalEntry {
   id?: string;
@@ -119,7 +120,7 @@ function generateSummary(): string {
     `Most effective: ${mostEffective}`,
     `Common triggers: ${triggerList || "None recorded"}`,
     "",
-    "Generated from Regulate app (regulate-liart.vercel.app)",
+    appHost() ? `Generated from Regulate app (${appHost()})` : "Generated from Regulate app",
   ];
 
   return lines.join("\n");

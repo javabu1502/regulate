@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import RegisterSW from "@/components/RegisterSW";
-import OnboardingGate from "@/components/OnboardingGate";
 import AppShell from "@/components/AppShell";
 import "./globals.css";
 
@@ -68,7 +67,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <RegisterSW />
-        <OnboardingGate><AppShell><main id="main-content">{children}</main></AppShell></OnboardingGate>
+        <AppShell><main id="main-content">{children}</main></AppShell>
       </body>
     </html>
   );

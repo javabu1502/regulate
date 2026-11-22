@@ -77,10 +77,12 @@ export default function ColorWashPage() {
 
   // Keep refs in sync with state for use inside callbacks
   const selectedColorRef = useRef(selectedColor);
-  selectedColorRef.current = selectedColor;
   const brushSizeRef = useRef(brushSize);
-  brushSizeRef.current = brushSize;
-  autoColorRef.current = autoColor;
+  useEffect(() => {
+    selectedColorRef.current = selectedColor;
+    brushSizeRef.current = brushSize;
+    autoColorRef.current = autoColor;
+  }, [selectedColor, brushSize, autoColor]);
 
   // ── Setup canvas ────────────────────────────────────────────────
 

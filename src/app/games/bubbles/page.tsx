@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ─── Colors ─────────────────────────────────────────────────────────
 
@@ -207,6 +208,15 @@ export default function BubblePopPage() {
   const [speedLabel, setSpeedLabel] = useState<"Slow" | "Medium" | "Fast">("Medium");
   const speedMultiplierRef = useRef(1.0);
 
+  // Honor the OS reduce-motion preference. The canvas loop reads the ref, so
+  // a change mid-session takes effect without restarting the animation.
+  const reducedMotion = usePrefersReducedMotion();
+  const motionScaleRef = useRef(1);
+  useEffect(() => {
+    motionScaleRef.current = reducedMotion ? 0.3 : 1;
+  }, [reducedMotion]);
+
+
   // ── Timer + check-in every 5 minutes ─────────────────────────
 
   useEffect(() => {
@@ -287,9 +297,9 @@ export default function BubblePopPage() {
           continue;
         }
 
-        b.y -= b.speed * speedMultiplierRef.current;
+        b.y -= b.speed * speedMultiplierRef.current * motionScaleRef.current;
         const sway = Math.sin(timeRef.current * 0.02 * b.driftSpeed + b.driftOffset) * b.drift * 0.02;
-        b.x += sway;
+        b.x += sway * motionScaleRef.current;
 
         // Remove if floated off top
         if (b.y < -b.radius * 2) {

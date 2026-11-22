@@ -247,7 +247,8 @@ export default function MeditationPlayerPage() {
             {meditation.duration}
           </p>
 
-          {/* Transport controls */}
+          {/* Transport controls, only once there is something to play */}
+          {audioState !== "unavailable" && (
           <div className="mt-10 flex items-center justify-center gap-6">
             {/* Skip back 15s */}
             <button
@@ -295,15 +296,18 @@ export default function MeditationPlayerPage() {
             {/* Spacer to keep play button centered */}
             <div className="h-10 w-10" aria-hidden="true" />
           </div>
+          )}
 
-          {/* Coming soon message */}
+          {/* Nothing to play yet */}
           {audioState === "unavailable" && (
-            <p className="mt-4 text-xs text-cream-dim/30">
-              This meditation is being recorded. Check back soon.
+            <p className="mx-auto mt-8 max-w-[280px] text-xs leading-relaxed text-cream-dim/40">
+              This one is not recorded yet. The breathing, grounding, somatic,
+              and SOS tools are all ready if you need something now.
             </p>
           )}
 
           {/* Progress bar */}
+          {audioState !== "unavailable" && (
           <div className="mt-6">
             <div
               onClick={handleSeek}
@@ -321,6 +325,7 @@ export default function MeditationPlayerPage() {
               {formatTime(currentTime)} / {formatTime(duration)}
             </p>
           </div>
+          )}
 
           {/* Ambient sound selector */}
           <div className="mt-10">

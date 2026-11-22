@@ -12,6 +12,7 @@ import { getPersonalizedRecommendations } from "@/lib/recommendations";
 import { getInstructions, type Scenario } from "@/lib/sos-scenarios";
 import PresenceCue from "@/components/PresenceCue";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
+import VoiceToggle from "@/components/VoiceToggle";
 
 // ─── Breathing patterns ──────────────────────────────────────────────
 
@@ -603,9 +604,13 @@ function SOSPageInner() {
 
   // ─── Ambient sound toggle (shared across screens) ─────────────────
 
-  function AmbientToggle() {
+  function renderAmbientToggle() {
     return (
-      <div className="fixed right-4 top-6 z-10 flex gap-1.5">
+      <div className="fixed right-4 top-6 z-10 flex max-w-[72%] flex-wrap items-center justify-end gap-1.5">
+        <VoiceToggle
+          className="px-2.5 py-2"
+          onChange={(on) => { if (!on) { breathingAudio.stop(); sosAudio.stop(); } }}
+        />
         {(["rain", "ocean", "forest", "white-noise", "off"] as const).map((s) => (
           <button
             key={s}
@@ -629,7 +634,7 @@ function SOSPageInner() {
   }
 
   // Small "Call [Name]" button for active exercise screens
-  function CallDuringExercise() {
+  function renderCallDuringExercise() {
     if (myPersonContacts.length === 0) return null;
     return (
       <div className="flex flex-wrap justify-center gap-2">
@@ -650,7 +655,7 @@ function SOSPageInner() {
   }
 
   // "Try something else" link (shared across exercise screens)
-  function TrySomethingElse() {
+  function renderTrySomethingElse() {
     return (
       <button
         onClick={() => {
@@ -665,7 +670,7 @@ function SOSPageInner() {
   }
 
   // Back button (shared)
-  function BackButton({ onClick }: { onClick: () => void }) {
+  function renderBackButton({ onClick }: { onClick: () => void }) {
     return (
       <button onClick={onClick} className="fixed left-4 top-6 z-10 flex h-11 w-11 items-center justify-center text-cream-dim/60 hover:text-cream-dim focus:outline-none focus:ring-2 focus:ring-teal/50 rounded-lg" aria-label="Go back">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -674,7 +679,7 @@ function SOSPageInner() {
   }
 
   // Home button - exits SOS flow entirely
-  function HomeButton() {
+  function renderHomeButton() {
     return (
       <button onClick={goHome} className="fixed right-4 top-6 z-10 flex h-11 w-11 items-center justify-center text-cream-dim/40 hover:text-cream-dim focus:outline-none focus:ring-2 focus:ring-teal/50 rounded-lg" aria-label="Go home">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M3 10L10 3L17 10M5 8.5V16H8.5V12H11.5V16H15V8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -683,7 +688,7 @@ function SOSPageInner() {
   }
 
   // Context badge - small indicator showing current location filter with change option
-  function ContextBadge() {
+  function renderContextBadge() {
     return (
       <div className="flex items-center justify-center gap-1.5">
         <span className="text-[10px] text-cream-dim/40">
@@ -704,7 +709,7 @@ function SOSPageInner() {
   if (step === "body-check") {
     return (
       <div key="body-check" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
-        <BackButton onClick={goHome} />
+        {renderBackButton({ onClick: goHome })}
 
         <div className="w-full max-w-sm">
           <PresenceCue active />
@@ -723,7 +728,7 @@ function SOSPageInner() {
               className="w-full rounded-2xl border border-candle/30 bg-candle/10 px-5 py-6 text-center transition-all hover:border-candle/40 active:scale-[0.98]"
             >
               <span className="block text-lg font-medium text-cream">Just breathe with me</span>
-              <span className="mt-1.5 block text-xs text-cream-dim/50">No choices needed — we&apos;ll start right away</span>
+              <span className="mt-1.5 block text-xs text-cream-dim/50">No choices needed, we&apos;ll start right away</span>
             </button>
           </div>
 
@@ -789,7 +794,7 @@ function SOSPageInner() {
 
     return (
       <div key="context" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
-        <BackButton onClick={() => bodyStateParam ? goHome() : setStep("body-check")} />
+        {renderBackButton({ onClick: () => bodyStateParam ? goHome() : setStep("body-check") })}
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">Where are you right now?</h2>
@@ -848,14 +853,27 @@ function SOSPageInner() {
 
     return (
       <div key="recommend" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
-        <BackButton onClick={() => setStep("context")} />
-        {!bodyStateParam && <HomeButton />}
+        {renderBackButton({ onClick: () => setStep("context") })}
+        {!bodyStateParam && renderHomeButton()}
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">{stateLabel}</h2>
           <div className="mt-1.5">
-            <ContextBadge />
+            {renderContextBadge()}
           </div>
+
+          {/* What worked last time, if it was recent */}
+          {lastHelped && (
+            <button
+              onClick={() => startTool(lastHelped.id)}
+              className="mt-6 w-full rounded-xl border border-candle/25 bg-candle/8 px-4 py-3.5 text-left transition-all hover:border-candle/40 active:scale-[0.98]"
+            >
+              <span className="block text-[10px] font-medium uppercase tracking-widest text-candle-soft/60">
+                Helped you last time
+              </span>
+              <span className="mt-1 block text-sm font-medium text-cream">{lastHelped.label}</span>
+            </button>
+          )}
 
           {/* Top recommendation with "why" */}
           {topPick && (
@@ -956,8 +974,8 @@ function SOSPageInner() {
 
     return (
       <div key="all-tools" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
-        <BackButton onClick={() => setStep("recommend")} />
-        <HomeButton />
+        {renderBackButton({ onClick: () => setStep("recommend") })}
+        {renderHomeButton()}
 
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">
@@ -973,7 +991,7 @@ function SOSPageInner() {
              "Pick any one to start."}
           </p>
           <div className="mt-1.5">
-            <ContextBadge />
+            {renderContextBadge()}
           </div>
 
           {/* Recommended first */}
@@ -1033,8 +1051,8 @@ function SOSPageInner() {
   if (step === "breathing" && currentBreathStep) {
     return (
       <div key="breathing" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
-        <BackButton onClick={() => { recordPartialSession(); goHome(); }} />
-        <AmbientToggle />
+        {renderBackButton({ onClick: () => { recordPartialSession(); goHome(); } })}
+        {renderAmbientToggle()}
 
         {/* Cycle progress */}
         <div className="fixed left-0 right-0 top-8 flex justify-center">
@@ -1063,8 +1081,8 @@ function SOSPageInner() {
 
         {/* Try something else + Call person + Crisis line - always visible, never distracting */}
         <div className="fixed bottom-12 left-0 right-0 flex flex-col items-center gap-3">
-          <CallDuringExercise />
-          <TrySomethingElse />
+          {renderCallDuringExercise()}
+          {renderTrySomethingElse()}
           <div className="flex items-center gap-3">
             <a href="tel:988" className="text-[10px] text-cream-dim/60 underline underline-offset-2">988 Lifeline</a>
             <span className="text-[10px] text-cream-dim/30" aria-hidden="true">|</span>
@@ -1080,7 +1098,7 @@ function SOSPageInner() {
   if (step === "bilateral-tapping") {
     return (
       <div key="bilateral-tapping" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight">
-        <BackButton onClick={() => { recordPartialSession(); goHome(); }} />
+        {renderBackButton({ onClick: () => { recordPartialSession(); goHome(); } })}
         <div className="fixed right-4 top-6 font-mono text-sm text-cream-dim/40">
           {formatTimer(timedSecondsLeft)}
         </div>
@@ -1113,8 +1131,8 @@ function SOSPageInner() {
           >
             I&apos;m ready to stop
           </button>
-          <CallDuringExercise />
-          <TrySomethingElse />
+          {renderCallDuringExercise()}
+          {renderTrySomethingElse()}
         </div>
       </div>
     );
@@ -1125,7 +1143,7 @@ function SOSPageInner() {
   if (step === "cold-water") {
     return (
       <div key="cold-water" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
-        <BackButton onClick={() => { recordPartialSession(); goHome(); }} />
+        {renderBackButton({ onClick: () => { recordPartialSession(); goHome(); } })}
         <div className="fixed right-4 top-6 font-mono text-sm text-cream-dim/40">
           {timedSecondsLeft > 0 ? formatTimer(timedSecondsLeft) : ""}
         </div>
@@ -1163,8 +1181,8 @@ function SOSPageInner() {
           >
             Done
           </button>
-          <CallDuringExercise />
-          <TrySomethingElse />
+          {renderCallDuringExercise()}
+          {renderTrySomethingElse()}
         </div>
       </div>
     );
@@ -1175,7 +1193,7 @@ function SOSPageInner() {
   if (step === "gentle-movement") {
     return (
       <div key="gentle-movement" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
-        <BackButton onClick={() => { recordPartialSession(); goHome(); }} />
+        {renderBackButton({ onClick: () => { recordPartialSession(); goHome(); } })}
         <div className="fixed right-4 top-6 font-mono text-sm text-cream-dim/40">
           {timedSecondsLeft > 0 ? formatTimer(timedSecondsLeft) : ""}
         </div>
@@ -1216,8 +1234,8 @@ function SOSPageInner() {
           >
             {timedSecondsLeft === 0 ? "Ready to continue" : "I\u2019m ready"}
           </button>
-          <CallDuringExercise />
-          <TrySomethingElse />
+          {renderCallDuringExercise()}
+          {renderTrySomethingElse()}
         </div>
       </div>
     );
@@ -1232,7 +1250,7 @@ function SOSPageInner() {
 
     return (
       <div key="grounding" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-5">
-        <BackButton onClick={() => { recordPartialSession(); goHome(); }} />
+        {renderBackButton({ onClick: () => { recordPartialSession(); goHome(); } })}
         <div className="fixed left-0 right-0 top-0 h-1 bg-slate-blue/30">
           <div className="h-full bg-teal-soft/60 transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
@@ -1264,8 +1282,8 @@ function SOSPageInner() {
         </div>
 
         <div className="fixed bottom-10 flex flex-col items-center gap-3">
-          <CallDuringExercise />
-          <TrySomethingElse />
+          {renderCallDuringExercise()}
+          {renderTrySomethingElse()}
         </div>
       </div>
     );
@@ -1339,12 +1357,12 @@ function SOSPageInner() {
 
     return (
       <div key="pick-tool" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center bg-midnight px-5 pt-14 pb-10 overflow-y-auto">
-        <BackButton onClick={() => setStep("recommend")} />
+        {renderBackButton({ onClick: () => setStep("recommend") })}
         <div className="w-full max-w-sm">
           <h2 className="text-center text-xl font-light text-cream">Let&apos;s try something different</h2>
           <p className="mt-2 text-center text-xs text-cream-dim/60">Pick one. We&apos;ll start right away.</p>
           <div className="mt-1.5">
-            <ContextBadge />
+            {renderContextBadge()}
           </div>
 
           <div className="mt-6 flex flex-col gap-2">

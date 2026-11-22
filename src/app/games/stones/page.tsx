@@ -207,26 +207,11 @@ export default function StoneStackingPage() {
 
   const [showHelp, setShowHelp] = useState(false);
   const [height, setHeight] = useState(0);
-  const [best, setBest] = useState(0);
   const [hint, setHint] = useState(true);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("regulate-stones-best");
-      if (saved) setBest(parseInt(saved, 10));
-    } catch {}
-  }, []);
 
   // ── Get tower positions ─────────────────────────────────────
 
   const getGroundY = useCallback((h: number) => h - 90, []);
-
-  const getTopOfTower = useCallback((h: number) => {
-    const tower = towerRef.current;
-    if (tower.length === 0) return getGroundY(h);
-    const top = tower[tower.length - 1];
-    return top.y - top.height / 2;
-  }, [getGroundY]);
 
   // ── Spawn stone at drag position ────────────────────────────
 
@@ -430,12 +415,6 @@ export default function StoneStackingPage() {
                 const newHeight = tower.length;
                 setHeight(newHeight);
 
-                setBest((prev) => {
-                  const nb = Math.max(prev, newHeight);
-                  try { localStorage.setItem("regulate-stones-best", String(nb)); } catch {}
-                  return nb;
-                });
-
                 playPlaceSound(1 + tower.length * 0.03);
                 haptics.tap();
                 spawnDust(falling.x, falling.y + falling.height / 2, 10);
@@ -542,7 +521,7 @@ export default function StoneStackingPage() {
     <div
       className="relative h-dvh w-screen overflow-hidden bg-midnight"
       role="application"
-      aria-label="Stone stacking — drag to position, release to drop"
+      aria-label="Stone stacking: drag to position, release to drop"
     >
       <canvas
         ref={canvasRef}
@@ -568,12 +547,6 @@ export default function StoneStackingPage() {
         <div className="pointer-events-auto flex items-center gap-2">
           <div className="flex items-center gap-3 rounded-full bg-deep/60 px-3.5 py-1.5 text-xs text-cream-dim/60 backdrop-blur-sm">
             <span>{height} high</span>
-            {best > 0 && (
-              <>
-                <span className="text-cream-dim/20">·</span>
-                <span>best {best}</span>
-              </>
-            )}
           </div>
 
           {height > 0 && (

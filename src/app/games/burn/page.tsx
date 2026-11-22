@@ -949,6 +949,8 @@ export default function BurnNotePage() {
         <canvas
           ref={canvasRef}
           className="absolute inset-0 z-10 touch-none"
+          role="img"
+          aria-label="Burning the paper: drag the match to the edge of the page to light it"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -1010,6 +1012,8 @@ export default function BurnNotePage() {
                   <canvas
                     ref={drawCanvasRef}
                     className="absolute inset-0 w-full h-full touch-none cursor-crosshair"
+                    role="img"
+                    aria-label="Writing space: drag to write what you want to burn"
                     onPointerDown={handleDrawPointerDown}
                     onPointerMove={handleDrawPointerMove}
                     onPointerUp={handleDrawPointerUp}
@@ -1120,7 +1124,7 @@ export default function BurnNotePage() {
           >
             <div className="rounded-2xl border border-teal/15 bg-deep/80 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
               Writing something down and destroying it can genuinely reduce
-              how much it bothers you. Research backs this up — the physical
+              how much it bothers you. Research backs this up. The physical
               act of letting go helps your brain let go too.
             </div>
           </div>

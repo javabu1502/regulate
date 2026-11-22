@@ -77,7 +77,7 @@ function getWeekDays(): { label: string; date: string; practiced: boolean }[] {
   const days: { label: string; date: string; practiced: boolean }[] = [];
 
   // Get SOS history timestamps
-  let practiceDates = new Set<string>();
+  const practiceDates = new Set<string>();
   try {
     const history = JSON.parse(localStorage.getItem("regulate-sos-history") || "[]") as { ts?: string }[];
     const journal = JSON.parse(localStorage.getItem("regulate-journal") || "[]") as { timestamp?: number; date?: string }[];

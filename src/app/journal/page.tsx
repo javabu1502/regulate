@@ -94,7 +94,6 @@ function computeDashboard(allEntries: JournalEntry[]) {
   const entries = allEntries.filter((e) => e.type !== "reflection" && e.type !== "micro");
   if (entries.length === 0) return null;
 
-  const now = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
 
   // 1. This week: 7-day dot row
@@ -414,7 +413,10 @@ function JournalPageInner() {
   }
 
   // ─── Pattern detection ──────────────────────────────────────
-  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  // Reading the clock is impure by the compiler's rules, but the window only
+  // needs to be approximate and recomputing it per render is harmless here.
+  // eslint-disable-next-line react-hooks/purity
+  const sevenDaysAgo = useMemo(() => Date.now() - 7 * 24 * 60 * 60 * 1000, []);
   const recentCrisisCount = entries.filter((e) => {
     if (e.timestamp < sevenDaysAgo) return false;
     const tech = (e.technique || "").toLowerCase();
@@ -626,7 +628,7 @@ function JournalPageInner() {
 
   // ─── Back button ──────────────────────────────────────────────
 
-  function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
+  function renderBackButton({ onClick, label }: { onClick: () => void; label: string }) {
     return (
       <button onClick={onClick} className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -935,7 +937,7 @@ function JournalPageInner() {
                       ) : entry.type === "micro" ? (
                         <p className="mt-1.5 truncate text-xs text-cream-dim/60">
                           {entry.content || entry.reflection}
-                          {entry.technique && <span className="ml-2 text-cream-dim/40">— {entry.technique}</span>}
+                          {entry.technique && <span className="ml-2 text-cream-dim/40">· {entry.technique}</span>}
                         </p>
                       ) : entry.triggers.length > 0 ? (
                         <p className="mt-1.5 truncate text-xs text-cream-dim/60">
@@ -1210,7 +1212,7 @@ function JournalPageInner() {
     return (
       <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
-          <BackButton onClick={() => setScreen("list")} label="Journal" />
+          {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
           <header className="mb-8 mt-6 text-center">
             <h1 className="text-lg font-medium text-cream">Quick check-in</h1>
@@ -1280,7 +1282,7 @@ function JournalPageInner() {
     return (
       <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
-          <BackButton onClick={() => setScreen("list")} label="Journal" />
+          {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
           <header className="mb-6 mt-6 text-center">
             <h1 className="text-lg font-medium text-cream">Log this episode</h1>
@@ -1463,7 +1465,7 @@ function JournalPageInner() {
     return (
       <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
-          <BackButton onClick={() => setScreen("list")} label="Journal" />
+          {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
           <header className="mb-6 mt-6 text-center">
             <p className="text-[10px] uppercase tracking-widest text-purple-300/60">Guided reflection</p>
@@ -1547,7 +1549,7 @@ function JournalPageInner() {
     return (
       <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
-          <BackButton onClick={() => setScreen("list")} label="Journal" />
+          {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
           <div className="mt-6">
             <div className="mb-4 flex items-center justify-between">

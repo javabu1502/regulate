@@ -10,6 +10,7 @@ import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
 import { voiceGuidance } from "@/lib/voice-guidance";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
+import VoiceToggle from "@/components/VoiceToggle";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
@@ -120,7 +121,7 @@ export default function BodyScanPage() {
   const [regionElapsed, setRegionElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [controlsHidden, setControlsHidden] = useState(true);
-  const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
+  const [voiceOn, setVoiceOn] = useState(false);
   const bodyScanAudio = useAudioGuide("body-scan");
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -165,6 +166,11 @@ export default function BodyScanPage() {
   }, [screen, isPaused, regionDuration, advanceRegion]);
 
   // ─── Voice guidance ────────────────────────────────────────────
+
+  // Read the stored preference after mount so the static prerender stays stable
+  useEffect(() => {
+    setVoiceOn(voiceGuidance.isEnabled());
+  }, []);
 
   // Stop voice + ambient on unmount
   useEffect(() => {
@@ -276,7 +282,6 @@ export default function BodyScanPage() {
   // ─── SESSION ──────────────────────────────────────────────────
 
   if (screen === "session") {
-    const progressPercent = ((currentRegion * regionDuration + regionElapsed) / (regions.length * regionDuration)) * 100;
     const regionRemaining = regionDuration - regionElapsed;
 
     return (
@@ -290,17 +295,7 @@ export default function BodyScanPage() {
       >
         {/* Voice + ambient toggles */}
         <div className={`fixed left-0 right-0 top-0 z-20 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-          <button
-            onClick={() => {
-              const next = voiceGuidance.toggle();
-              setVoiceOn(next);
-            }}
-            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              voiceOn ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
-            }`}
-          >
-            Voice
-          </button>
+          <VoiceToggle onChange={(on) => { setVoiceOn(on); if (!on) bodyScanAudio.stop(); }} />
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}

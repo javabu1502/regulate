@@ -199,7 +199,7 @@ export default function Home() {
               }}
               className="rounded-2xl border border-candle/20 bg-candle/5 px-6 py-4 text-sm font-medium text-candle-soft transition-colors hover:bg-candle/10"
             >
-              No — I need help
+              No, I need help
             </button>
             <button
               onClick={() => {
@@ -208,7 +208,7 @@ export default function Home() {
               }}
               className="rounded-2xl border border-teal/20 bg-teal/5 px-6 py-4 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/10"
             >
-              I&apos;m okay — show me around
+              I&apos;m okay, show me around
             </button>
           </div>
 
@@ -222,7 +222,7 @@ export default function Home() {
             {whatIsExpanded && (
               <p className="mt-3 text-xs leading-relaxed text-cream-dim/50">
                 Regulate is a set of tools for your nervous system. Breathing
-                exercises, grounding techniques, and movement practices — all
+                exercises, grounding techniques, and movement practices, all
                 designed to help when you feel panicked, anxious, shut down, or
                 can&apos;t sleep. Everything works offline. Your data stays on
                 your device.
@@ -462,7 +462,7 @@ export default function Home() {
         {/* Footer — trust statement and 988 */}
         <footer className="mt-8">
           <p className="text-center text-[11px] leading-relaxed text-cream-dim/30">
-            Regulate is a companion for your nervous system — not a replacement
+            Regulate is a companion for your nervous system, not a replacement
             for professional care. You&apos;re doing something good by being here. If
             you&apos;re in crisis, please reach out to the{" "}
             <a

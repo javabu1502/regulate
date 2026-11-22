@@ -160,13 +160,6 @@ export default function ToolkitPage() {
     }
   }
 
-  function addWarning(text: string) {
-    if (!text.trim()) return;
-    const next = [...warnings, text.trim()];
-    setWarnings(next);
-    localStorage.setItem(KEYS.warnings, JSON.stringify(next));
-  }
-
   function removeWarning(index: number) {
     const next = warnings.filter((_, i) => i !== index);
     setWarnings(next);
@@ -177,13 +170,6 @@ export default function ToolkitPage() {
     const next = warnings.map((w, i) => (i === index ? value : w));
     setWarnings(next);
     localStorage.setItem(KEYS.warnings, JSON.stringify(next));
-  }
-
-  function addReason(text: string) {
-    if (!text.trim()) return;
-    const next = [...reasons, text.trim()];
-    setReasons(next);
-    localStorage.setItem(KEYS.reasons, JSON.stringify(next));
   }
 
   function removeReason(index: number) {
@@ -224,7 +210,7 @@ export default function ToolkitPage() {
   if (helperMode) {
     const TOTAL_STEPS = 5;
 
-    const StepDots = () => (
+    const renderStepDots = () => (
       <div className="flex items-center justify-center gap-2">
         {Array.from({ length: TOTAL_STEPS }, (_, i) => (
           <div
@@ -237,7 +223,7 @@ export default function ToolkitPage() {
       </div>
     );
 
-    const NavBar = () => (
+    const renderNavBar = () => (
       <div className="flex items-center justify-between">
         {helperStep > 1 ? (
           <button
@@ -266,9 +252,9 @@ export default function ToolkitPage() {
       <div className="fixed inset-0 z-50 flex flex-col bg-midnight">
         <div className="flex flex-1 flex-col overflow-y-auto px-6 pb-12 pt-6">
           <div className="mx-auto w-full max-w-md flex-1">
-            <NavBar />
+            {renderNavBar()}
             <div className="mb-8 mt-4">
-              <StepDots />
+              {renderStepDots()}
             </div>
 
             {/* ── Step 1: Introduction ──────────────────────────── */}
@@ -571,7 +557,7 @@ export default function ToolkitPage() {
             </p>
             <p className="mt-1 text-sm text-cream-dim/60 leading-relaxed">
               Set this up now, while you&apos;re calm. When you&apos;re panicking, you won&apos;t have time
-              to think — this page will be ready for you with exactly what you need.
+              to think. This page will be ready for you with exactly what you need.
             </p>
           </header>
 

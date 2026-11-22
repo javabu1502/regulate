@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -104,7 +105,16 @@ export default function StarCreatorPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const frameRef = useRef(0);
+  // Honor the OS reduce-motion preference inside the canvas loop.
+  const reducedMotion = usePrefersReducedMotion();
+  const reducedMotionRef = useRef(false);
+
   const bgStarsRef = useRef<BackgroundStar[]>([]);
+
+  useEffect(() => {
+    reducedMotionRef.current = reducedMotion;
+  }, [reducedMotion]);
+
   const sparklesRef = useRef<SparkleParticle[]>([]);
 
   // Current in-progress path while dragging
@@ -317,10 +327,11 @@ export default function StarCreatorPage() {
 
       // ── Background stars ────────────────────────────────────
       for (const s of bgStarsRef.current) {
-        const twinkle =
-          0.15 +
-          0.2 *
-            Math.sin(frame * 0.02 * s.twinkleSpeed + s.twinkleOffset);
+        const twinkle = reducedMotionRef.current
+          ? 0.25
+          : 0.15 +
+            0.2 *
+              Math.sin(frame * 0.02 * s.twinkleSpeed + s.twinkleOffset);
         ctx!.beginPath();
         ctx!.arc(s.x, s.y, s.size, 0, Math.PI * 2);
         ctx!.fillStyle = `rgba(250, 245, 239, ${twinkle})`;
@@ -615,7 +626,7 @@ export default function StarCreatorPage() {
       className="relative h-dvh w-screen overflow-hidden"
       style={{ backgroundColor: "#0a0f1e" }}
       role="application"
-      aria-label="Constellation creator — drag to draw constellations in the sky"
+      aria-label="Constellation creator: drag to draw constellations in the sky"
     >
       <p className="sr-only">
         Draw constellations by dragging your finger across the sky. Stars appear

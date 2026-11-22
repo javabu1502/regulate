@@ -10,6 +10,7 @@ import { SomaticIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
 import MicroExplanation from "@/components/MicroExplanation";
+import VoiceToggle from "@/components/VoiceToggle";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
@@ -66,7 +67,7 @@ const techniques: ExerciseInfo[] = [
     id: "bilateral-tapping",
     name: "Butterfly Hug",
     description: "A gentle left-right tapping rhythm",
-    why: "Bilateral stimulation — alternating left and right — gives your brain something steady to follow. Instead of spinning on whatever's overwhelming you, it can start to actually process it. People often feel a noticeable shift after just a couple of minutes. Go at whatever pace feels right.",
+    why: "Bilateral stimulation, alternating left and right, gives your brain something steady to follow. Instead of spinning on whatever's overwhelming you, it can start to actually process it. People often feel a noticeable shift after just a couple of minutes. Go at whatever pace feels right.",
     regulation: "down",
     tags: ["processing", "calming"],
     duration: 5,
@@ -197,16 +198,16 @@ const techniques: ExerciseInfo[] = [
     id: "body-shaking",
     name: "Body Shaking / TRE",
     description: "Shake your body to release what it's holding",
-    why: "Animals naturally shake after a stressful experience — it's how the body discharges stress hormones like adrenaline and cortisol. Your body knows how to do this too. You can be as big or as gentle as you want. There's no wrong way. Even small shaking counts.",
+    why: "Animals naturally shake after a stressful experience. It's how the body discharges stress hormones like adrenaline and cortisol. Your body knows how to do this too. You can be as big or as gentle as you want. There's no wrong way. Even small shaking counts.",
     regulation: "up",
     tags: ["release", "energizing"],
     duration: 5,
     sessionSteps: [
-      { text: "Start with your hands. Shake them out — loose and easy.", duration: 30 },
+      { text: "Start with your hands. Shake them out, loose and easy.", duration: 30 },
       { text: "Let it move into your arms. Loose, floppy, no control needed.", duration: 30 },
-      { text: "Shoulders, torso — let it spread. Make sounds if you want to, or stay quiet. Both are fine.", duration: 30 },
+      { text: "Shoulders, torso, let it spread. Make sounds if you want to, or stay quiet. Both are fine.", duration: 30 },
       { text: "Shake as much of your body as feels right. Arms, legs, knees. Let your jaw go loose.", duration: 60 },
-      { text: "Start to slow down. Notice the tingling — that buzzing in your muscles? That's your body releasing.", duration: 30 },
+      { text: "Start to slow down. Notice the tingling, that buzzing in your muscles? That's your body releasing.", duration: 30 },
       { text: "Stand still. Just notice what's different. There's no rush.", duration: 30 },
     ],
     position: "standing",
@@ -215,11 +216,11 @@ const techniques: ExerciseInfo[] = [
     id: "air-punching",
     name: "Air Punching",
     description: "Move that energy out through your arms",
-    why: "Sometimes your body is holding energy that needs to move — tension, frustration, restlessness. Punching the air gives that energy somewhere to go. The physical movement helps your body process what it's carrying. Go at your own intensity — even light punching works.",
+    why: "Sometimes your body is holding energy that needs to move: tension, frustration, restlessness. Punching the air gives that energy somewhere to go. The physical movement helps your body process what it's carrying. Go at your own intensity. Even light punching works.",
     regulation: "up",
     tags: ["release", "energizing"],
     duration: 3,
-    sessionInstruction: "Stand with feet shoulder-width. Punch forward with alternating arms. Find an intensity that feels right for you. You can add sounds — exhale forcefully, or stay quiet. This is yours. Let out whatever wants to come out.",
+    sessionInstruction: "Stand with feet shoulder-width. Punch forward with alternating arms. Find an intensity that feels right for you. You can add sounds, exhale forcefully, or stay quiet. This is yours. Let out whatever wants to come out.",
     position: "standing",
   },
   {
@@ -246,11 +247,11 @@ const techniques: ExerciseInfo[] = [
     id: "dancing",
     name: "Free Movement / Dancing",
     description: "Move however your body wants to",
-    why: "Full-body movement shifts your whole nervous system. When you move — even gently — your body starts to process what it's holding. There's no right way to do this. Big or small, fast or slow. Put on music if you want, or move in silence. Let your body lead.",
+    why: "Full-body movement shifts your whole nervous system. When you move, even gently, your body starts to process what it's holding. There's no right way to do this. Big or small, fast or slow. Put on music if you want, or move in silence. Let your body lead.",
     regulation: "up",
     tags: ["expression", "energizing"],
     duration: 5,
-    sessionInstruction: "Put on music if you can. Move however your body wants to. Sway, stretch, stomp, spin — whatever feels right. There are no rules. Let your body lead. You can go big or stay small. Both count.",
+    sessionInstruction: "Put on music if you can. Move however your body wants to. Sway, stretch, stomp, spin, whatever feels right. There are no rules. Let your body lead. You can go big or stay small. Both count.",
     position: "standing",
   },
   {
@@ -548,10 +549,13 @@ function SomaticPageInner() {
     if (screen !== "session") return;
     // Play audio clip: {technique}-{step+1}.mp3
     if (currentExercise.sessionSteps) {
-      somaticAudio.play(`${technique}-${sessionStep + 1}`);
+      somaticAudio.play(
+        `${technique}-${sessionStep + 1}`,
+        currentExercise.sessionSteps[sessionStep]?.text
+      );
     } else if (currentExercise.sessionInstruction) {
       // Single-instruction exercises (humming, air-punching, dancing)
-      somaticAudio.play(`${technique}-1`);
+      somaticAudio.play(`${technique}-1`, currentExercise.sessionInstruction);
     }
   }, [sessionStep, screen]);
 
@@ -660,7 +664,7 @@ function SomaticPageInner() {
 
   // ─── Back button ──────────────────────────────────────────────
 
-  function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
+  function renderBackButton({ onClick, label }: { onClick: () => void; label: string }) {
     return (
       <button
         onClick={onClick}
@@ -676,7 +680,7 @@ function SomaticPageInner() {
 
   // ─── Pause overlay ────────────────────────────────────────────
 
-  function PauseOverlay() {
+  function renderPauseOverlay() {
     if (!isPaused) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight/60 backdrop-blur-sm">
@@ -692,9 +696,10 @@ function SomaticPageInner() {
 
   // ─── Session controls ─────────────────────────────────────────
 
-  function AmbientToggle() {
+  function renderAmbientToggle() {
     return (
       <div className={`fixed bottom-20 left-0 right-0 flex justify-center gap-1 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+        <VoiceToggle className="px-2.5 py-2" onChange={(on) => { if (!on) somaticAudio.stop(); }} />
         {(["off", "rain", "ocean", "forest", "white-noise"] as const).map((s) => (
           <button
             key={s}
@@ -713,7 +718,7 @@ function SomaticPageInner() {
     );
   }
 
-  function SessionControls() {
+  function renderSessionControls() {
     return (
       <div className={`fixed bottom-6 left-0 right-0 flex items-center justify-center gap-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <button
@@ -735,7 +740,7 @@ function SomaticPageInner() {
 
   // ─── Session header (progress + timer) ────────────────────────
 
-  function SessionHeader() {
+  function renderSessionHeader() {
     const remaining = totalSeconds - elapsed;
     return (
       <>
@@ -860,7 +865,7 @@ function SomaticPageInner() {
     return (
       <div key="info" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
         <div className="w-full max-w-md">
-          <BackButton onClick={resetToSelect} label="Exercises" />
+          {renderBackButton({ onClick: resetToSelect, label: "Exercises" })}
 
           <header className="mb-6 mt-6 text-center">
             <div className="mb-3 flex justify-center">
@@ -904,7 +909,7 @@ function SomaticPageInner() {
           {(technique === "body-shaking" || technique === "air-punching" || technique === "dancing") && (
             <div className="mb-4 rounded-2xl border border-candle/15 bg-candle/5 p-4 backdrop-blur-sm">
               <p className="text-xs leading-relaxed text-cream-dim">
-                Go at your own pace and intensity. Music can help if you have it. You can be as big or as gentle as you want — both work. Stop any time if you need to.
+                Go at your own pace and intensity. Music can help if you have it. You can be as big or as gentle as you want. Both work. Stop any time if you need to.
               </p>
             </div>
           )}
@@ -960,7 +965,7 @@ function SomaticPageInner() {
           setControlsHidden((h) => !h);
         }}
       >
-        <SessionHeader />
+        {renderSessionHeader()}
 
         {/* Tap zones */}
         <div className="flex h-screen w-full">
@@ -1014,9 +1019,9 @@ function SomaticPageInner() {
         </div>
 
         <PresenceCue active={!isPaused} />
-        <AmbientToggle />
-        <SessionControls />
-        <PauseOverlay />
+        {renderAmbientToggle()}
+        {renderSessionControls()}
+        {renderPauseOverlay()}
         <EscapeHatch />
       </div>
     );
@@ -1034,7 +1039,7 @@ function SomaticPageInner() {
           setControlsHidden((h) => !h);
         }}
       >
-        <SessionHeader />
+        {renderSessionHeader()}
 
         <div className="flex flex-col items-center">
           <div className="relative h-[300px] w-[300px]">
@@ -1072,9 +1077,9 @@ function SomaticPageInner() {
         </div>
 
         <PresenceCue active={!isPaused} />
-        <AmbientToggle />
-        <SessionControls />
-        <PauseOverlay />
+        {renderAmbientToggle()}
+        {renderSessionControls()}
+        {renderPauseOverlay()}
         <EscapeHatch />
       </div>
     );
@@ -1092,7 +1097,7 @@ function SomaticPageInner() {
           setControlsHidden((h) => !h);
         }}
       >
-        <SessionHeader />
+        {renderSessionHeader()}
 
         <div className="flex max-w-sm flex-col items-center text-center">
           <p className="mb-8 text-sm leading-relaxed text-cream-dim/80">
@@ -1113,9 +1118,9 @@ function SomaticPageInner() {
         </div>
 
         <PresenceCue active={!isPaused} />
-        <AmbientToggle />
-        <SessionControls />
-        <PauseOverlay />
+        {renderAmbientToggle()}
+        {renderSessionControls()}
+        {renderPauseOverlay()}
         <EscapeHatch />
       </div>
     );
@@ -1136,7 +1141,7 @@ function SomaticPageInner() {
           setControlsHidden((h) => !h);
         }}
       >
-        <SessionHeader />
+        {renderSessionHeader()}
 
         <div className="flex flex-col items-center">
           <p className="mb-2 text-sm text-cream-dim/60">Follow the dot with your eyes, not your head</p>
@@ -1159,9 +1164,9 @@ function SomaticPageInner() {
         </div>
 
         <PresenceCue active={!isPaused} />
-        <AmbientToggle />
-        <SessionControls />
-        <PauseOverlay />
+        {renderAmbientToggle()}
+        {renderSessionControls()}
+        {renderPauseOverlay()}
         <EscapeHatch />
       </div>
     );
@@ -1183,7 +1188,7 @@ function SomaticPageInner() {
           setControlsHidden((h) => !h);
         }}
       >
-        <SessionHeader />
+        {renderSessionHeader()}
 
         <div className="flex max-w-sm flex-col items-center text-center">
           {/* Step indicator */}
@@ -1229,9 +1234,9 @@ function SomaticPageInner() {
         </div>
 
         <PresenceCue active={!isPaused} />
-        <AmbientToggle />
-        <SessionControls />
-        <PauseOverlay />
+        {renderAmbientToggle()}
+        {renderSessionControls()}
+        {renderPauseOverlay()}
         <EscapeHatch />
       </div>
     );
@@ -1249,7 +1254,7 @@ function SomaticPageInner() {
           setControlsHidden((h) => !h);
         }}
       >
-        <SessionHeader />
+        {renderSessionHeader()}
 
         <div className="flex max-w-sm flex-col items-center text-center">
           <p className="mb-8 text-lg font-light leading-relaxed text-cream/90">
@@ -1270,9 +1275,9 @@ function SomaticPageInner() {
         </div>
 
         <PresenceCue active={!isPaused} />
-        <AmbientToggle />
-        <SessionControls />
-        <PauseOverlay />
+        {renderAmbientToggle()}
+        {renderSessionControls()}
+        {renderPauseOverlay()}
         <EscapeHatch />
       </div>
     );

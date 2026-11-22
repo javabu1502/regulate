@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { voiceGuidance } from "@/lib/voice-guidance";
 
 const VOICE_ENABLED_KEY = "regulate-voice-enabled";
 
@@ -56,10 +57,17 @@ if (typeof window !== "undefined") {
  * Usage:
  *   const audio = useAudioGuide("body-scan");
  *   audio.play("head-face"); // plays /audio/body-scan/head-face.mp3
+ *
+ * Pass the step's own wording as the second argument and it is spoken aloud
+ * when the clip has not been recorded yet, so a step is never silently skipped:
+ *   audio.play("body-shaking-1", "Start with your hands. Shake them out.");
  */
 export function useAudioGuide(module: string) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Wording for the clip currently being loaded, spoken if that clip is missing
+  const fallbackTextRef = useRef<string | null>(null);
 
   // Create a persistent Audio element for this module
   useEffect(() => {
@@ -68,13 +76,21 @@ export function useAudioGuide(module: string) {
     audio.preload = "auto";
 
     audio.addEventListener("ended", () => setIsPlaying(false));
-    audio.addEventListener("error", () => setIsPlaying(false));
+    audio.addEventListener("error", () => {
+      setIsPlaying(false);
+      // The clip is missing or undecodable. Speak the step instead of going silent.
+      const text = fallbackTextRef.current;
+      fallbackTextRef.current = null;
+      if (text) voiceGuidance.speak(text);
+    });
     audio.addEventListener("pause", () => setIsPlaying(false));
     audio.addEventListener("playing", () => setIsPlaying(true));
 
     audioRef.current = audio;
 
     return () => {
+      fallbackTextRef.current = null;
+      voiceGuidance.stop();
       audio.pause();
       audio.removeAttribute("src");
       audio.load(); // Release resources
@@ -86,7 +102,7 @@ export function useAudioGuide(module: string) {
   const playIdRef = useRef(0);
 
   const play = useCallback(
-    (step: string) => {
+    (step: string, fallbackText?: string) => {
       if (!isVoiceEnabled()) return;
 
       const audio = audioRef.current;
@@ -103,6 +119,8 @@ export function useAudioGuide(module: string) {
       // Abort any pending load/play before starting a new one
       audio.pause();
       audio.oncanplay = null;
+      voiceGuidance.stop();
+      fallbackTextRef.current = fallbackText ?? null;
 
       // Change source and start loading
       audio.src = path;
@@ -111,6 +129,7 @@ export function useAudioGuide(module: string) {
       // Wait for the browser to actually buffer enough data, then play
       audio.oncanplay = () => {
         audio.oncanplay = null;
+        fallbackTextRef.current = null;
         if (playIdRef.current === id) {
           audio.play().catch(() => {
             setIsPlaying(false);
@@ -121,6 +140,7 @@ export function useAudioGuide(module: string) {
       // Fallback: if canplay already fired before listener was attached
       if (audio.readyState >= 3) {
         audio.oncanplay = null;
+        fallbackTextRef.current = null;
         audio.play().catch(() => {
           setIsPlaying(false);
         });
@@ -130,12 +150,15 @@ export function useAudioGuide(module: string) {
   );
 
   const pause = useCallback(() => {
+    voiceGuidance.stop();
     if (audioRef.current) {
       audioRef.current.pause();
     }
   }, []);
 
   const stop = useCallback(() => {
+    fallbackTextRef.current = null;
+    voiceGuidance.stop();
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;

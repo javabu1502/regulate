@@ -553,7 +553,7 @@ export default function AftercareFlow({
           <>
             <h2 className="text-xl font-light text-cream">Thank you for being honest.</h2>
             <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
-              That happens sometimes. It doesn&apos;t mean it didn&apos;t work — your body might just need something different right now.
+              That happens sometimes. It doesn&apos;t mean it didn&apos;t work. Your body might just need something different right now.
             </p>
 
             {/* Micro-journal (all users) */}

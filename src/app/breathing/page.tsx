@@ -5,7 +5,6 @@ import Link from "next/link";
 import BreathingOrb from "@/components/BreathingOrb";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import AftercareFlow from "@/components/AftercareFlow";
-import SessionProgressBar from "@/components/SessionProgressBar";
 import MicroExplanation from "@/components/MicroExplanation";
 import { useRouter, useSearchParams } from "next/navigation";
 import { haptics } from "@/lib/haptics";
@@ -229,10 +228,9 @@ function BreathingPageInner() {
   const [isPaused, setIsPaused] = useState(false);
   const [controlsHidden, setControlsHidden] = useState(true);
   const [ambientSound, setAmbientSound] = useState<AmbientSound>("off");
-  const [voiceOn, setVoiceOn] = useState(() => voiceGuidance.isEnabled());
+  const [voiceOn, setVoiceOn] = useState(false);
   const breathingAudio = useAudioGuide("breathing");
   const [eyesFree, setEyesFree] = useState(false);
-  const [gentleStart, setGentleStart] = useState(false);
   const animFrameRef = useRef<number>(0);
   const lastTickRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
@@ -246,7 +244,6 @@ function BreathingPageInner() {
 
   // Gentle start: cycle 0 = 75% speed (1.33x duration), cycle 1 = ~90% speed (1.11x), cycle 2+ = normal
   function getGentleMultiplier(cycle: number): number {
-    if (!gentleStart) return 1;
     if (cycle === 0) return 1 / 0.75;   // ~1.33x duration (75% speed)
     if (cycle === 1) return 1 / 0.9;    // ~1.11x duration (90% speed)
     return 1;
@@ -285,7 +282,7 @@ function BreathingPageInner() {
         setScreen("complete");
       }
     }
-  }, [selectedPattern, currentStepIndex, currentCycle, gentleStart]);
+  }, [selectedPattern, currentStepIndex, currentCycle]);
 
   useEffect(() => {
     if (screen !== "session" || !currentStep || isPaused) return;
@@ -323,6 +320,11 @@ function BreathingPageInner() {
 
   // ─── Voice guidance ────────────────────────────────────────────
 
+  // Read the stored preference after mount so the static prerender stays stable
+  useEffect(() => {
+    setVoiceOn(voiceGuidance.isEnabled());
+  }, []);
+
   // Stop voice on unmount (e.g. browser back navigation)
   useEffect(() => {
     return () => {
@@ -334,7 +336,7 @@ function BreathingPageInner() {
     if (screen === "session" && currentStep && voiceOn) {
       // Play MP3 clip; fall back to TTS if file missing
       const filename = currentStep.label.toLowerCase().replace(/\s+/g, "-");
-      breathingAudio.play(filename);
+      breathingAudio.play(filename, currentStep.label);
     }
   }, [currentStepIndex, currentCycle, screen]);
 
@@ -617,7 +619,7 @@ function BreathingPageInner() {
           <div className="flex items-center justify-center gap-5 pt-3 pb-2">
             {/* Voice toggle */}
             <button
-              onClick={() => { const next = voiceGuidance.toggle(); setVoiceOn(next); }}
+              onClick={() => { const next = voiceGuidance.toggle(); setVoiceOn(next); if (!next) breathingAudio.stop(); }}
               className={`transition-all ${voiceOn ? "text-teal-soft" : "text-cream-dim/25"}`}
               aria-label={voiceOn ? "Voice on" : "Voice off"}
             >
@@ -717,7 +719,7 @@ function BreathingPageInner() {
               <p className="text-lg text-cream/80">Paused</p>
               <p className="mt-2 text-xs text-cream-dim/40 leading-relaxed">
                 {currentStep.phase === "hold"
-                  ? "Just hold the air gently — don't force it. If it feels uncomfortable, exhale early."
+                  ? "Just hold the air gently. Don't force it. If it feels uncomfortable, exhale early."
                   : currentStep.phase === "inhale"
                     ? "Breathe in slowly through your nose. If your nose is blocked, your mouth is fine too."
                     : currentStep.phase === "exhale"
@@ -737,7 +739,7 @@ function BreathingPageInner() {
                 }}
                 className="mt-3 text-xs text-cream-dim/35 transition-colors hover:text-cream-dim/60"
               >
-                Breathing isn&apos;t working — try grounding instead
+                Breathing isn&apos;t working. Try grounding instead
               </button>
             </div>
           </div>

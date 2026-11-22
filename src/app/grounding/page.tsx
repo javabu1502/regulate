@@ -6,6 +6,7 @@ import Link from "next/link";
 import { GroundingIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
 import MicroExplanation from "@/components/MicroExplanation";
+import VoiceToggle from "@/components/VoiceToggle";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
@@ -369,7 +370,7 @@ function GroundingPageInner() {
 
             <p className="mt-6 text-[11px] text-cream-dim/30">
               {groundingType === "sensory"
-                ? "You'll name things you can see, touch, hear, smell, and taste. If you can't find enough, that's okay — skip and move on."
+                ? "You'll name things you can see, touch, hear, smell, and taste. If you can't find enough, that's okay. Skip and move on."
                 : "Just follow the prompts. There's no wrong way to do this."}
             </p>
 
@@ -450,7 +451,7 @@ function GroundingPageInner() {
           {/* Encouragement when struggling */}
           {!checked.every(Boolean) && checked.filter(Boolean).length === 0 && (
             <p className="mt-6 text-xs text-cream-dim/35 leading-relaxed">
-              Can&apos;t find {currentSense.count}? That&apos;s okay — name what you can, then move on.
+              Can&apos;t find {currentSense.count}? That&apos;s okay. Name what you can, then move on.
             </p>
           )}
 
@@ -463,8 +464,9 @@ function GroundingPageInner() {
           </button>
         </div>
 
-        {/* Ambient audio toggle */}
+        {/* Voice + ambient audio toggles */}
         <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+          <VoiceToggle className="px-2.5 py-2" onChange={(on) => { if (!on) groundingAudio.stop(); }} />
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}
@@ -530,8 +532,9 @@ function GroundingPageInner() {
           </div>
         </div>
 
-        {/* Ambient audio toggle */}
+        {/* Voice + ambient audio toggles */}
         <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+          <VoiceToggle className="px-2.5 py-2" onChange={(on) => { if (!on) groundingAudio.stop(); }} />
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}

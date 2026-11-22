@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ─── Audio ──────────────────────────────────────────────────────────
 
@@ -109,10 +110,17 @@ interface Flower {
 export default function BreathingGardenPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef(0);
+  // Honor the OS reduce-motion preference. The canvas loop reads the ref, so
+  // a change mid-session takes effect without restarting the animation.
+  const reducedMotion = usePrefersReducedMotion();
+  const motionScaleRef = useRef(1);
+  useEffect(() => {
+    motionScaleRef.current = reducedMotion ? 0.3 : 1;
+  }, [reducedMotion]);
+
   const timeRef = useRef(0);
 
   const [phase, setPhase] = useState<"idle" | "inhale" | "exhale" | "rest">("idle");
-  const [breathProgress, setBreathProgress] = useState(0);
   const [countdown, setCountdown] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
   const [patternIdx, setPatternIdx] = useState(0);
@@ -193,7 +201,7 @@ export default function BreathingGardenPage() {
 
     // ── Draw flower ──────────────────────────────────────────────
     function drawFlower(f: Flower, stemProg: number, bloomProg: number) {
-      const sway = Math.sin(timeRef.current * 0.015 + f.swayOffset) * 4 * stemProg;
+      const sway = Math.sin(timeRef.current * 0.015 + f.swayOffset) * 4 * stemProg * motionScaleRef.current;
       const stemTop = f.groundY - f.stemHeight * stemProg;
 
       // Stem
@@ -464,7 +472,6 @@ export default function BreathingGardenPage() {
       // Between breaths — wait for user to tap where they want the next flower
       phaseRef.current = "idle";
       progressRef.current = 0;
-      setBreathProgress(0);
       setCountdown(0);
       return;
     }
@@ -477,7 +484,6 @@ export default function BreathingGardenPage() {
       const elapsed = Date.now() - phaseStartRef.current;
       const progress = Math.min(elapsed / duration, 1);
       progressRef.current = progress;
-      setBreathProgress(progress);
 
       const remaining = Math.ceil((duration - elapsed) / 1000);
       setCountdown(Math.max(remaining, 0));
@@ -496,7 +502,6 @@ export default function BreathingGardenPage() {
         setCycleCount((c) => c + 1);
         setPhase("rest");
         progressRef.current = 0;
-        setBreathProgress(0);
         setCountdown(0);
       }
     }
@@ -577,7 +582,6 @@ export default function BreathingGardenPage() {
     setPhase("idle");
     phaseRef.current = "idle";
     progressRef.current = 0;
-    setBreathProgress(0);
     setCountdown(0);
   }, []);
 
@@ -602,7 +606,7 @@ export default function BreathingGardenPage() {
     <div
       className="relative h-dvh w-screen select-none overflow-hidden bg-midnight"
       role="application"
-      aria-label="Breathing garden — breathe to grow flowers"
+      aria-label="Breathing garden: breathe to grow flowers"
     >
       <canvas
         ref={canvasRef}

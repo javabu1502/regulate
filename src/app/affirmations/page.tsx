@@ -7,6 +7,7 @@ import { AffirmationsIcon } from "@/components/Icons";
 import { haptics } from "@/lib/haptics";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
+import VoiceToggle from "@/components/VoiceToggle";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
@@ -225,7 +226,7 @@ function AffirmationsPageInner() {
   // Play audio clip when affirmation changes
   useEffect(() => {
     if (view === "flow" && current && activeCategory !== "personal") {
-      affirmationAudio.play(`${activeCategory}-${currentIdx + 1}`);
+      affirmationAudio.play(`${activeCategory}-${currentIdx + 1}`, filtered[currentIdx]?.text);
     }
   }, [currentIdx, activeCategory, view]);
 
@@ -371,6 +372,12 @@ function AffirmationsPageInner() {
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
+
+        {/* Voice */}
+        <VoiceToggle
+          className="fixed right-4 top-7 px-2.5 py-2"
+          onChange={(on) => { if (!on) affirmationAudio.stop(); }}
+        />
 
         {/* Category label + choose different */}
         <div className="fixed top-8 flex flex-col items-center gap-1">

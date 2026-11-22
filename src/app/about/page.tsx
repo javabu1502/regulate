@@ -25,7 +25,7 @@ export default function AboutPage() {
             Regulate
           </h1>
           <p className="mt-2 max-w-[300px] text-sm leading-relaxed text-cream-dim">
-            When panic hits, your thinking brain goes offline. Regulate works with your body - because that's what actually helps.
+            When panic hits, your thinking brain goes offline. Regulate works with your body - because that&apos;s what actually helps.
           </p>
         </div>
 
@@ -41,7 +41,7 @@ export default function AboutPage() {
           <div>
             <h2 className="text-sm font-medium text-cream">How it works</h2>
             <p className="mt-1.5 text-xs leading-relaxed text-cream-dim/70">
-              Your nervous system has different modes - sometimes it's activated (fight/flight), sometimes it shuts down (freeze). Different tools help with different states. Regulate asks how your body feels and recommends the right approach.
+              Your nervous system has different modes - sometimes it&apos;s activated (fight/flight), sometimes it shuts down (freeze). Different tools help with different states. Regulate asks how your body feels and recommends the right approach.
             </p>
           </div>
 
