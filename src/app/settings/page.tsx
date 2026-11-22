@@ -39,6 +39,35 @@ export default function SettingsPage() {
   const [importConfirm, setImportConfirm] = useState<Record<string, unknown> | null>(null);
   const [nightMode, setNightMode] = useState<"auto" | "on" | "off">("auto");
   const [storageKB, setStorageKB] = useState<number | null>(null);
+  // Whether the crisis audio is actually sitting in the cache. For an app
+  // meant to work in a panic attack with no signal, "it will work offline"
+  // should be something you can check, not something you have to trust.
+  const [offlineAudio, setOfflineAudio] = useState<{ cached: number; total: number } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        if (typeof caches === "undefined") return;
+        const manifest: string[] = await fetch("/audio-manifest.json").then((r) => r.json());
+        // Meditations cache on first play, so they are not part of "ready".
+        const crisis = manifest.filter((u) => !u.startsWith("/audio/meditations/"));
+        const stored = new Set<string>();
+        for (const name of await caches.keys()) {
+          const cache = await caches.open(name);
+          for (const req of await cache.keys()) {
+            stored.add(new URL(req.url).pathname);
+          }
+        }
+        if (!active) return;
+        setOfflineAudio({
+          cached: crisis.filter((u) => stored.has(u)).length,
+          total: crisis.length,
+        });
+      } catch { /* cache unavailable: just say nothing */ }
+    })();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     try {
@@ -560,6 +589,16 @@ export default function SettingsPage() {
             <h3 className="text-sm font-medium text-candle-soft">Clear all app data</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Reset everything and start fresh</p>
           </button>
+
+          {offlineAudio !== null && (
+            <p className="mt-3 text-center text-[11px] text-cream-dim/40">
+              {offlineAudio.cached >= offlineAudio.total
+                ? `Ready offline. All ${offlineAudio.total} voice clips are saved on this device.`
+                : offlineAudio.cached === 0
+                  ? "Saving the voice clips for offline use. Leave the app open a moment."
+                  : `Saving voice clips for offline use: ${offlineAudio.cached} of ${offlineAudio.total}.`}
+            </p>
+          )}
 
           {storageKB !== null && (
             <p className="mt-2 text-center text-[11px] text-cream-dim/30">

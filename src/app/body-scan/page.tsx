@@ -11,6 +11,7 @@ import SessionProgressBar from "@/components/SessionProgressBar";
 import { voiceGuidance } from "@/lib/voice-guidance";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
 import VoiceToggle from "@/components/VoiceToggle";
+import EyesClosedMode from "@/components/EyesClosedMode";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
@@ -296,6 +297,7 @@ export default function BodyScanPage() {
         {/* Voice + ambient toggles */}
         <div className={`fixed left-0 right-0 top-0 z-20 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <VoiceToggle onChange={(on) => { setVoiceOn(on); if (!on) bodyScanAudio.stop(); }} />
+          <EyesClosedMode />
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}
@@ -334,7 +336,7 @@ export default function BodyScanPage() {
           <BodyOutline activeRegion={region.id} />
 
           {/* Region info */}
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center" role="status" aria-live="polite">
             <h2 className="text-xl font-light text-cream">{region.name}</h2>
             <p className="mx-auto mt-3 max-w-[280px] text-sm leading-relaxed text-cream-dim">
               {region.instruction}

@@ -7,6 +7,7 @@ import { GroundingIcon } from "@/components/Icons";
 import AftercareFlow from "@/components/AftercareFlow";
 import MicroExplanation from "@/components/MicroExplanation";
 import VoiceToggle from "@/components/VoiceToggle";
+import EyesClosedMode from "@/components/EyesClosedMode";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
@@ -423,7 +424,7 @@ function GroundingPageInner() {
           <h2 className="text-2xl font-light text-cream">{currentSense.sense}</h2>
 
           {/* Prompt */}
-          <p className="mt-2 text-sm leading-relaxed text-cream-dim">{currentSense.prompt}</p>
+          <p className="mt-2 text-sm leading-relaxed text-cream-dim" role="status" aria-live="polite">{currentSense.prompt}</p>
 
           {/* Checkoff items */}
           <div className="mt-8 flex flex-wrap justify-center gap-2.5">
@@ -467,6 +468,7 @@ function GroundingPageInner() {
         {/* Voice + ambient audio toggles */}
         <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <VoiceToggle className="px-2.5 py-2" onChange={(on) => { if (!on) groundingAudio.stop(); }} />
+          <EyesClosedMode className="px-2.5 py-2" />
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}
@@ -504,7 +506,7 @@ function GroundingPageInner() {
         }}
       >
         <div className="flex w-full max-w-md flex-col items-center text-center">
-          <p className="text-xl font-light leading-relaxed text-cream">
+          <p className="text-xl font-light leading-relaxed text-cream" role="status" aria-live="polite">
             {steps[simpleStepIndex]}
           </p>
 
@@ -535,6 +537,7 @@ function GroundingPageInner() {
         {/* Voice + ambient audio toggles */}
         <div className={`fixed left-0 right-0 top-0 z-10 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <VoiceToggle className="px-2.5 py-2" onChange={(on) => { if (!on) groundingAudio.stop(); }} />
+          <EyesClosedMode className="px-2.5 py-2" />
           {(["rain", "ocean", "off"] as const).map((s) => (
             <button
               key={s}

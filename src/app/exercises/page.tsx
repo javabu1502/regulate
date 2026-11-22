@@ -143,6 +143,11 @@ for (const g of exerciseGroups) {
 
 // ─── Exercise card ──────────────────────────────────────────────────
 
+// Techniques with a medical contraindication. The full caution lives on the
+// exercise's own screen; this just stops the list from presenting them as
+// interchangeable with everything else.
+const CAUTION_HREFS = ["/somatic?exercise=eye-press", "/somatic?exercise=bearing-down"];
+
 function ExerciseCard({ exercise }: { exercise: Exercise }) {
   return (
     <Link
@@ -154,6 +159,9 @@ function ExerciseCard({ exercise }: { exercise: Exercise }) {
           <span className="text-sm text-cream-dim/70 group-hover:text-cream">{exercise.name}</span>
           {exercise.time && (
             <span className="text-[10px] text-cream-dim/25">{exercise.time}</span>
+          )}
+          {CAUTION_HREFS.includes(exercise.href) && (
+            <span className="text-[10px] text-coral/70">check before use</span>
           )}
         </div>
         <p className="mt-0.5 text-xs text-cream-dim/30">{exercise.description}</p>

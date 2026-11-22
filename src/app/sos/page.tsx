@@ -91,6 +91,15 @@ const contextAllowedExercises: Record<LocationContext, string[] | "all"> = {
   driving: ["breathing", "extended"],
 };
 
+// Onboarding asks what tends to set this off. Those answers imply a likely
+// setting, so the context step can start on it instead of "Anywhere". The
+// person can still pick anything; this only changes the default.
+const triggerToContext: Record<string, LocationContext> = {
+  "Crowded or public places": "people",
+  "Work or school stress": "work",
+  "Being alone": "home",
+};
+
 const contextLabels: Record<LocationContext, string> = {
   anywhere: "Anywhere",
   home: "At home",
@@ -264,6 +273,19 @@ function SOSPageInner() {
   // Location context - defaults to "anywhere" (no filter)
   const [locationContext, setLocationContext] = useState<LocationContext>("anywhere");
 
+  // Preselect the context implied by the person's onboarding triggers. Only
+  // when they have exactly one matching trigger, so a guess is never made on
+  // their behalf from ambiguous answers.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("onboarding_data");
+      if (!raw) return;
+      const { triggers } = JSON.parse(raw) as { triggers?: string[] };
+      const implied = [...new Set((triggers || []).map((t) => triggerToContext[t]).filter(Boolean))];
+      if (implied.length === 1) setLocationContext(implied[0] as LocationContext);
+    } catch { /* */ }
+  }, []);
+
   // Breathing state
   const [breathingPattern, setBreathingPattern] = useState<BreathStep[]>(sighSteps);
   const [breathingCycles, setBreathingCycles] = useState(SOS_SIGH_CYCLES);
@@ -303,6 +325,29 @@ function SOSPageInner() {
 
   // Last helped
   const [lastHelped, setLastHelped] = useState<{id: string; label: string; ts: string} | null>(null);
+
+  // How many SOS sessions in the last two hours ended without relief. Someone
+  // on their third unrelieved attempt does not need a fourth exercise offered
+  // as if it were their first; they need the people and numbers moved up.
+  const [strugglingCount, setStrugglingCount] = useState(0);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("regulate-sos-history");
+      if (!raw) return;
+      const history = JSON.parse(raw) as { ts?: string; helped?: boolean }[];
+      const since = Date.now() - 2 * 60 * 60 * 1000;
+      const recent = history.filter((h) => {
+        const t = h.ts ? new Date(h.ts).getTime() : NaN;
+        return !Number.isNaN(t) && t >= since;
+      });
+      // If anything helped in that window, the run is over.
+      if (recent.some((h) => h.helped)) return;
+      setStrugglingCount(recent.length);
+    } catch { /* */ }
+  }, []);
+
+  const struggling = strugglingCount >= 3;
 
   useEffect(() => {
     try {
@@ -864,6 +909,51 @@ function SOSPageInner() {
           <div className="mt-1.5">
             {renderContextBadge()}
           </div>
+
+          {/* Nothing has helped for a while. Lead with people, not a fourth
+              exercise. The tools stay below, this just goes first. */}
+          {struggling && (
+            <div className="mt-6 rounded-2xl border border-candle/30 bg-candle/8 p-5">
+              <p className="text-sm font-medium text-cream">
+                You&apos;ve been at this a while.
+              </p>
+              <p className="mt-1.5 text-xs leading-relaxed text-cream-dim/70">
+                That isn&apos;t a failure, and it isn&apos;t you doing it wrong.
+                Sometimes a body needs another person, not another exercise.
+              </p>
+              <div className="mt-4 flex flex-col gap-2">
+                {myPersonContacts.slice(0, 2).map((c) => (
+                  <a
+                    key={c.phone}
+                    href={`tel:${c.phone}`}
+                    className="rounded-xl bg-candle/20 py-3 text-center text-sm font-medium text-candle-soft transition-colors hover:bg-candle/30"
+                  >
+                    Call {c.name}
+                  </a>
+                ))}
+                <a
+                  href="tel:988"
+                  className="rounded-xl border border-candle/25 py-3 text-center text-sm text-candle-soft transition-colors hover:bg-candle/10"
+                >
+                  Call 988
+                </a>
+                <a
+                  href="sms:988"
+                  className="rounded-xl border border-slate-blue/25 py-3 text-center text-sm text-cream-dim transition-colors hover:text-cream"
+                >
+                  Text 988 instead
+                </a>
+              </div>
+              {myPersonContacts.length === 0 && (
+                <Link
+                  href="/toolkit"
+                  className="mt-3 block text-center text-[11px] text-cream-dim/40 underline underline-offset-2"
+                >
+                  Add someone you can call
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* What worked last time, if it was recent */}
           {lastHelped && (

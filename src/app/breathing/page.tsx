@@ -11,6 +11,7 @@ import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import { voiceGuidance } from "@/lib/voice-guidance";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
+import EyesClosedMode from "@/components/EyesClosedMode";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
 
@@ -617,6 +618,7 @@ function BreathingPageInner() {
         {/* Compact icon bar — tap screen to reveal */}
         <div className={`fixed left-0 right-0 top-0 z-20 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <div className="flex items-center justify-center gap-5 pt-3 pb-2">
+            <EyesClosedMode />
             {/* Voice toggle */}
             <button
               onClick={() => { const next = voiceGuidance.toggle(); setVoiceOn(next); if (!next) breathingAudio.stop(); }}

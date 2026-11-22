@@ -11,8 +11,10 @@ import AftercareFlow from "@/components/AftercareFlow";
 import SessionProgressBar from "@/components/SessionProgressBar";
 import MicroExplanation from "@/components/MicroExplanation";
 import VoiceToggle from "@/components/VoiceToggle";
+import EyesClosedMode from "@/components/EyesClosedMode";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
-import { haptics } from "@/lib/haptics";
+import { haptics, getHapticsEnabled } from "@/lib/haptics";
+import { isGameSoundEnabled } from "@/lib/game-sound";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
 import PresenceCue from "@/components/PresenceCue";
 import EscapeHatch from "@/components/EscapeHatch";
@@ -56,6 +58,11 @@ interface ExerciseInfo {
   sessionSteps?: SessionStep[];
   hasSpecialSession?: boolean;
   position?: "seated" | "standing" | "any";
+  /**
+   * Who should skip this one. Shown on its own, above the start button, for
+   * techniques with a real medical contraindication. Not buried in `why`.
+   */
+  caution?: string;
 }
 
 const durationOptions = [1, 3, 5]; // minutes
@@ -159,6 +166,7 @@ const techniques: ExerciseInfo[] = [
     name: "Eye Press Reset",
     description: "Gentle pressure on closed eyes",
     why: "Gentle pressure on your closed eyes can actually slow your heart rate down. It's one of those things that sounds odd but really works. Use light pressure only - stop if it doesn't feel right.",
+    caution: "Skip this one if you have glaucoma, an eye injury, recent eye surgery, or any retinal condition. Take contact lenses out first. Use light pressure only, and stop if you feel pain or see anything unusual.",
     regulation: "down",
     tags: ["vagus nerve", "quick"],
     duration: 2,
@@ -227,7 +235,8 @@ const techniques: ExerciseInfo[] = [
     id: "bearing-down",
     name: "Bearing Down (Valsalva)",
     description: "Engage your core against resistance",
-    why: "Bearing down creates pressure that stimulates the vagus nerve, which quickly slows your heart rate. It's called a Valsalva maneuver - a strong technique you'll feel working. Note: skip this one if you have heart conditions, glaucoma, or are pregnant. Stop if you feel dizzy.",
+    why: "Bearing down creates pressure that stimulates the vagus nerve, which quickly slows your heart rate. It's called a Valsalva maneuver, a strong technique you'll feel working.",
+    caution: "Skip this one if you have a heart condition, high blood pressure, glaucoma, or are pregnant. Stop right away if you feel dizzy, lightheaded, or short of breath.",
     regulation: "down",
     tags: ["vagus nerve", "quick", "powerful"],
     duration: 2,
@@ -381,8 +390,15 @@ function SomaticPageInner() {
   const [duration, setDuration] = useState(3);
   const [expandedExplanation, setExpandedExplanation] = useState<string | null>(null);
   // Bilateral tapping: 1Hz (1000ms) is the scientifically validated EMDR rate
-  const audioEnabled = true;
-  const hapticEnabled = true;
+  // These were hardcoded to true, which meant the Settings haptics toggle did
+  // not reach the bilateral tapping rhythm. Read after mount so the static
+  // prerender and the first client render agree.
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [hapticEnabled, setHapticEnabled] = useState(true);
+  useEffect(() => {
+    setHapticEnabled(getHapticsEnabled());
+    setAudioEnabled(isGameSoundEnabled());
+  }, []);
   const [nsState, setNsState] = useState<NSState | null>(null);
 
   // Session state
@@ -700,6 +716,7 @@ function SomaticPageInner() {
     return (
       <div className={`fixed bottom-20 left-0 right-0 flex justify-center gap-1 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <VoiceToggle className="px-2.5 py-2" onChange={(on) => { if (!on) somaticAudio.stop(); }} />
+        <EyesClosedMode className="px-2.5 py-2" />
         {(["off", "rain", "ocean", "forest", "white-noise"] as const).map((s) => (
           <button
             key={s}
@@ -911,6 +928,24 @@ function SomaticPageInner() {
               <p className="text-xs leading-relaxed text-cream-dim">
                 Go at your own pace and intensity. Music can help if you have it. You can be as big or as gentle as you want. Both work. Stop any time if you need to.
               </p>
+            </div>
+          )}
+
+          {/* Who should skip this. Deliberately its own block, not folded into
+              "Why this works", and placed where the start button is. */}
+          {currentExercise.caution && (
+            <div className="mb-4 rounded-2xl border border-coral/30 bg-coral/8 p-5">
+              <div className="flex items-start gap-2.5">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-coral" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                  <path d="M10 2.5L18 17H2L10 2.5Z" />
+                  <path d="M10 8v4" />
+                  <path d="M10 14.5v.5" />
+                </svg>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-coral">Before you start</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-cream/90">{currentExercise.caution}</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1208,7 +1243,7 @@ function SomaticPageInner() {
           </div>
 
           {/* Step text */}
-          <p className="mb-6 text-lg font-light leading-relaxed text-cream/90">
+          <p className="mb-6 text-lg font-light leading-relaxed text-cream/90" role="status" aria-live="polite">
             {currentStepData.text}
           </p>
 
