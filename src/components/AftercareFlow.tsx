@@ -645,6 +645,12 @@ export default function AftercareFlow({
               Done
             </button>
             <Link
+              href="/games"
+              className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+            >
+              Sit with something easy
+            </Link>
+            <Link
               href={complementary[0]?.href ?? "/"}
               className="text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim"
             >
@@ -680,6 +686,12 @@ export default function AftercareFlow({
                 Try this one again
               </button>
             )}
+            <Link
+              href="/games"
+              className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+            >
+              Something with no instructions
+            </Link>
             <button
               onClick={onDone}
               className="text-xs text-cream-dim/60 underline underline-offset-2 transition-colors hover:text-cream-dim"

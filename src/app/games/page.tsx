@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCurrentNSState } from "@/components/NSStateSelector";
 import Link from "next/link";
 import AmbientAudio from "@/components/AmbientAudio";
 import PageTransition from "@/components/PageTransition";
 import { isGameSoundEnabled, setGameSoundEnabled } from "@/lib/game-sound";
 
+// Which nervous-system state each game actually suits. Everything here is
+// down-regulating or discharging, so nothing claims to serve shutdown on its
+// own; the two listed for it are the least sedating.
+export type BodyState = "panicking" | "anxious" | "shutdown";
+
 const games = [
   {
     href: "/games/bubbles",
+    states: ["anxious", "panicking"] as BodyState[],
+    forWhat: "Busy hands, nothing to decide",
     title: "Bubble Pop",
     description: "Pop bubbles. That's it.",
     color: "teal",
@@ -22,6 +30,8 @@ const games = [
   },
   {
     href: "/games/garden",
+    states: ["anxious", "panicking"] as BodyState[],
+    forWhat: "Paces your breathing",
     title: "Breathing Garden",
     description: "Hold to grow a flower, let go to bloom.",
     color: "lavender",
@@ -60,6 +70,8 @@ const games = [
   },
   {
     href: "/games/color-wash",
+    states: ["anxious"] as BodyState[],
+    forWhat: "Open-ended, no goal",
     title: "Color Wash",
     description: "Paint with your finger. Just color.",
     icon: (
@@ -80,6 +92,8 @@ const games = [
   },
   {
     href: "/games/stars",
+    states: ["anxious", "shutdown"] as BodyState[],
+    forWhat: "Gentle focus, light activity",
     title: "Constellations",
     description: "Tap to place stars, make your own shapes.",
     icon: (
@@ -103,6 +117,8 @@ const games = [
   },
   {
     href: "/games/stones",
+    states: ["anxious"] as BodyState[],
+    forWhat: "Slow hands, steady attention",
     title: "Stone Stacking",
     description: "Stack stones. See how high you can go.",
     icon: (
@@ -139,6 +155,8 @@ const games = [
   },
   {
     href: "/games/ripples",
+    states: ["anxious", "shutdown"] as BodyState[],
+    forWhat: "Just watch something respond",
     title: "Ripple Pool",
     description: "Tap the water. Watch the ripples.",
     icon: (
@@ -172,6 +190,8 @@ const games = [
   },
   {
     href: "/games/sand",
+    states: ["anxious", "panicking"] as BodyState[],
+    forWhat: "Repetitive, tactile",
     title: "Sand Garden",
     description: "Drag to rake lines in the sand.",
     icon: (
@@ -187,6 +207,8 @@ const games = [
   },
   {
     href: "/games/burn",
+    states: ["panicking"] as BodyState[],
+    forWhat: "Put something down and be rid of it",
     title: "Burn a Note",
     description: "Write something down. Watch it burn away.",
     icon: (
@@ -199,7 +221,28 @@ const games = [
 ];
 
 export default function GamesPage() {
-  const [soundOn, setSoundOn] = useState(() => isGameSoundEnabled());
+  // The body state the person last reported. The list is ordered by it rather
+  // than being a flat eight, so someone frozen is not handed the most
+  // sedating option first.
+  const [bodyState, setBodyState] = useState<BodyState | null>(null);
+  useEffect(() => {
+    // The state selector speaks in polyvagal terms; the games are tagged in
+    // the same words the SOS triage uses.
+    const map: Record<string, BodyState> = {
+      hyperactivated: "panicking",
+      activated: "anxious",
+      hypoactivated: "shutdown",
+    };
+    const current = getCurrentNSState();
+    if (current && map[current]) setBodyState(map[current]);
+  }, []);
+
+  // Read after mount: a lazy initializer would read localStorage during the
+  // first render and disagree with the static prerender.
+  const [soundOn, setSoundOn] = useState(true);
+  useEffect(() => {
+    setSoundOn(isGameSoundEnabled());
+  }, []);
 
   return (
     <PageTransition>
@@ -302,8 +345,21 @@ export default function GamesPage() {
           </svg>
         </div>
 
+        {bodyState && (
+          <p className="mb-3 text-[11px] text-cream-dim/40">
+            Ordered for how you said you were feeling. Anything here is fine to
+            try.
+          </p>
+        )}
+
         <div className="flex flex-col gap-3">
-          {games.map((game) => (
+          {(bodyState
+            ? [...games].sort(
+                (a, b) =>
+                  Number(b.states.includes(bodyState)) - Number(a.states.includes(bodyState)),
+              )
+            : games
+          ).map((game) => (
             <Link
               key={game.href}
               href={game.href}
@@ -319,6 +375,9 @@ export default function GamesPage() {
                   </h2>
                   <p className="mt-0.5 text-sm text-cream-dim">
                     {game.description}
+                  </p>
+                  <p className="mt-1 text-[11px] text-cream-dim/35">
+                    {game.forWhat}
                   </p>
                 </div>
                 <svg

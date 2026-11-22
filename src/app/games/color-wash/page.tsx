@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { canvasHeight } from "@/lib/canvas-area";
 
 // ── Colors ────────────────────────────────────────────────────────────
 const PALETTE = [
@@ -106,7 +107,7 @@ export default function ColorWashPage() {
     function resize() {
       const dpr = window.devicePixelRatio || 1;
       const w = window.innerWidth;
-      const h = window.innerHeight;
+      const h = canvasHeight();
 
       // Save existing offscreen content
       let savedData: ImageData | null = null;
@@ -137,7 +138,7 @@ export default function ColorWashPage() {
 
     function draw() {
       const w = window.innerWidth;
-      const h = window.innerHeight;
+      const h = canvasHeight();
 
       // Handle fade effect
       if (fadingRef.current) {

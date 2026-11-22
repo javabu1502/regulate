@@ -31,6 +31,11 @@ export default function MeditationPlayerPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(meditation?.durationSec ?? 0);
+  // Where this meditation was left, so an interrupted one does not restart
+  // from zero. Matters most for the sleep tracks.
+  const [resumeFrom, setResumeFrom] = useState(0);
+
+  const positionKey = `regulate-meditation-pos-${id}`;
 
   // Probe whether the recording exists. A media element left pointing at a
   // 404 can hang in "loading" without firing error, so we check with an
@@ -51,6 +56,13 @@ export default function MeditationPlayerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioSrc]);
 
+  useEffect(() => {
+    try {
+      const saved = Number(localStorage.getItem(positionKey) || 0);
+      if (Number.isFinite(saved) && saved > 5) setResumeFrom(saved);
+    } catch { /* */ }
+  }, [positionKey]);
+
   // Create the audio element
   useEffect(() => {
     if (!meditation) return;
@@ -62,13 +74,30 @@ export default function MeditationPlayerPage() {
     const onLoadedMetadata = () => {
       if (Number.isFinite(audio.duration) && audio.duration > 0) {
         setDuration(audio.duration);
+        // Pick up where this was left, unless it was nearly finished.
+        try {
+          const saved = Number(localStorage.getItem(positionKey) || 0);
+          if (saved > 5 && saved < audio.duration - 10) {
+            audio.currentTime = saved;
+            setCurrentTime(saved);
+          }
+        } catch { /* */ }
       }
     };
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const onTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      try {
+        localStorage.setItem(positionKey, String(Math.floor(audio.currentTime)));
+      } catch { /* */ }
+    };
     const onEnded = () => {
       setIsPlaying(false);
       ambientAudio.stop();
       setIsComplete(true);
+      // Finished, so there is nothing to resume.
+      try {
+        localStorage.removeItem(positionKey);
+      } catch { /* */ }
     };
     const onError = () => setAudioState("unavailable");
     const onPlay = () => setIsPlaying(true);
@@ -93,7 +122,7 @@ export default function MeditationPlayerPage() {
       audioRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioSrc]);
+  }, [audioSrc, positionKey]);
 
   // Cleanup ambient audio on unmount
   useEffect(() => {
@@ -246,6 +275,25 @@ export default function MeditationPlayerPage() {
           <p className="mt-1 text-[11px] text-cream-dim/30">
             {meditation.duration}
           </p>
+
+          {/* Say so rather than silently jumping into the middle. */}
+          {resumeFrom > 5 && !isPlaying && currentTime > 5 && audioState === "ready" && (
+            <p className="mt-6 text-xs text-cream-dim/50">
+              Picking up at {formatTime(currentTime)}
+              <button
+                onClick={() => {
+                  const audio = audioRef.current;
+                  if (audio) audio.currentTime = 0;
+                  setCurrentTime(0);
+                  setResumeFrom(0);
+                  try { localStorage.removeItem(positionKey); } catch { /* */ }
+                }}
+                className="ml-2 underline underline-offset-2 transition-colors hover:text-cream-dim"
+              >
+                start over
+              </button>
+            </p>
+          )}
 
           {/* Transport controls, only once there is something to play */}
           {audioState !== "unavailable" && (

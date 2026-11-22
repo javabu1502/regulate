@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { canvasHeight } from "@/lib/canvas-area";
 
 // ─── Colors ─────────────────────────────────────────────────────────
 
@@ -587,16 +588,16 @@ export default function SandGardenPage() {
     function resize() {
       const dpr = window.devicePixelRatio || 1;
       canvas!.width = window.innerWidth * dpr;
-      canvas!.height = window.innerHeight * dpr;
+      canvas!.height = canvasHeight() * dpr;
       canvas!.style.width = `${window.innerWidth}px`;
-      canvas!.style.height = `${window.innerHeight}px`;
+      canvas!.style.height = `${canvasHeight()}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     resize();
 
     const w = window.innerWidth;
-    const h = window.innerHeight;
+    const h = canvasHeight();
 
     noiseDataRef.current = generateNoise(w, h);
     rocksRef.current = generateRocks(w, h);
@@ -605,7 +606,7 @@ export default function SandGardenPage() {
     function handleResize() {
       resize();
       const newW = window.innerWidth;
-      const newH = window.innerHeight;
+      const newH = canvasHeight();
       noiseDataRef.current = generateNoise(
         Math.floor(newW / 2),
         Math.floor(newH / 2),
@@ -711,7 +712,7 @@ export default function SandGardenPage() {
     rakeLinesRef.current = [];
     smoothSpotsRef.current = [];
     const w = window.innerWidth;
-    const h = window.innerHeight;
+    const h = canvasHeight();
     rocksRef.current = generateRocks(w, h);
     haptics.tap();
     drawScene();

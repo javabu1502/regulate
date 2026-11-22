@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AffirmationsIcon } from "@/components/Icons";
 import { haptics } from "@/lib/haptics";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
 import VoiceToggle from "@/components/VoiceToggle";
+import AftercareFlow from "@/components/AftercareFlow";
 
 // ─── Data ───────────────────────────────────────────────────────────
 
@@ -170,7 +171,7 @@ function getRecommendedCategories(queryState: string | null): Category[] {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-type View = "home" | "flow" | "favorites" | "personal";
+type View = "home" | "flow" | "favorites" | "personal" | "complete";
 
 // Wrapper for Suspense (useSearchParams needs it)
 export default function AffirmationsPage() {
@@ -194,6 +195,8 @@ function AffirmationsPageInner() {
   const affirmationAudio = useAudioGuide("affirmations");
 
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const catLabel = categories.find((c) => c.id === activeCategory)?.label || "";
   const queryState = searchParams.get("state");
 
   useEffect(() => {
@@ -361,7 +364,6 @@ function AffirmationsPageInner() {
   // ─── FLOW - focused affirmation experience ────────────────────────
 
   if (view === "flow") {
-    const catLabel = categories.find((c) => c.id === activeCategory)?.label || "";
 
     return (
       <div key="flow" className="animate-screen-enter fixed inset-0 z-50 flex flex-col items-center justify-center bg-midnight px-6">
@@ -429,13 +431,22 @@ function AffirmationsPageInner() {
             </svg>
           </button>
 
-          <button
-            onClick={advance}
-            className="flex h-12 items-center gap-2 rounded-full bg-teal/15 px-6 text-sm text-teal-soft transition-colors hover:bg-teal/25"
-          >
-            Next
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
+          {currentIdx === filtered.length - 1 ? (
+            <button
+              onClick={() => { affirmationAudio.stop(); setView("complete"); }}
+              className="flex h-12 items-center gap-2 rounded-full bg-teal/15 px-6 text-sm text-teal-soft transition-colors hover:bg-teal/25"
+            >
+              Done
+            </button>
+          ) : (
+            <button
+              onClick={advance}
+              className="flex h-12 items-center gap-2 rounded-full bg-teal/15 px-6 text-sm text-teal-soft transition-colors hover:bg-teal/25"
+            >
+              Next
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          )}
         </div>
 
         {/* Count */}
@@ -447,6 +458,25 @@ function AffirmationsPageInner() {
   }
 
   // ─── FAVORITES ────────────────────────────────────────────────────
+
+  // ─── COMPLETE ─────────────────────────────────────────────────────
+  // Affirmations had no end, so a session was never recorded and the
+  // recommendation engine could never learn whether it helped, even though
+  // affirmations is one of the tools it recommends.
+  if (view === "complete") {
+    return (
+      <div key="complete" className="animate-screen-enter flex min-h-screen flex-col items-center justify-center px-5">
+        <AftercareFlow
+          technique="Affirmations"
+          exerciseId="affirmations"
+          exerciseHref={`/affirmations?category=${activeCategory}`}
+          category={catLabel}
+          onDone={() => router.push("/")}
+          onRestart={() => { setCurrentIndex(0); setView("flow"); }}
+        />
+      </div>
+    );
+  }
 
   if (view === "favorites") {
     const favAffirmations = allAffirmations.filter((a) => favorites.includes(a.text));
