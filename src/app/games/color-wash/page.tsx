@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { canvasHeight } from "@/lib/canvas-area";
 
 // ── Colors ────────────────────────────────────────────────────────────
@@ -63,6 +64,16 @@ export default function ColorWashPage() {
   const animFrameRef = useRef<number>(0);
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
   const lastTimeRef = useRef(0);
+  // Painting here is entirely finger-driven, and the auto colour only advances
+  // while a stroke is being drawn, so there is no ambient motion to damp. The
+  // one thing the game animates by itself is the two-second wash-away on
+  // clear, which becomes instant.
+  const reducedMotion = usePrefersReducedMotion();
+  const reducedMotionRef = useRef(false);
+  useEffect(() => {
+    reducedMotionRef.current = reducedMotion;
+  }, [reducedMotion]);
+
   const fadingRef = useRef(false);
   const fadeStartRef = useRef(0);
   const fadeSnapshotRef = useRef<ImageData | null>(null);
@@ -143,7 +154,7 @@ export default function ColorWashPage() {
       // Handle fade effect
       if (fadingRef.current) {
         const elapsed = performance.now() - fadeStartRef.current;
-        const fadeDuration = 2000;
+        const fadeDuration = reducedMotionRef.current ? 1 : 2000;
         const progress = Math.min(elapsed / fadeDuration, 1);
 
         offCtx.clearRect(0, 0, w, h);

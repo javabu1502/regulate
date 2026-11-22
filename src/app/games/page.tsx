@@ -7,12 +7,58 @@ import AmbientAudio from "@/components/AmbientAudio";
 import PageTransition from "@/components/PageTransition";
 import { isGameSoundEnabled, setGameSoundEnabled } from "@/lib/game-sound";
 
-// Which nervous-system state each game actually suits. Everything here is
-// down-regulating or discharging, so nothing claims to serve shutdown on its
-// own; the two listed for it are the least sedating.
+// Which nervous-system state each game actually suits, so the list can lead
+// with what fits instead of being a flat pile. Most of these calm or
+// discharge; Looking Around is the one that gently activates, which is what
+// shutdown actually needs.
 export type BodyState = "panicking" | "anxious" | "shutdown";
 
 const games = [
+  {
+    href: "/games/looking-around",
+    states: ["shutdown", "anxious"] as BodyState[],
+    forWhat: "Wakes you up a little when you're numb",
+    title: "Looking Around",
+    description: "Find the light. Look where it went.",
+    color: "candle",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <circle cx="12" cy="12" r="2.5" />
+        <path d="M12 3v2M12 19v2M3 12h2M19 12h2" />
+        <path d="M6 6l1.5 1.5M16.5 16.5L18 18M18 6l-1.5 1.5M7.5 16.5L6 18" opacity="0.5" />
+      </svg>
+    ),
+  },
+  {
+    href: "/games/crossing",
+    states: ["panicking", "anxious"] as BodyState[],
+    forWhat: "Left-right rhythm, nothing to do",
+    title: "Crossing",
+    description: "A light moves side to side. Follow it.",
+    color: "teal",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <path d="M3 12h18" opacity="0.4" />
+        <circle cx="7" cy="12" r="2.5" />
+        <circle cx="17" cy="12" r="1.5" opacity="0.45" />
+      </svg>
+    ),
+  },
+  {
+    href: "/games/nothing",
+    states: ["panicking", "anxious", "shutdown"] as BodyState[],
+    forWhat: "When following instructions is too much",
+    title: "Nothing To Do",
+    description: "A shape, breathing. That's all.",
+    color: "lavender",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="12" cy="12" r="8" opacity="0.35" />
+      </svg>
+    ),
+  },
+
   {
     href: "/games/bubbles",
     states: ["anxious", "panicking"] as BodyState[],

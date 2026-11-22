@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Caveat } from "next/font/google";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 const caveat = Caveat({ subsets: ["latin"], weight: ["500"] });
 
@@ -152,6 +153,14 @@ type InputMode = "draw" | "type";
 export default function BurnNotePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
+  // Honor the OS reduce-motion preference. What the finger does stays exactly
+  // the same; only the motion the game generates on its own is damped.
+  const reducedMotion = usePrefersReducedMotion();
+  const motionScaleRef = useRef(1);
+  useEffect(() => {
+    motionScaleRef.current = reducedMotion ? 0.3 : 1;
+  }, [reducedMotion]);
+
   const embersRef = useRef<Ember[]>([]);
   const smokeRef = useRef<Smoke[]>([]);
   const crackleTimerRef = useRef(0);
@@ -451,14 +460,17 @@ export default function BurnNotePage() {
     }
 
     function spawnEmbersAt(x: number, y: number, count: number) {
-      for (let i = 0; i < count; i++) {
+      // Fewer flying embers, and they rise more gently. The burn itself is
+      // the interaction, so its spread is untouched.
+      const n = Math.max(1, Math.round(count * motionScaleRef.current));
+      for (let i = 0; i < n; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 0.2 + Math.random() * 0.8;
         embersRef.current.push({
           x: x + (Math.random() - 0.5) * 6,
           y: y + (Math.random() - 0.5) * 6,
-          vx: Math.cos(angle) * speed * 0.3,
-          vy: -0.4 - Math.random() * 1.2,
+          vx: Math.cos(angle) * speed * 0.3 * motionScaleRef.current,
+          vy: (-0.4 - Math.random() * 1.2) * motionScaleRef.current,
           radius: 1 + Math.random() * 2,
           opacity: 0.7,
           life: 0,
@@ -474,8 +486,8 @@ export default function BurnNotePage() {
       smokeRef.current.push({
         x: x + (Math.random() - 0.5) * 8,
         y: y - 3,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: -0.3 - Math.random() * 0.5,
+        vx: (Math.random() - 0.5) * 0.3 * motionScaleRef.current,
+        vy: (-0.3 - Math.random() * 0.5) * motionScaleRef.current,
         radius: 5 + Math.random() * 8,
         opacity: 0.06 + Math.random() * 0.06,
         life: 0,

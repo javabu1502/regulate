@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ─── Colors ─────────────────────────────────────────────────────────
 
@@ -197,6 +198,14 @@ export default function StoneStackingPage() {
 
   const towerRef = useRef<Stone[]>([]);
   const dustRef = useRef<DustParticle[]>([]);
+  // Honor the OS reduce-motion preference. What the finger does stays exactly
+  // the same; only the motion the game generates on its own is damped.
+  const reducedMotion = usePrefersReducedMotion();
+  const motionScaleRef = useRef(1);
+  useEffect(() => {
+    motionScaleRef.current = reducedMotion ? 0.3 : 1;
+  }, [reducedMotion]);
+
   const cameraYRef = useRef(0); // smooth camera
 
   // Drag state
@@ -323,7 +332,8 @@ export default function StoneStackingPage() {
       for (let i = 0; i < tower.length; i++) {
         const s = tower[i];
         // Cap wobble so it never gets crazy — max ±0.02 radians
-        const wobbleAmount = Math.min(0.02, 0.003 * (i + 1));
+        // The tower's idle sway is decoration, not feedback.
+        const wobbleAmount = Math.min(0.02, 0.003 * (i + 1)) * motionScaleRef.current;
         s.wobble = Math.sin(timeRef.current * s.wobbleSpeed + s.wobblePhase) * wobbleAmount;
       }
 

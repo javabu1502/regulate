@@ -71,11 +71,33 @@ export default function Home() {
             return;
           }
         }
-        // Fallback to breathing
-        setFirstSessionNudge({
-          label: "a breathing exercise",
-          href: "/breathing",
-        });
+        // Nothing in quick access. Use what they said brought them here
+        // rather than always defaulting to breathing: "Burnout / Shutdown"
+        // and "Panic attacks" want very different first sessions.
+        const byReason: Record<string, { label: string; href: string }> = {
+          "Panic attacks": { label: "the panic SOS", href: "/sos" },
+          "General anxiety": { label: "extended exhale breathing", href: "/breathing?pattern=extended-exhale" },
+          "Stress & overwhelm": { label: "a body scan", href: "/body-scan" },
+          "Burnout / Shutdown": { label: "gentle movement", href: "/somatic?exercise=gentle-swaying" },
+          "Supporting someone else": { label: "the helper walkthrough", href: "/caregiver" },
+        };
+        let picked: { label: string; href: string } | null = null;
+        try {
+          const raw = localStorage.getItem("onboarding_data");
+          if (raw) {
+            const { reasons } = JSON.parse(raw) as { reasons?: string[] };
+            for (const r of reasons || []) {
+              if (byReason[r]) {
+                picked = byReason[r];
+                break;
+              }
+            }
+          }
+        } catch { /* fall through to breathing */ }
+
+        setFirstSessionNudge(
+          picked ?? { label: "a breathing exercise", href: "/breathing" },
+        );
       }
     } catch {}
   }, []);

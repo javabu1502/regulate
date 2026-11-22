@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 // ─── Colors ─────────────────────────────────────────────────────────
 
@@ -34,6 +35,14 @@ interface RippleRing {
 }
 
 // ─── Audio ──────────────────────────────────────────────────────────
+
+// The ripple is the answer to a tap, so it still happens under reduce-motion;
+// it just travels less far and less fast. Module scope because the ripple
+// factory below is not part of the component.
+let motionScale = 1;
+export function setRippleMotionScale(v: number) {
+  motionScale = v;
+}
 
 let audioCtx: AudioContext | null = null;
 
@@ -102,8 +111,8 @@ function createRipple(x: number, y: number, small: boolean = false): Ripple {
   for (let i = 0; i < ringCount; i++) {
     rings.push({
       radius: 0,
-      maxRadius: small ? 60 + i * 25 : 120 + i * 40 + Math.random() * 30,
-      speed: small ? 1.2 + i * 0.15 : 1.5 + i * 0.2,
+      maxRadius: (small ? 60 + i * 25 : 120 + i * 40 + Math.random() * 30) * (0.45 + 0.55 * motionScale),
+      speed: (small ? 1.2 + i * 0.15 : 1.5 + i * 0.2) * motionScale,
       opacity: small ? 0.4 : 0.5 - i * 0.1,
       color: i === 0 ? baseColor : RIPPLE_PALETTE[Math.min(i, RIPPLE_PALETTE.length - 1)],
       lineWidth: small ? 1 : 1.5 - i * 0.2,
@@ -134,6 +143,11 @@ const RIPPLE_AFFIRMATIONS = [
 
 export default function RipplePoolPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const reducedMotion = usePrefersReducedMotion();
+  useEffect(() => {
+    setRippleMotionScale(reducedMotion ? 0.35 : 1);
+  }, [reducedMotion]);
   const animFrameRef = useRef<number>(0);
   const ripplesRef = useRef<Ripple[]>([]);
   const isDraggingRef = useRef(false);
