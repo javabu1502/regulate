@@ -2,6 +2,20 @@
 
 const JOURNAL_KEY = "regulate-journal";
 const SOS_HISTORY_KEY = "regulate-sos-history";
+const ONBOARDING_DATA_KEY = "onboarding_data";
+
+// What onboarding's "has anything helped?" answers correspond to, in SOS tool
+// terms. Someone who says breathing has helped them before should see
+// breathing first on their very first panic attack, not after two logged
+// sessions. These count as a single soft data point, so one real session that
+// contradicts an answer outweighs it.
+const onboardingAnswerToTools: Record<string, string[]> = {
+  "Deep breathing": ["breathing", "extended"],
+  "Grounding / being present": ["grounding", "orienting"],
+  "Moving my body": ["gentle-movement", "somatic"],
+  "Affirmations": ["affirmations"],
+  "Journaling": [],
+};
 
 interface SessionEntry {
   technique?: string;
@@ -214,6 +228,8 @@ interface ToolScore {
   notHelped: number;
   total: number;
   successRate: number;
+  /** Seeded from an onboarding answer rather than an actual session. */
+  fromOnboarding?: boolean;
 }
 
 /**
@@ -272,6 +288,24 @@ function getToolScores(): Map<string, ToolScore> {
     }
   } catch { /* */ }
 
+  // 3. What the person told us in onboarding, as a starting point. Weighted
+  // below real sessions: it only seeds tools no session has touched yet.
+  try {
+    const raw = localStorage.getItem(ONBOARDING_DATA_KEY);
+    if (raw) {
+      const data = JSON.parse(raw) as { helped?: string[] };
+      for (const answer of data.helped || []) {
+        for (const toolId of onboardingAnswerToTools[answer] || []) {
+          if (scores.has(toolId)) continue; // real history wins
+          const score = getOrCreate(toolId);
+          score.total = 1;
+          score.helped = 1;
+          score.fromOnboarding = true;
+        }
+      }
+    }
+  } catch { /* */ }
+
   // Calculate success rates
   for (const score of scores.values()) {
     score.successRate = score.total > 0 ? score.helped / score.total : 0;
@@ -301,7 +335,7 @@ export function getPersonalizedRecommendations(bodyState: string): string[] {
     // Get tools that have been used and have a positive success rate
     // Only consider tools with at least 2 data points to avoid noise
     const effective = Array.from(scores.values())
-      .filter((s) => s.total >= 2 && s.successRate > 0.3)
+      .filter((s) => (s.total >= 2 || s.fromOnboarding) && s.successRate > 0.3)
       .sort((a, b) => {
         // Sort by success rate first, then by total uses as tiebreaker
         if (Math.abs(b.successRate - a.successRate) > 0.1) {

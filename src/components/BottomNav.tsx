@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { HomeIcon, LearnIcon, SettingsIcon, PracticeIcon } from "@/components/Icons";
+import { HomeIcon, SafetyPlanIcon, SettingsIcon, PracticeIcon } from "@/components/Icons";
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -33,8 +33,10 @@ export default function BottomNav() {
           </button>
         </div>
 
-        {/* Learn */}
-        <NavTab href="/learn" label="Learn" icon={LearnIcon} active={pathname === "/learn"} />
+        {/* Toolkit — the panic kit, contacts, warning signs and reasons.
+            This earns the nav slot over Learn, which is reading and is the
+            least usable thing mid-distress; Learn is linked from Practice. */}
+        <NavTab href="/toolkit" label="My kit" icon={SafetyPlanIcon} active={pathname === "/toolkit"} />
 
         {/* Settings */}
         <NavTab href="/settings" label="Settings" icon={SettingsIcon} active={pathname.startsWith("/settings")} />

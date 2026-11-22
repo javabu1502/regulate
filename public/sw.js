@@ -4,10 +4,12 @@
 // Stamped by scripts/generate-audio-manifest.mjs on each build. A changed
 // byte here is what makes browsers reinstall the SW and re-precache the
 // app shell — without it, offline copies of unvisited pages go stale.
-const BUILD_ID = "1785953943686";
+const BUILD_ID = "1795330250154";
 
-const STATIC_CACHE = "regulate-static-v8";
-const PAGES_CACHE = "regulate-pages-v8";
+// Versioned by build so a deploy's stale chunks and pages are evicted by the
+// activate-time cleanup below instead of accumulating forever.
+const STATIC_CACHE = `regulate-static-${BUILD_ID}`;
+const PAGES_CACHE = `regulate-pages-${BUILD_ID}`;
 // Audio cache is intentionally unversioned — 11MB shouldn't re-download on
 // every SW update. Missing files are filled in from the manifest on activate.
 const AUDIO_CACHE = "regulate-audio-v7";
@@ -156,7 +158,12 @@ async function precacheAudio() {
   try {
     const response = await fetch("/audio-manifest.json", { cache: "no-cache" });
     if (!response.ok) return;
-    const files = await response.json();
+    const all = await response.json();
+    // Crisis audio is precached so breathing, grounding, somatic and SOS work
+    // offline. Meditations are long files and optional, so they are left to
+    // runtime caching in handleAudio: each one is stored the first time it
+    // plays, instead of making every first load pull tens of megabytes.
+    const files = all.filter((url) => !url.startsWith("/audio/meditations/"));
     const cache = await caches.open(AUDIO_CACHE);
     for (const url of files) {
       try {

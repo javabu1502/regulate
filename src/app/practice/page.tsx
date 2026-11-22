@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getTopTechniques, type TopTechnique } from "@/lib/recommendations";
-import { JournalIcon, WaveIcon } from "@/components/Icons";
+import { JournalIcon, LearnIcon, WaveIcon } from "@/components/Icons";
 
 // ─── Daily practice rotation (7-day cycle) ─────────────────────────
 
@@ -171,7 +171,6 @@ export default function PracticePage() {
 
   const todaysPractice = dailyPractices[getDayOfYear() % dailyPractices.length];
   const practicedToday = weekDays.some((d) => d.date === new Date().toDateString() && d.practiced);
-  const daysThisWeek = weekDays.filter((d) => d.practiced).length;
 
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
@@ -215,11 +214,7 @@ export default function PracticePage() {
               );
             })}
           </div>
-          {daysThisWeek > 0 && (
-            <p className="mt-3 text-center text-xs text-cream-dim/50">
-              {daysThisWeek} {daysThisWeek === 1 ? "day" : "days"} this week
-            </p>
-          )}
+
         </div>
 
         {/* ── Suggested exercise ── */}
@@ -383,6 +378,36 @@ export default function PracticePage() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-cream">Journal</p>
             <p className="text-xs text-cream-dim/50">Write about what you&apos;re noticing</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-cream-dim/30">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+
+        {/* ── Learn link (Learn gave up its nav slot to the toolkit) ── */}
+        <Link
+          href="/learn"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-slate-blue/20 bg-deep/40 p-5 transition-colors hover:border-slate-blue/35"
+        >
+          <LearnIcon className="h-5 w-5 text-cream-dim/50" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-cream">How this works</p>
+            <p className="text-xs text-cream-dim/50">What panic does to your body, and why these tools help</p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-cream-dim/30">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+
+        {/* ── Browse everything (single entry point for the full list) ── */}
+        <Link
+          href="/exercises"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-slate-blue/20 bg-deep/40 p-5 transition-colors hover:border-slate-blue/35"
+        >
+          <WaveIcon className="h-5 w-5 text-teal-soft/50" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-cream">All exercises</p>
+            <p className="text-xs text-cream-dim/50">Browse everything by how you&apos;re feeling</p>
           </div>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-cream-dim/30">
             <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

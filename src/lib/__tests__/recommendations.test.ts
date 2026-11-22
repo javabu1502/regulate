@@ -31,6 +31,10 @@ function setSOSHistory(entries: unknown[]) {
   store["regulate-sos-history"] = JSON.stringify(entries);
 }
 
+function setOnboarding(data: unknown) {
+  store["onboarding_data"] = JSON.stringify(data);
+}
+
 function clearStorage() {
   Object.keys(store).forEach((k) => delete store[k]);
 }
@@ -187,6 +191,50 @@ describe("getPersonalizedRecommendations", () => {
 
     const result = getPersonalizedRecommendations("panicking");
     expect(result).toHaveLength(3);
+  });
+
+  it("uses onboarding answers before any session history exists", () => {
+    setOnboarding({ helped: ["Moving my body"], reasons: [], triggers: [] });
+
+    const result = getPersonalizedRecommendations("panicking");
+    // Movement is not in the panicking defaults, so its presence comes from
+    // what the person said in onboarding.
+    expect(result).toContain("gentle-movement");
+    expect(result).toHaveLength(3);
+  });
+
+  it("maps several onboarding answers to their tools", () => {
+    setOnboarding({ helped: ["Grounding / being present"] });
+
+    const result = getPersonalizedRecommendations("panicking");
+    expect(result).toContain("grounding");
+  });
+
+  it("ignores onboarding answers that map to no SOS tool", () => {
+    setOnboarding({ helped: ["Journaling", "Nothing has worked yet"] });
+
+    const result = getPersonalizedRecommendations("panicking");
+    expect(result).toEqual(["breathing", "tapping", "body-scan"]);
+  });
+
+  it("lets real session history outweigh an onboarding answer", () => {
+    setOnboarding({ helped: ["Deep breathing"] });
+    // Breathing repeatedly did not help; body-scan did.
+    setSOSHistory([
+      { tool: "breathing", label: "Breathing", ts: "2025-01-01", helped: false },
+      { tool: "breathing", label: "Breathing", ts: "2025-01-02", helped: false },
+      { tool: "body-scan", label: "Body scan", ts: "2025-01-03", helped: true },
+      { tool: "body-scan", label: "Body scan", ts: "2025-01-04", helped: true },
+    ]);
+
+    const result = getPersonalizedRecommendations("panicking");
+    expect(result[0]).toBe("body-scan");
+  });
+
+  it("survives malformed onboarding data", () => {
+    store["onboarding_data"] = "{not json";
+    const result = getPersonalizedRecommendations("panicking");
+    expect(result).toEqual(["breathing", "tapping", "body-scan"]);
   });
 
   it("prioritizes tools with high success rates from SOS history", () => {

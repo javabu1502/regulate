@@ -518,6 +518,9 @@ function SOSPageInner() {
     return () => {
       if (timedRef.current) clearInterval(timedRef.current);
     };
+    // Intentionally keyed on `step` alone: re-running this on every dep change
+    // would restart the interval mid-exercise. Lint reports the directive as
+    // unused, but removing it surfaces two exhaustive-deps errors.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
