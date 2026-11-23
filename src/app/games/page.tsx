@@ -13,9 +13,22 @@ import { isGameSoundEnabled, setGameSoundEnabled } from "@/lib/game-sound";
 // shutdown actually needs.
 export type BodyState = "panicking" | "anxious" | "shutdown";
 
+// Seventeen games is too many to scan as one list. Ordered so the ones that
+// ask least of you come first, and the single activating one is called out
+// at the end rather than hidden among the calming ones.
+const GROUP_ORDER = [
+  "Something to follow",
+  "Quiet company",
+  "Busy hands",
+  "Make something",
+  "Let it go",
+  "When you're numb",
+] as const;
+
 const games = [
   {
     href: "/games/koi",
+    group: "Quiet company",
     states: ["shutdown", "anxious"] as BodyState[],
     forWhat: "Company, on its own terms",
     title: "Koi",
@@ -31,6 +44,7 @@ const games = [
   },
   {
     href: "/games/beads",
+    group: "Something to follow",
     states: ["anxious", "panicking"] as BodyState[],
     forWhat: "The hand counts so you don't have to",
     title: "Beads",
@@ -48,6 +62,7 @@ const games = [
   },
   {
     href: "/games/tide",
+    group: "Let it go",
     states: ["anxious", "panicking"] as BodyState[],
     forWhat: "Set something down and let it go",
     title: "Tide",
@@ -64,6 +79,7 @@ const games = [
 
   {
     href: "/games/labyrinth",
+    group: "Something to follow",
     states: ["panicking", "anxious"] as BodyState[],
     forWhat: "One line, one direction, nothing to decide",
     title: "Labyrinth",
@@ -77,6 +93,7 @@ const games = [
   },
   {
     href: "/games/mandala",
+    group: "Make something",
     states: ["anxious"] as BodyState[],
     forWhat: "Aimless movement comes back ordered",
     title: "Mandala",
@@ -92,6 +109,7 @@ const games = [
   },
   {
     href: "/games/chimes",
+    group: "Quiet company",
     states: ["anxious", "shutdown"] as BodyState[],
     forWhat: "Sound-led, works with your eyes closed",
     title: "Chimes",
@@ -106,6 +124,7 @@ const games = [
 
   {
     href: "/games/looking-around",
+    group: "When you're numb",
     states: ["shutdown", "anxious"] as BodyState[],
     forWhat: "Wakes you up a little when you're numb",
     title: "Looking Around",
@@ -121,6 +140,7 @@ const games = [
   },
   {
     href: "/games/crossing",
+    group: "Something to follow",
     states: ["panicking", "anxious"] as BodyState[],
     forWhat: "Left-right rhythm, nothing to do",
     title: "Crossing",
@@ -136,6 +156,7 @@ const games = [
   },
   {
     href: "/games/nothing",
+    group: "Something to follow",
     states: ["panicking", "anxious", "shutdown"] as BodyState[],
     forWhat: "When following instructions is too much",
     title: "Nothing To Do",
@@ -151,6 +172,7 @@ const games = [
 
   {
     href: "/games/bubbles",
+    group: "Busy hands",
     states: ["anxious", "panicking"] as BodyState[],
     forWhat: "Busy hands, nothing to decide",
     title: "Bubble Pop",
@@ -166,6 +188,7 @@ const games = [
   },
   {
     href: "/games/garden",
+    group: "Something to follow",
     states: ["anxious", "panicking"] as BodyState[],
     forWhat: "Paces your breathing",
     title: "Breathing Garden",
@@ -206,6 +229,7 @@ const games = [
   },
   {
     href: "/games/color-wash",
+    group: "Make something",
     states: ["anxious"] as BodyState[],
     forWhat: "Open-ended, no goal",
     title: "Color Wash",
@@ -228,6 +252,7 @@ const games = [
   },
   {
     href: "/games/stars",
+    group: "Make something",
     states: ["anxious", "shutdown"] as BodyState[],
     forWhat: "Gentle focus, light activity",
     title: "Constellations",
@@ -253,6 +278,7 @@ const games = [
   },
   {
     href: "/games/stones",
+    group: "Busy hands",
     states: ["anxious"] as BodyState[],
     forWhat: "Slow hands, steady attention",
     title: "Stone Stacking",
@@ -291,6 +317,7 @@ const games = [
   },
   {
     href: "/games/ripples",
+    group: "Quiet company",
     states: ["anxious", "shutdown"] as BodyState[],
     forWhat: "Just watch something respond",
     title: "Ripple Pool",
@@ -326,6 +353,7 @@ const games = [
   },
   {
     href: "/games/sand",
+    group: "Busy hands",
     states: ["anxious", "panicking"] as BodyState[],
     forWhat: "Repetitive, tactile",
     title: "Sand Garden",
@@ -343,6 +371,7 @@ const games = [
   },
   {
     href: "/games/burn",
+    group: "Let it go",
     states: ["panicking"] as BodyState[],
     forWhat: "Put something down and be rid of it",
     title: "Burn a Note",
@@ -483,19 +512,31 @@ export default function GamesPage() {
 
         {bodyState && (
           <p className="mb-3 text-[11px] text-cream-dim/40">
-            Ordered for how you said you were feeling. Anything here is fine to
-            try.
+            Each group leads with what suits how you said you were feeling.
+            Anything here is fine to try.
           </p>
         )}
 
-        <div className="flex flex-col gap-3">
-          {(bodyState
-            ? [...games].sort(
-                (a, b) =>
-                  Number(b.states.includes(bodyState)) - Number(a.states.includes(bodyState)),
-              )
-            : games
-          ).map((game) => (
+        <div className="flex flex-col gap-8">
+          {GROUP_ORDER.map((groupName) => {
+            // Inside a group, anything suiting the reported state comes first.
+            const inGroup = games
+              .filter((g) => g.group === groupName)
+              .sort((a, b) =>
+                bodyState
+                  ? Number(b.states.includes(bodyState)) -
+                    Number(a.states.includes(bodyState))
+                  : 0,
+              );
+            if (inGroup.length === 0) return null;
+            return (
+              <section key={groupName}>
+                <p className="mb-3 text-[10px] uppercase tracking-widest text-cream-dim/40">
+                  {groupName}
+                </p>
+                <div className="flex flex-col gap-3">
+                  {inGroup.map((game) => (
+
             <Link
               key={game.href}
               href={game.href}
@@ -533,7 +574,11 @@ export default function GamesPage() {
                 </svg>
               </div>
             </Link>
-          ))}
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
       </div>
     </div>
