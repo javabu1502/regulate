@@ -3,20 +3,21 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { haptics } from "@/lib/haptics";
-import { isGameSoundEnabled } from "@/lib/game-sound";
+import { isGameSoundEnabled, setGameSoundEnabled } from "@/lib/game-sound";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { canvasHeight } from "@/lib/canvas-area";
 
-// ─── Chimes ─────────────────────────────────────────────────────────
+// ─── Bowls ──────────────────────────────────────────────────────────
 // The only game here led by sound rather than by what is on screen. Every
 // other one needs your eyes; this one works with them closed, and works
 // better with headphones.
 //
-// Nine chimes tuned to a pentatonic scale, so no combination can sound wrong.
-// Long decay, so notes layer into a drone if you keep going. Drag across them
-// to brush the whole set.
+// Nine singing bowls on a pentatonic scale, so no combination can sound
+// wrong. Very long decay, so they layer into a drone if you keep going.
+// Drag across them to sound the whole set.
 
-const SCALE = [196, 220, 261.63, 293.66, 329.63, 392, 440, 523.25, 587.33];
+// An octave lower than a chime set, where bowls actually live.
+const SCALE = [130.81, 146.83, 174.61, 196, 220, 261.63, 293.66, 329.63, 392];
 
 let audioCtx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -46,25 +47,34 @@ function strike(freq: number, velocity = 1) {
     if (ctx.state === "suspended") ctx.resume();
     const now = ctx.currentTime;
 
-    // A struck metal bar: the fundamental rings longest, the partials above
-    // it are quieter and die away sooner.
-    [
-      { mult: 1, gain: 0.34, decay: 6.0 },
-      { mult: 2.01, gain: 0.11, decay: 3.4 },
-      { mult: 3.02, gain: 0.05, decay: 2.0 },
-      { mult: 4.07, gain: 0.02, decay: 1.2 },
-    ].forEach(({ mult, gain: level, decay }) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq * mult;
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(level * velocity, now + 0.006);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
-      osc.connect(gain);
-      gain.connect(master ?? ctx.destination);
-      osc.start(now);
-      osc.stop(now + decay + 0.1);
+    // A singing bowl rather than a struck bar. Three things make the
+    // difference: the partials sit at ratios that are not whole multiples of
+    // the fundamental, the attack is slow instead of a hit, and each partial
+    // is a close pair detuned by a couple of hertz so they beat against each
+    // other. That slow wobble is the sound people mean by "singing".
+    const partials = [
+      { mult: 1,    gain: 0.3,  decay: 11, detune: 1.1 },
+      { mult: 2.75, gain: 0.1,  decay: 8,  detune: 1.7 },
+      { mult: 5.4,  gain: 0.04, decay: 5,  detune: 2.3 },
+      { mult: 8.9,  gain: 0.015, decay: 3, detune: 0 },
+    ];
+
+    partials.forEach(({ mult, gain: level, decay, detune }) => {
+      const pair = detune > 0 ? [-detune / 2, detune / 2] : [0];
+      pair.forEach((offset) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq * mult + offset;
+        gain.gain.setValueAtTime(0, now);
+        // Swelling in rather than striking is most of the character.
+        gain.gain.linearRampToValueAtTime((level * velocity) / pair.length, now + 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+        osc.connect(gain);
+        gain.connect(master ?? ctx.destination);
+        osc.start(now);
+        osc.stop(now + decay + 0.1);
+      });
     });
   } catch {
     /* sound is optional */
@@ -210,13 +220,14 @@ export default function ChimesPage() {
     <div
       className="relative h-dvh w-screen overflow-hidden bg-midnight"
       role="application"
-      aria-label="Chimes - touch or drag across the bars to ring them"
+      aria-label="Bowls - touch or drag across them to sound them"
     >
       <p className="sr-only">
-        Nine chimes side by side, low on the left and high on the right. Touch
-        one to ring it, or drag across to brush them all. They are tuned so
-        that no combination sounds wrong, and the notes ring on and layer over
-        each other. This one works with your eyes closed.
+        Nine singing bowls side by side, low on the left and high on the
+        right. Touch one to sound it, or drag across them all. They are tuned
+        so that no combination sounds wrong, and each one rings on for a long
+        time so they layer over each other. This one works with your eyes
+        closed.
       </p>
 
       <canvas
@@ -241,12 +252,31 @@ export default function ChimesPage() {
         </Link>
       </div>
 
+      {muted && (
+        <div className="absolute inset-x-0 bottom-36 flex flex-col items-center gap-2 px-8">
+          <p className="text-center text-xs text-cream-dim/60">
+            Sound is switched off, and this one is nothing without it.
+          </p>
+          <button
+            onClick={() => {
+              setGameSoundEnabled(true);
+              setMuted(false);
+            }}
+            className="rounded-xl bg-teal/20 px-5 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/30"
+          >
+            Turn sound on
+          </button>
+          <p className="text-center text-[11px] leading-relaxed text-cream-dim/30">
+            If it is already on and still silent, check the ring/silent switch
+            on the side of your phone.
+          </p>
+        </div>
+      )}
+
       <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
-        {muted
-          ? "Sound is off, so this one has nothing to give. Turn it on from Games."
-          : touched
-            ? "Let them ring. They layer."
-            : "Touch a chime, or drag across them. Try it with your eyes closed."}
+        {touched
+          ? "Let them ring. They layer."
+          : "Touch a bowl, or drag across them. Try it with your eyes closed."}
       </p>
     </div>
   );

@@ -112,8 +112,8 @@ const games = [
     group: "Quiet company",
     states: ["anxious", "shutdown"] as BodyState[],
     forWhat: "Sound-led, works with your eyes closed",
-    title: "Chimes",
-    description: "Ring them. They layer and hang in the air.",
+    title: "Bowls",
+    description: "Sound them. They ring on and layer.",
     color: "candle",
     icon: (
       <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
