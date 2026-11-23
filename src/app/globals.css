@@ -166,6 +166,28 @@ body {
 .sg-rub     { animation: sg-rub 4s linear infinite; transform-origin: center; }
 .sg-hold    { animation: sg-hold 5s ease-in-out infinite; transform-origin: center; }
 
+/* ── Touch surfaces ───────────────────────────────────────────────────
+   Holding a finger still on a canvas made iOS offer to magnify or select,
+   as though there were text under the finger. touch-action stops scrolling
+   and pinch-zoom but not the callout or the loupe, which need these.
+
+   It matters most in Koi, where holding still for several seconds is the
+   entire interaction, but it applies to every drawing and tracing surface. */
+
+canvas,
+[role="application"] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The games own the whole viewport, so a drag should never rubber-band the
+   page behind them. */
+[role="application"] {
+  overscroll-behavior: none;
+}
+
 /* ── Clearing the bottom nav ──────────────────────────────────────────
    The nav is fixed at the bottom and paints over anything beneath it, so a
    control positioned with a small bottom offset ends up unreachable. The

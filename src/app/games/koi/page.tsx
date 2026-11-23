@@ -111,11 +111,14 @@ export default function KoiPage() {
         // Interest builds while a finger rests, and fades when it is gone or
         // has been still a long while.
         if (touch) {
+          // Interest was rising so slowly that they were losing it again
+          // before they had crossed the pond. Warming up takes a few seconds
+          // now, and they stay curious for a good while before drifting off.
           const held = (now - touch.since) / 1000;
-          const bored = held > 14 ? Math.max(0, 1 - (held - 14) / 8) : 1;
-          f.interest += (bored - f.interest) * 0.004;
+          const bored = held > 30 ? Math.max(0, 1 - (held - 30) / 12) : 1;
+          f.interest += (bored - f.interest) * 0.012;
         } else {
-          f.interest += (0 - f.interest) * 0.01;
+          f.interest += (0 - f.interest) * 0.012;
         }
 
         // Wander: slow noise so no two swim alike.
@@ -129,8 +132,8 @@ export default function KoiPage() {
           const d = Math.hypot(dx, dy) || 1;
           // Ease off as they arrive, so they gather rather than pile up.
           const near = Math.min(1, d / 90);
-          f.vx += (dx / d) * 0.05 * f.interest * near * slow;
-          f.vy += (dy / d) * 0.05 * f.interest * near * slow;
+          f.vx += (dx / d) * 0.075 * f.interest * near * slow;
+          f.vy += (dy / d) * 0.075 * f.interest * near * slow;
         }
 
         // Drag, and a gentle cap
@@ -228,6 +231,10 @@ export default function KoiPage() {
   const up = useCallback(() => {
     touchRef.current = null;
   }, []);
+
+  // iOS fires pointercancel when it thinks a system gesture began. Treat it
+  // as a lift rather than letting the fish keep chasing a finger that is
+  // no longer there.
 
   return (
     <div
