@@ -23,8 +23,8 @@ export const meditations: Meditation[] = [
     title: "Body as Home",
     description: "Reconnecting with your body",
     category: "Grounding & Safety",
-    duration: "3 min",
-    durationSec: 196,
+    duration: "4 min",
+    durationSec: 239,
   },
   {
     id: "feet-on-the-floor",
@@ -32,7 +32,7 @@ export const meditations: Meditation[] = [
     description: "Quick present-moment anchoring",
     category: "Grounding & Safety",
     duration: "2 min",
-    durationSec: 103,
+    durationSec: 135,
   },
 
   // ─── Processing & Release ───────────────────────────────────────
@@ -41,8 +41,8 @@ export const meditations: Meditation[] = [
     title: "Letting the Wave Pass",
     description: "Riding difficult emotions",
     category: "Processing & Release",
-    duration: "3 min",
-    durationSec: 175,
+    duration: "4 min",
+    durationSec: 218,
   },
   {
     id: "putting-it-down",
@@ -50,7 +50,7 @@ export const meditations: Meditation[] = [
     description: "Setting down what you're carrying",
     category: "Processing & Release",
     duration: "3 min",
-    durationSec: 156,
+    durationSec: 180,
   },
   {
     id: "the-container",
@@ -58,7 +58,7 @@ export const meditations: Meditation[] = [
     description: "Placing overwhelming thoughts somewhere safe",
     category: "Processing & Release",
     duration: "3 min",
-    durationSec: 163,
+    durationSec: 189,
   },
 
   // ─── Self-Compassion ───────────────────────────────────────────
@@ -67,24 +67,24 @@ export const meditations: Meditation[] = [
     title: "The Younger You",
     description: "Speaking kindly to your younger self",
     category: "Self-Compassion",
-    duration: "3 min",
-    durationSec: 194,
+    duration: "4 min",
+    durationSec: 236,
   },
   {
     id: "you-did-your-best-today",
     title: "You Did Your Best Today",
     description: "End-of-day wind down",
     category: "Self-Compassion",
-    duration: "2 min",
-    durationSec: 144,
+    duration: "3 min",
+    durationSec: 170,
   },
   {
     id: "permission-to-rest",
     title: "Permission to Rest",
     description: "For people who feel guilty resting",
     category: "Self-Compassion",
-    duration: "2 min",
-    durationSec: 142,
+    duration: "3 min",
+    durationSec: 178,
   },
 
   // ─── Regulation ────────────────────────────────────────────────
@@ -94,23 +94,23 @@ export const meditations: Meditation[] = [
     description: "Guided body warming",
     category: "Regulation",
     duration: "3 min",
-    durationSec: 153,
+    durationSec: 181,
   },
   {
     id: "heavy-and-warm",
     title: "Heavy and Warm",
     description: "Autogenic-style relaxation",
     category: "Regulation",
-    duration: "3 min",
-    durationSec: 196,
+    duration: "5 min",
+    durationSec: 274,
   },
   {
     id: "following-the-breath-home",
     title: "Following the Breath Home",
     description: "Breath awareness without control",
     category: "Regulation",
-    duration: "3 min",
-    durationSec: 160,
+    duration: "4 min",
+    durationSec: 216,
   },
 
   // ─── Sleep ─────────────────────────────────────────────────────
@@ -119,8 +119,8 @@ export const meditations: Meditation[] = [
     title: "Drifting",
     description: "Body scan that fades to silence",
     category: "Sleep",
-    duration: "3 min",
-    durationSec: 185,
+    duration: "4 min",
+    durationSec: 234,
   },
   {
     id: "night-sky",
@@ -128,15 +128,15 @@ export const meditations: Meditation[] = [
     description: "Counting stars visualization",
     category: "Sleep",
     duration: "4 min",
-    durationSec: 213,
+    durationSec: 261,
   },
   {
     id: "rain-on-the-roof",
     title: "Rain on the Roof",
     description: "Safe shelter, letting go",
     category: "Sleep",
-    duration: "4 min",
-    durationSec: 226,
+    duration: "5 min",
+    durationSec: 270,
   },
 ];
 
