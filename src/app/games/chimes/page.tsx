@@ -35,10 +35,7 @@ import { canvasHeight } from "@/lib/canvas-area";
 // produced the thinnest note in the set.
 const BOWL = { freq: 98.0, scale: 1 };
 
-// The notes the width of the circling picks out, widest first. The whole
-// set came down a fourth: the old one topped out at 261Hz and the speed
-// bend took that to 392, which is a glass rather than a bowl.
-const NOTES = [98.0, 110.0, 130.81, 146.83, 196.0];
+
 
 interface Bowl {
   x: number;
@@ -47,10 +44,9 @@ interface Bowl {
   freq: number;
   ring: number;   // struck energy, decays on its own
   sing: number;   // rubbed energy, only held up by circling
-  note: number;   // what it sings at, picked by how wide you circle
   rate: number;   // how fast the rim is being circled, radians a second
   dot: number;    // where the bright point has got to on the rim
-  reach: number;  // the width the note was picked at, set when you touch down
+  reach: number;  // how far out the finger is circling, for the drawn ring
 }
 
 let audioCtx: AudioContext | null = null;
@@ -69,6 +65,18 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
+// A bowl's partials do not sit at whole multiples the way a string's do,
+// and two slightly detuned copies of each is what gives the slow beating
+// you hear in a real one. The struck sound and the sung one are built from
+// this same table, so circling continues the note you tapped rather than
+// introducing a second instrument.
+const PARTIALS = [
+  { mult: 1, gain: 0.3, decay: 11, detune: 1.1 },
+  { mult: 2.75, gain: 0.1, decay: 8, detune: 1.7 },
+  { mult: 5.4, gain: 0.04, decay: 5, detune: 2.3 },
+  { mult: 8.9, gain: 0.015, decay: 3, detune: 0 },
+];
+
 /** Struck: swells in, rings a long time, partials sit at odd ratios. */
 function strike(freq: number, velocity = 1) {
   if (!isGameSoundEnabled()) return;
@@ -77,12 +85,7 @@ function strike(freq: number, velocity = 1) {
     if (ctx.state === "suspended") ctx.resume();
     const now = ctx.currentTime;
 
-    [
-      { mult: 1, gain: 0.3, decay: 11, detune: 1.1 },
-      { mult: 2.75, gain: 0.1, decay: 8, detune: 1.7 },
-      { mult: 5.4, gain: 0.04, decay: 5, detune: 2.3 },
-      { mult: 8.9, gain: 0.015, decay: 3, detune: 0 },
-    ].forEach(({ mult, gain: level, decay, detune }) => {
+    PARTIALS.forEach(({ mult, gain: level, decay, detune }) => {
       const pair = detune > 0 ? [-detune / 2, detune / 2] : [0];
       pair.forEach((offset) => {
         const osc = ctx.createOscillator();
@@ -104,18 +107,20 @@ function strike(freq: number, velocity = 1) {
 }
 
 // ─── The sung tone ──────────────────────────────────────────────────
-// One continuous voice, retuned when the finger moves to another bowl, with
-// its level driven by how steadily the rim is being circled.
+// The same note as the strike, from the same partials, simply held instead
+// of allowed to decay. Circling does not start another sound; it keeps the
+// one that is already there going, and moves it a little.
 
-let singVoice: { oscs: OscillatorNode[]; gain: GainNode; freq: number } | null = null;
-const SING_MULTS = [1, 2.75, 5.4];
+let singVoice: { oscs: OscillatorNode[]; gain: GainNode; parts: { mult: number; off: number }[] } | null = null;
 
-// How far the tone bends when the finger is flying round. Back to a fifth.
-// It was narrowed to a minor third when the radius was also moving the
-// note, which left the speed barely doing anything.
-const BEND = 0.5;
-// The circling speed, in radians a second, that reaches the top of the bend.
-// Roughly two turns a second, which is about as fast as a finger goes.
+// How far circling moves the note, and which way. It used to only go up,
+// by a fifth, picked out of a scale by how wide the circle was. A fifth is
+// a different note, not the same one leaning; the range here is about a
+// tone and a half either side of where it sits.
+const BEND_LO = 0.92;
+const BEND_HI = 1.12;
+// The circling speed, in radians a second, that reaches the top of the
+// bend. Roughly two turns a second, about as fast as a finger goes.
 const BEND_AT = 13;
 
 function ensureSingVoice(freq: number) {
@@ -124,52 +129,61 @@ function ensureSingVoice(freq: number) {
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
 
-    if (singVoice) {
-      singVoice.freq = freq;
-      return;
-    }
+    if (singVoice) return;
 
     const gain = ctx.createGain();
     gain.gain.value = 0;
     gain.connect(master ?? ctx.destination);
 
-    const oscs = SING_MULTS.map((mult, i) => {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = freq * mult;
-      const g = ctx.createGain();
-      g.gain.value = [0.3, 0.08, 0.03][i];
-      osc.connect(g);
-      g.connect(gain);
-      osc.start();
-      return osc;
+    // Every partial, detuned in pairs, exactly as the strike builds them.
+    // The offsets are kept so a bend can move the whole stack and leave the
+    // beating between each pair intact.
+    const oscs: OscillatorNode[] = [];
+    const parts: { mult: number; off: number }[] = [];
+    PARTIALS.forEach(({ mult, gain: level, detune }) => {
+      const pair = detune > 0 ? [-detune / 2, detune / 2] : [0];
+      pair.forEach((off) => {
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.value = freq * mult + off;
+        const g = ctx.createGain();
+        g.gain.value = level / pair.length;
+        osc.connect(g);
+        g.connect(gain);
+        osc.start();
+        oscs.push(osc);
+        parts.push({ mult, off });
+      });
     });
 
-    singVoice = { oscs, gain, freq };
+    singVoice = { oscs, gain, parts };
   } catch {
     /* sound is optional */
   }
 }
 
 /**
- * Bend the sung tone with the speed of the circling.
+ * Lean the held note with the speed of the circling.
  *
  * A real bowl does not do this. Rub one faster and it gets louder and the
  * upper partials come out, but the fundamental stays put. This is the one
- * place the game leaves the physics behind, because a tone you can steer
- * is worth more here than one that is accurate: it gives the hand something
- * to listen for, and slowing down to bring the note back down is the whole
- * point of the exercise.
+ * place the game leaves the physics behind, because a tone the hand can
+ * lean on is worth more here than one that is accurate, and slowing down to
+ * bring it back is the exercise.
  *
  * setTargetAtTime rather than a ramp, so calling it every frame glides
- * instead of stepping, and a jump between bowls arrives the same smooth way.
+ * instead of stepping.
  */
 function setSingPitch(freq: number, ratio: number) {
   if (!singVoice) return;
   try {
     const ctx = getAudioContext();
-    singVoice.oscs.forEach((osc, i) => {
-      osc.frequency.setTargetAtTime(freq * SING_MULTS[i] * ratio, ctx.currentTime, 0.06);
+    const v = singVoice;
+    v.oscs.forEach((osc, i) => {
+      // The detune stays a fixed number of hertz rather than scaling with
+      // the bend, so the beating between each pair keeps its own speed.
+      const { mult, off } = v.parts[i];
+      osc.frequency.setTargetAtTime(freq * mult * ratio + off, ctx.currentTime, 0.06);
     });
   } catch {
     /* ignore */
@@ -230,25 +244,6 @@ function rimReach(b: Bowl, x: number, y: number): number {
   return Math.hypot(x - c.x, (y - c.y) / RIM_SQUASH);
 }
 
-/**
- * The note the width of the circling is asking for.
- *
- * Circling out near the rim is the big bowl, circling tight in the middle
- * is the small one, which is the way round a real set works. The band is
- * generous at both ends so landing a finger just inside or outside does not
- * fall off the scale.
- *
- * Called once per contact, not per frame. Tracking the live radius made the
- * pitch wander the whole time the hand was going round, which sounded
- * unsteady rather than playable.
- */
-function noteFor(b: Bowl): number {
-  const ratio = b.r > 0 ? b.reach / b.r : 1;
-  // 1.4 of the rim and wider is the lowest note, 0.45 and tighter the highest.
-  const t = Math.min(1, Math.max(0, (1.4 - ratio) / (1.4 - 0.45)));
-  return NOTES[Math.min(NOTES.length - 1, Math.round(t * (NOTES.length - 1)))];
-}
-
 export default function BowlsPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -289,7 +284,6 @@ export default function BowlsPage() {
         // round it a whole-arm sweep on a phone.
         r: Math.min(w * 0.2, h * 0.14) * BOWL.scale,
         freq: BOWL.freq,
-        note: BOWL.freq,
         ring: 0,
         sing: 0,
         rate: 0,
@@ -402,7 +396,11 @@ export default function BowlsPage() {
         const b = bowlsRef.current[active];
         if (b) {
           setSingLevel(Math.min(0.26, b.sing * 0.26));
-          setSingPitch(b.note, 1 + Math.min(1, b.rate / BEND_AT) * BEND);
+          // Slow circling sits a little under the struck note, fast a
+          // little over, so the hand leans the tone rather than playing a
+          // different one.
+          const lean = BEND_LO + Math.min(1, b.rate / BEND_AT) * (BEND_HI - BEND_LO);
+          setSingPitch(b.freq, lean);
         }
       }
 
@@ -428,7 +426,6 @@ export default function BowlsPage() {
     const b = bowlsRef.current[0];
     if (!b) return;
     b.reach = rimReach(b, e.clientX, e.clientY);
-    b.note = noteFor(b);
     lastAngleRef.current = rimAngle(b, e.clientX, e.clientY);
     lastMoveRef.current = performance.now();
     b.dot = lastAngleRef.current;
@@ -441,6 +438,7 @@ export default function BowlsPage() {
     if (i < 0) return;
     const b = bowlsRef.current[i];
     const angle = rimAngle(b, e.clientX, e.clientY);
+    b.reach += (rimReach(b, e.clientX, e.clientY) - b.reach) * 0.18;
     const last = lastAngleRef.current;
     lastAngleRef.current = angle;
     if (last === null) return;
@@ -468,7 +466,7 @@ export default function BowlsPage() {
     }
 
     // Going round the rim is what makes it sing; a straight swipe does not.
-    ensureSingVoice(b.note);
+    ensureSingVoice(b.freq);
     b.sing = Math.min(1, b.sing + Math.abs(d) * 0.55);
     if (b.sing > 0.25 && !singing) setSinging(true);
     if (Math.abs(d) > 0.3) haptics.subtle();
@@ -500,14 +498,11 @@ export default function BowlsPage() {
     >
       <p className="sr-only">
         One singing bowl in the middle of the screen. Tap anywhere and it
-        rings, always on its own low note. Or slowly circle a finger around
-        it and it begins to sing, growing while you keep circling and falling
-        away when you stop. Where you first put your finger down picks what
-        it sings: out near the rim for the low notes, in near the middle for
-        the higher ones, through five that are tuned so nothing you play
-        sounds wrong. Once you are going round, circling faster bends that
-        note upward and slowing down lets it back. Lift your finger and
-        start again to pick another.
+        rings. Or slowly circle a finger around it and that same note keeps
+        going instead of dying away, growing while you circle and fading
+        when you stop. Circling faster leans the note a little higher and
+        slowing down lets it back down, about a tone and a half either way.
+        It is the one sound, not several.
         This one works with your eyes closed.
       </p>
 
@@ -556,9 +551,9 @@ export default function BowlsPage() {
 
       <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
         {singing
-          ? "Faster lifts the note. Lift off to pick another."
+          ? "Faster leans it higher, slower lets it back down."
           : touched
-            ? "Start wide for a low note, tight for a high one."
+            ? "Circle to keep it going. Tap to ring it again."
             : "Tap the bowl, or circle slowly around its rim."}
       </p>
     </div>
