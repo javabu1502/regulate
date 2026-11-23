@@ -407,7 +407,7 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-[15px] font-medium text-cream">Guided Meditations</span>
-              <span className="block text-xs text-cream-dim/50">Put headphones on and let someone else talk</span>
+              <span className="block text-xs text-cream-dim/50">Someone talks you through it</span>
             </div>
           </Link>
           <Link
