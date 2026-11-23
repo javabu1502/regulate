@@ -402,26 +402,9 @@ export default function GamesPage() {
     };
     const current = getCurrentNSState();
     const state = current ? map[current] : undefined;
-    if (!state) {
-      // Nothing known about them, so lead with the group that asks least.
-      setOpenGroup(GROUP_ORDER[0]);
-      return;
-    }
-    setBodyState(state);
-    // Open whichever group holds the most that suits them, so nobody has to
-    // tap twice to reach something useful.
-    let best = GROUP_ORDER[0] as string;
-    let bestCount = -1;
-    for (const g of GROUP_ORDER) {
-      const count = games.filter(
-        (x) => x.group === g && x.states.includes(state),
-      ).length;
-      if (count > bestCount) {
-        bestCount = count;
-        best = g;
-      }
-    }
-    setOpenGroup(best);
+    if (state) setBodyState(state);
+    // Everything starts closed. Each heading lists what is inside, so the
+    // whole set can be read without opening anything.
   }, []);
 
   // Read after mount: a lazy initializer would read localStorage during the
@@ -534,12 +517,12 @@ export default function GamesPage() {
 
         {bodyState && (
           <p className="mb-3 text-[11px] text-cream-dim/40">
-            Opened on what suits how you said you were feeling. Anything here
-            is fine to try.
+            Groups that suit how you said you were feeling are marked.
+            Anything here is fine to try.
           </p>
         )}
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           {GROUP_ORDER.map((groupName) => {
             // Inside a group, anything suiting the reported state comes first.
             const inGroup = games
@@ -562,12 +545,19 @@ export default function GamesPage() {
                   aria-expanded={isOpen}
                   className="flex w-full items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-deep/40"
                 >
-                  <span className="flex items-baseline gap-2">
-                    <span className="text-[10px] uppercase tracking-widest text-cream-dim/50">
-                      {groupName}
+                  <span className="flex min-w-0 flex-col items-start gap-1 pr-3 text-left">
+                    <span className="flex items-baseline gap-2">
+                      <span className="text-[10px] uppercase tracking-widest text-cream-dim/50">
+                        {groupName}
+                      </span>
+                      {suits > 0 && (
+                        <span className="text-[10px] text-teal-soft/50">suits you now</span>
+                      )}
                     </span>
-                    {suits > 0 && (
-                      <span className="text-[10px] text-teal-soft/50">suits you now</span>
+                    {!isOpen && (
+                      <span className="truncate text-[11px] text-cream-dim/30">
+                        {inGroup.map((g) => g.title).join(" · ")}
+                      </span>
                     )}
                   </span>
                   <span className="flex items-center gap-2">

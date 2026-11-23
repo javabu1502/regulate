@@ -118,12 +118,21 @@ export default function TidePage() {
 
     function draw(now: number) {
       const { w, h } = sizeRef.current;
-      const t = ((now - startRef.current) % TIDE_MS) / TIDE_MS;
+      const elapsed = now - startRef.current;
+      const t = (elapsed % TIDE_MS) / TIDE_MS;
       // In and out, smooth at both ends.
       const reach = 0.5 - Math.cos(t * Math.PI * 2) / 2;
 
+      // Waves come in sets, and the furthest one reaches ground the others
+      // missed. Without this the top tenth of the sand was out of the water's
+      // range, so a stone put down up there simply stayed, which is the one
+      // thing this game should never do.
+      const cycle = Math.floor(elapsed / TIDE_MS);
+      const big = cycle % 4 === 3;
+      const span = big ? 1.02 : 0.74 + ((cycle * 37) % 11) / 100;
+
       const sandTop = h * 0.52;
-      const waterLine = h - (h - sandTop) * (0.12 + reach * 0.78);
+      const waterLine = h - (h - sandTop) * (0.1 + reach * span);
 
       ctx!.clearRect(0, 0, w, h);
 
@@ -263,7 +272,7 @@ export default function TidePage() {
         {placed === 0
           ? "Touch the sand to set something down."
           : taken === 0
-            ? "Wait for the water."
+            ? "Wait for the water. Every fourth wave comes in further."
             : "It comes back in a moment. You can put down as much as you like."}
       </p>
     </div>

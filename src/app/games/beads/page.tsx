@@ -31,28 +31,53 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-/** A dry wooden click, quieter than the chimes. */
+/**
+ * The sound of one bead settling against the next.
+ *
+ * This began as a triangle wave at 430Hz with a tenth-of-a-second decay,
+ * which is a click: a hard transient, bright, and over before it softens.
+ * Peaceful needs the opposite. Low sine partials rather than a buzzing
+ * waveform, an attack of a few milliseconds rather than none, a filter well
+ * below the fundamental's harmonics, and a tail long enough to fall away
+ * instead of stopping. Quiet enough that twenty in a row do not nag.
+ */
 function click(marker: boolean) {
   if (!isGameSoundEnabled()) return;
   try {
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
     const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+
+    const base = marker ? 150 : 186;
     const filter = ctx.createBiquadFilter();
-    osc.type = "triangle";
-    osc.frequency.value = marker ? 320 : 430;
     filter.type = "lowpass";
-    filter.frequency.value = 1400;
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(marker ? 0.1 : 0.06, now + 0.004);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.2);
+    filter.frequency.value = 620;
+    filter.Q.value = 0.6;
+
+    const out = ctx.createGain();
+    out.gain.value = 1;
+    filter.connect(out);
+    out.connect(ctx.destination);
+
+    // A low body and one soft partial above it: wood resting on wood.
+    [
+      { mult: 1, level: marker ? 0.085 : 0.055, decay: marker ? 0.75 : 0.5 },
+      { mult: 2.4, level: marker ? 0.02 : 0.013, decay: 0.3 },
+    ].forEach(({ mult, level, decay }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = base * mult;
+      // Slight downward drift, the way a settling object loses tension.
+      osc.frequency.exponentialRampToValueAtTime(base * mult * 0.88, now + decay);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(level, now + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+      osc.connect(gain);
+      gain.connect(filter);
+      osc.start(now);
+      osc.stop(now + decay + 0.05);
+    });
   } catch {
     /* sound is optional */
   }
@@ -184,8 +209,8 @@ export default function BeadsPage() {
         lastIndexRef.current = idx;
         const marker = ((idx % BEADS) + BEADS) % BEADS % MARKER_EVERY === 0;
         click(marker);
-        if (marker) haptics.transition();
-        else haptics.light();
+        if (marker) haptics.light();
+        else haptics.subtle();
         setCount((c) => {
           const next = c + moved;
           if (next > 0 && next % BEADS === 0) setLaps((l) => l + 1);
