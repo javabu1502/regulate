@@ -105,6 +105,105 @@ body {
   }
 }
 
+/* ── Game preview thumbnails ──────────────────────────────────────────
+   Small motions that show what a game is before you open it. CSS rather
+   than canvas so fourteen of them on one list cost nothing, and so the
+   reduce-motion rule above stops them all without extra code. */
+
+@keyframes gp-cross {
+  0%, 100% { transform: translateX(-9px); }
+  50%      { transform: translateX(9px); }
+}
+@keyframes gp-swell {
+  0%, 100% { transform: scale(0.62); opacity: 0.45; }
+  50%      { transform: scale(1);    opacity: 0.9; }
+}
+@keyframes gp-rise {
+  0%   { transform: translateY(7px); opacity: 0; }
+  30%  { opacity: 0.85; }
+  100% { transform: translateY(-9px); opacity: 0; }
+}
+@keyframes gp-ring {
+  0%   { r: 2; opacity: 0.75; }
+  100% { r: 13; opacity: 0; }
+}
+@keyframes gp-blink {
+  0%, 68%, 100% { opacity: 0.12; }
+  12%, 46%      { opacity: 0.95; }
+}
+@keyframes gp-strike {
+  0%, 100% { opacity: 0.22; }
+  14%      { opacity: 1; }
+}
+
+.gp-cross  { animation: gp-cross 2s ease-in-out infinite; }
+.gp-swell  { animation: gp-swell 5s ease-in-out infinite; transform-origin: center; }
+.gp-rise   { animation: gp-rise 3.4s linear infinite; }
+.gp-ring   { animation: gp-ring 2.6s ease-out infinite; }
+.gp-blink  { animation: gp-blink 4s ease-in-out infinite; }
+.gp-strike { animation: gp-strike 3s ease-in-out infinite; }
+
+/* ── Somatic movement guides ──────────────────────────────────────────
+   Ten of the fourteen somatic exercises were step text and a timer. Reading
+   a paragraph is the hardest thing to do mid-panic, so each one gets a plain
+   moving diagram of the movement instead. CSS keyframes, so the reduce-motion
+   rule above freezes them all into a still diagram with no extra code. */
+
+@keyframes sg-jitter {
+  0%, 100% { transform: translate(-1.5px, 0) rotate(-1.5deg); }
+  25%      { transform: translate(1.5px, -1px) rotate(1.5deg); }
+  50%      { transform: translate(-1px, 1px) rotate(-1deg); }
+  75%      { transform: translate(1px, 0) rotate(1deg); }
+}
+@keyframes sg-punch-a {
+  0%, 100% { transform: translateX(0); opacity: 0.3; }
+  25%      { transform: translateX(10px); opacity: 1; }
+}
+@keyframes sg-punch-b {
+  0%, 100% { transform: translateX(0); opacity: 0.3; }
+  75%      { transform: translateX(10px); opacity: 1; }
+}
+@keyframes sg-stroke {
+  0%   { transform: translateY(-9px); opacity: 0; }
+  20%  { opacity: 0.9; }
+  100% { transform: translateY(10px); opacity: 0; }
+}
+@keyframes sg-press {
+  0%, 100% { transform: scale(1);    opacity: 0.35; }
+  45%, 65% { transform: scale(0.88); opacity: 0.95; }
+}
+@keyframes sg-gaze {
+  0%, 100% { transform: translate(-11px, 0); }
+  20%      { transform: translate(-11px, 0); }
+  35%      { transform: translate(0, 0); }
+  50%      { transform: translate(11px, 0); }
+  65%      { transform: translate(0, 0); }
+  80%      { transform: translate(0, -8px); }
+  90%      { transform: translate(0, 8px); }
+}
+@keyframes sg-swing {
+  0%, 100% { transform: translateX(-12px); }
+  50%      { transform: translateX(12px); }
+}
+@keyframes sg-rub {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes sg-hold {
+  0%, 100% { transform: scaleY(1);    opacity: 0.4; }
+  40%, 70% { transform: scaleY(0.82); opacity: 0.95; }
+}
+
+.sg-jitter  { animation: sg-jitter 0.32s linear infinite; }
+.sg-punch-a { animation: sg-punch-a 1.6s ease-in-out infinite; }
+.sg-punch-b { animation: sg-punch-b 1.6s ease-in-out infinite; }
+.sg-stroke  { animation: sg-stroke 2.6s ease-in-out infinite; }
+.sg-press   { animation: sg-press 4.5s ease-in-out infinite; transform-origin: center; }
+.sg-gaze    { animation: sg-gaze 9s ease-in-out infinite; }
+.sg-swing   { animation: sg-swing 5s ease-in-out infinite; }
+.sg-rub     { animation: sg-rub 4s linear infinite; transform-origin: center; }
+.sg-hold    { animation: sg-hold 5s ease-in-out infinite; transform-origin: center; }
+
 /* Safe area for bottom nav on notched devices */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);

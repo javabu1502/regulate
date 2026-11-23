@@ -12,6 +12,7 @@ import SessionProgressBar from "@/components/SessionProgressBar";
 import MicroExplanation from "@/components/MicroExplanation";
 import VoiceToggle from "@/components/VoiceToggle";
 import EyesClosedMode from "@/components/EyesClosedMode";
+import SomaticGuide from "@/components/SomaticGuide";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
 import { haptics, getHapticsEnabled } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
@@ -1226,6 +1227,12 @@ function SomaticPageInner() {
         {renderSessionHeader()}
 
         <div className="flex max-w-sm flex-col items-center text-center">
+          {/* What the movement looks like. These ten exercises used to be
+              instructions and a countdown, which is a lot to read mid-panic. */}
+          <div className="mb-5">
+            <SomaticGuide technique={technique} />
+          </div>
+
           {/* Step indicator */}
           <div className="mb-6 flex items-center gap-1.5">
             {steps.map((_, i) => (
