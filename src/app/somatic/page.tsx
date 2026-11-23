@@ -1299,7 +1299,13 @@ function SomaticPageInner() {
         {renderSessionHeader()}
 
         <div className="flex max-w-sm flex-col items-center text-center">
-          <p className="mb-8 text-lg font-light leading-relaxed text-cream/90">
+          {/* Air punching and dancing run on this timer screen rather than the
+              step screen, so they need the guide here too. */}
+          <div className="mb-5">
+            <SomaticGuide technique={technique} />
+          </div>
+
+          <p className="mb-8 text-lg font-light leading-relaxed text-cream/90" role="status" aria-live="polite">
             {currentExercise.sessionInstruction ?? currentExercise.description}
           </p>
 
