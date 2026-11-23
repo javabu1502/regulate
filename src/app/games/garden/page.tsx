@@ -610,6 +610,21 @@ export default function BreathingGardenPage() {
     progressRef.current = 0;
   }, [phase]);
 
+  // Breathing starts by itself. It was gated behind planting the first
+  // flower, which had it backwards: the breath is the exercise and the
+  // planting is the part you can take or leave.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPhase((p) => {
+        if (p !== "idle") return p;
+        phaseStartRef.current = Date.now();
+        progressRef.current = 0;
+        return "inhale";
+      });
+    }, 1800);
+    return () => clearTimeout(t);
+  }, []);
+
   const stopBreathing = useCallback(() => {
     cancelAnimationFrame(breathAnimRef.current);
     setPhase("idle");
@@ -620,8 +635,8 @@ export default function BreathingGardenPage() {
 
   // ── Guide text ──────────────────────────────────────────────────
 
-  let guideText = "Tap where you want the first flower";
-  let subText = "Breathe and plant your garden";
+  let guideText = "Settling";
+  let subText = "Breathe with it. Tap anywhere to plant a flower there";
   if (phase === "inhale") {
     guideText = "Breathe in";
     subText = countdown > 0 ? `${countdown}` : "";

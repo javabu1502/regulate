@@ -32,6 +32,25 @@ interface Ring {
   born: number;
 }
 
+const HUES: Fish["hue"][] = ["cream", "candle", "teal"];
+
+// More than this and they stop being individuals you can follow, which is
+// the whole appeal of watching them.
+const MAX_FISH = 14;
+
+function makeFish(w: number, h: number, hue: Fish["hue"], i: number, at?: { x: number; y: number }): Fish {
+  return {
+    x: at ? at.x : w * (0.2 + Math.random() * 0.6),
+    y: at ? at.y : h * (0.2 + Math.random() * 0.6),
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: (Math.random() - 0.5) * 0.4,
+    size: 13 + Math.random() * 7,
+    hue,
+    phase: i * 1.3 + Math.random(),
+    interest: 0,
+  };
+}
+
 export default function KoiPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -41,6 +60,8 @@ export default function KoiPage() {
   const touchRef = useRef<{ x: number; y: number; since: number } | null>(null);
 
   const [met, setMet] = useState(false);
+  const [count, setCount] = useState(0);
+  const lastTapRef = useRef(0);
 
   const reducedMotion = usePrefersReducedMotion();
   const reducedMotionRef = useRef(false);
@@ -67,16 +88,8 @@ export default function KoiPage() {
 
       if (fishRef.current.length === 0) {
         const hues: Fish["hue"][] = ["cream", "candle", "teal", "cream", "candle"];
-        fishRef.current = hues.map((hue, i) => ({
-          x: w * (0.2 + Math.random() * 0.6),
-          y: h * (0.2 + Math.random() * 0.6),
-          vx: (Math.random() - 0.5) * 0.4,
-          vy: (Math.random() - 0.5) * 0.4,
-          size: 13 + Math.random() * 7,
-          hue,
-          phase: i * 1.3,
-          interest: 0,
-        }));
+        fishRef.current = hues.map((hue, i) => makeFish(w, h, hue, i));
+        setCount(fishRef.current.length);
       }
     }
     resize();
@@ -207,8 +220,31 @@ export default function KoiPage() {
   }, []);
 
   const down = useCallback((e: React.PointerEvent) => {
-    touchRef.current = { x: e.clientX, y: e.clientY, since: performance.now() };
-    ringsRef.current.push({ x: e.clientX, y: e.clientY, born: performance.now() });
+    const now = performance.now();
+
+    // Two quick taps in the same spot adds a fish there. A single tap is
+    // already how you call them over, so adding had to be a different
+    // gesture rather than a button sitting on top of the pond.
+    if (now - lastTapRef.current < 400 && fishRef.current.length < MAX_FISH) {
+      const { w, h } = sizeRef.current;
+      fishRef.current.push(
+        makeFish(w, h, HUES[fishRef.current.length % HUES.length], fishRef.current.length, {
+          x: e.clientX,
+          y: e.clientY,
+        }),
+      );
+      setCount(fishRef.current.length);
+      haptics.transition();
+      for (let i = 0; i < 3; i++) {
+        ringsRef.current.push({ x: e.clientX, y: e.clientY, born: now + i * 180 });
+      }
+      lastTapRef.current = 0;
+      return;
+    }
+    lastTapRef.current = now;
+
+    touchRef.current = { x: e.clientX, y: e.clientY, since: now };
+    ringsRef.current.push({ x: e.clientX, y: e.clientY, born: now });
     haptics.subtle();
     if (!met) setMet(true);
   }, [met]);
@@ -245,8 +281,9 @@ export default function KoiPage() {
       <p className="sr-only">
         A dark pond with five fish drifting in it. Rest a finger on the water
         and they will gradually come over. They take their time, and they
-        wander off again if you move about or wait too long. Nothing is asked
-        of you and there is nothing to catch.
+        wander off again if you move about or wait too long. Double tap
+        anywhere to add another fish, up to fourteen. Nothing is asked of you
+        and there is nothing to catch.
       </p>
 
       <canvas
@@ -272,9 +309,11 @@ export default function KoiPage() {
       </div>
 
       <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
-        {met
-          ? "Hold still. They take their time."
-          : "Rest a finger on the water and wait."}
+        {!met
+          ? "Rest a finger on the water and wait."
+          : count >= MAX_FISH
+            ? "That's a full pond. Hold still and they'll come."
+            : "Hold still and they come. Double tap to add another."}
       </p>
     </div>
   );
