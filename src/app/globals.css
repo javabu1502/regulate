@@ -132,11 +132,6 @@ body {
   0%, 100% { transform: translateX(0); opacity: 0.3; }
   75%      { transform: translateX(10px); opacity: 1; }
 }
-@keyframes sg-stroke {
-  0%   { transform: translateY(-9px); opacity: 0; }
-  20%  { opacity: 0.9; }
-  100% { transform: translateY(10px); opacity: 0; }
-}
 @keyframes sg-press {
   0%, 100% { transform: scale(1);    opacity: 0.35; }
   45%, 65% { transform: scale(0.88); opacity: 0.95; }
@@ -195,12 +190,16 @@ body {
 @keyframes sg-stroke-l {
   0%   { transform: translate(0, 0); opacity: 0; }
   18%  { opacity: 0.95; }
-  100% { transform: translate(-13px, 20px); opacity: 0; }
+  100% { transform: translate(-8px, 13px); opacity: 0; }
 }
 @keyframes sg-stroke-r {
   0%   { transform: translate(0, 0); opacity: 0; }
   18%  { opacity: 0.95; }
-  100% { transform: translate(13px, 20px); opacity: 0; }
+  100% { transform: translate(8px, 13px); opacity: 0; }
+}
+@keyframes sg-brace {
+  0%, 100% { transform: translateY(0); }
+  40%, 70% { transform: translateY(2.5px); }
 }
 @keyframes sg-pend {
   0%, 100% { transform: translateY(-11px); }
@@ -218,13 +217,13 @@ body {
 .sg-arm-b     { animation: sg-arm-b 1.6s ease-in-out infinite; }
 .sg-stroke-l  { animation: sg-stroke-l 2.8s ease-in-out infinite; }
 .sg-stroke-r  { animation: sg-stroke-r 2.8s ease-in-out infinite; }
+.sg-brace     { animation: sg-brace 5s ease-in-out infinite; }
 .sg-pend      { animation: sg-pend 5s ease-in-out infinite; }
 .sg-shake-arm { animation: sg-shake-arm 0.26s ease-in-out infinite; }
 
 .sg-jitter  { animation: sg-jitter 0.32s linear infinite; }
 .sg-punch-a { animation: sg-punch-a 1.6s ease-in-out infinite; }
 .sg-punch-b { animation: sg-punch-b 1.6s ease-in-out infinite; }
-.sg-stroke  { animation: sg-stroke 2.6s ease-in-out infinite; }
 .sg-press   { animation: sg-press 4.5s ease-in-out infinite; transform-origin: center; }
 .sg-gaze    { animation: sg-gaze 9s ease-in-out infinite; }
 .sg-swing   { animation: sg-swing 5s ease-in-out infinite; }
