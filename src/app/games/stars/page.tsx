@@ -813,7 +813,7 @@ export default function StarCreatorPage() {
               showHelp ? "mt-2 max-h-60 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <div className="rounded-2xl border border-teal/15 bg-deep/80 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
               Drawing patterns engages your motor cortex and visual focus at the
               same time. This kind of dual-attention task is similar to bilateral
               stimulation &mdash; it helps your brain process and settle.

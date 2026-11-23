@@ -5,7 +5,7 @@ import { WaveIcon } from "@/components/Icons";
 
 export default function ReferPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-12">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <main className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-10 flex flex-col items-center text-center">
@@ -19,7 +19,7 @@ export default function ReferPage() {
         </div>
 
         {/* Explanation */}
-        <div className="mb-8 rounded-2xl border border-teal/15 bg-deep/60 p-6">
+        <div className="mb-8 rounded-2xl border border-teal/12 bg-deep/50 p-6">
           <h2 className="text-base font-medium text-cream">
             Why somatic tools?
           </h2>
@@ -29,7 +29,7 @@ export default function ReferPage() {
         </div>
 
         {/* What's included */}
-        <div className="mb-8 rounded-2xl border border-slate-blue/20 bg-deep/40 p-6">
+        <div className="mb-8 rounded-2xl border border-teal/10 bg-deep/40 p-6">
           <h2 className="mb-4 text-base font-medium text-cream">
             What&apos;s included
           </h2>
@@ -56,14 +56,14 @@ export default function ReferPage() {
         </div>
 
         {/* Pricing note */}
-        <div className="mb-8 rounded-2xl border border-candle/10 bg-candle/5 px-6 py-4">
+        <div className="mb-8 rounded-2xl border border-candle/18 bg-candle/8 px-6 py-4">
           <p className="text-sm text-cream-dim">
             <span className="font-medium text-candle-soft">$3 one-time</span> for personalized insights. Everything else is free.
           </p>
         </div>
 
         {/* Privacy */}
-        <div className="mb-10 rounded-2xl border border-slate-blue/20 bg-deep/40 px-6 py-4">
+        <div className="mb-10 rounded-2xl border border-teal/10 bg-deep/40 px-6 py-4">
           <div className="flex items-start gap-3">
             <svg className="mt-0.5 h-5 w-5 shrink-0 text-teal-soft/50" viewBox="0 0 20 20" fill="none">
               <path d="M10 2L4 5V9.5C4 13.6 6.5 17.2 10 18C13.5 17.2 16 13.6 16 9.5V5L10 2Z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />

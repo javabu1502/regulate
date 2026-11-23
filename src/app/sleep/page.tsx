@@ -311,7 +311,7 @@ export default function SleepPage() {
     ];
 
     return (
-      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link
             href="/"
@@ -324,7 +324,7 @@ export default function SleepPage() {
           </Link>
 
           <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
-            <h1 className="text-2xl font-light tracking-tight text-cream/70">
+            <h1 className="text-xl font-light tracking-tight text-cream/70">
               Can&apos;t sleep?
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-cream-dim/50">
@@ -466,7 +466,7 @@ export default function SleepPage() {
         }}
       >
         <div className="flex w-full max-w-md flex-col items-center text-center">
-          <p className="mb-6 text-xs uppercase tracking-widest text-cream-dim/30">
+          <p className="mb-6 text-xs uppercase tracking-[0.14em] text-cream-dim/40">
             {phaseLabel}
           </p>
 

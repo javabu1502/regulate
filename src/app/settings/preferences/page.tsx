@@ -131,7 +131,7 @@ export default function PreferencesPage() {
   const hasData = data || quickAccess.length > 0;
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <Link href="/settings" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -172,7 +172,7 @@ export default function PreferencesPage() {
                         ? "border-teal/40 bg-teal/15 text-teal-soft"
                         : atLimit
                         ? "border-slate-blue/15 bg-deep/20 text-cream-dim/30 cursor-not-allowed"
-                        : "border-slate-blue/30 bg-deep/40 text-cream-dim hover:border-teal/20"
+                        : "border-teal/12 bg-deep/40 text-cream-dim hover:border-teal/20"
                     }`}
                   >
                     <span>{mod.title}</span>
@@ -188,7 +188,7 @@ export default function PreferencesPage() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setEditing(null)}
-                className="flex-1 rounded-xl border border-slate-blue/30 py-3 text-sm text-cream-dim hover:text-cream"
+                className="flex-1 rounded-xl border border-teal/12 py-3 text-sm text-cream-dim hover:text-cream"
               >
                 Cancel
               </button>
@@ -214,8 +214,8 @@ export default function PreferencesPage() {
                         ? "border-candle/40 bg-candle/10 text-candle-soft"
                         : "border-teal/40 bg-teal/15 text-teal-soft"
                       : editing === "triggers"
-                      ? "border-slate-blue/30 bg-deep/40 text-cream-dim hover:border-candle/20"
-                      : "border-slate-blue/30 bg-deep/40 text-cream-dim hover:border-teal/20"
+                      ? "border-teal/12 bg-deep/40 text-cream-dim hover:border-candle/20"
+                      : "border-teal/12 bg-deep/40 text-cream-dim hover:border-teal/20"
                   }`}
                 >
                   {opt}
@@ -225,7 +225,7 @@ export default function PreferencesPage() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setEditing(null)}
-                className="flex-1 rounded-xl border border-slate-blue/30 py-3 text-sm text-cream-dim hover:text-cream"
+                className="flex-1 rounded-xl border border-teal/12 py-3 text-sm text-cream-dim hover:text-cream"
               >
                 Cancel
               </button>
@@ -241,7 +241,7 @@ export default function PreferencesPage() {
           <div className="flex flex-col gap-4">
             {/* Onboarding data sections */}
             {data && (["reasons", "helped", "triggers"] as const).map((section) => (
-              <div key={section} className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div key={section} className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-cream">{sectionLabels[section]}</h3>
                   <button
@@ -273,7 +273,7 @@ export default function PreferencesPage() {
             ))}
 
             {/* Quick access tools */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-cream">Go-to tools</h3>
                 <button

@@ -19,7 +19,7 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
         <div className="mt-8 flex flex-col gap-3">
           <button
             onClick={onSafe}
-            className="w-full rounded-2xl border border-teal/20 bg-teal/10 py-5 text-left px-5 transition-all hover:border-teal/35 active:scale-[0.98]"
+            className="w-full rounded-2xl border border-teal/18 bg-teal/8 py-5 text-left px-5 transition-all hover:border-teal/35 active:scale-[0.98]"
           >
             <p className="text-base font-medium text-teal-soft">Yes, I&apos;m safe</p>
             <p className="mt-0.5 text-xs text-cream-dim/50">I&apos;m okay to continue on my own</p>
@@ -27,7 +27,7 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
 
           <button
             onClick={onNeedSupport || onSafe}
-            className="w-full rounded-2xl border border-candle/20 bg-candle/8 py-5 text-left px-5 transition-all hover:border-candle/35 active:scale-[0.98]"
+            className="w-full rounded-2xl border border-candle/18 bg-candle/8 py-5 text-left px-5 transition-all hover:border-candle/35 active:scale-[0.98]"
           >
             <p className="text-base font-medium text-candle">I&apos;m not sure</p>
             <p className="mt-0.5 text-xs text-cream-dim/50">I could use some support right now</p>
@@ -35,14 +35,14 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
         </div>
 
         {/* Crisis resources - always visible */}
-        <div className="mt-8 rounded-2xl border border-slate-blue/20 bg-deep/40 p-4">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/40">
+        <div className="mt-8 rounded-2xl border border-teal/10 bg-deep/40 p-4">
+          <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
             If you need to talk to someone
           </p>
           <div className="flex flex-col gap-2">
             <a
               href="tel:988"
-              className="flex items-center justify-between rounded-xl border border-slate-blue/20 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
+              className="flex items-center justify-between rounded-xl border border-teal/12 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
             >
               <div>
                 <p className="text-sm font-medium text-cream">988 Lifeline</p>
@@ -52,7 +52,7 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
             </a>
             <a
               href="sms:741741&body=HOME"
-              className="flex items-center justify-between rounded-xl border border-slate-blue/20 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
+              className="flex items-center justify-between rounded-xl border border-teal/12 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
             >
               <div>
                 <p className="text-sm font-medium text-cream">Crisis Text Line</p>
@@ -73,7 +73,7 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
               href="https://www.psychologytoday.com/us/therapists"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between rounded-xl border border-slate-blue/20 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
+              className="flex items-center justify-between rounded-xl border border-teal/12 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
             >
               <div>
                 <p className="text-sm font-medium text-cream">Find a therapist</p>
@@ -85,7 +85,7 @@ export default function SafetyCheck({ onSafe, onNeedSupport }: SafetyCheckProps)
               href="https://www.openpathcollective.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between rounded-xl border border-slate-blue/20 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
+              className="flex items-center justify-between rounded-xl border border-teal/12 bg-deep/60 px-4 py-3 transition-colors hover:border-teal/20"
             >
               <div>
                 <p className="text-sm font-medium text-cream">Affordable therapy</p>

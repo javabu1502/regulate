@@ -106,7 +106,7 @@ export default function CaregiverPage() {
 
   if (flow === "select") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -124,7 +124,7 @@ export default function CaregiverPage() {
           <div className="flex flex-col gap-3">
             <button
               onClick={() => startFlow("panic")}
-              className="w-full rounded-2xl border border-candle/20 bg-candle/8 p-5 text-left transition-all hover:border-candle/35 active:scale-[0.98]"
+              className="w-full rounded-2xl border border-candle/18 bg-candle/8 p-5 text-left transition-all hover:border-candle/35 active:scale-[0.98]"
             >
               <h3 className="text-base font-medium text-candle">Panic attack in progress</h3>
               <p className="mt-1 text-sm text-cream-dim">They&apos;re panicking right now</p>
@@ -132,7 +132,7 @@ export default function CaregiverPage() {
 
             <button
               onClick={() => startFlow("ongoing")}
-              className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-all hover:border-teal/35 active:scale-[0.98]"
+              className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-all hover:border-teal/35 active:scale-[0.98]"
             >
               <h3 className="text-base font-medium text-cream">Supporting ongoing anxiety</h3>
               <p className="mt-1 text-sm text-cream-dim">They&apos;re struggling but not in crisis</p>
@@ -140,7 +140,7 @@ export default function CaregiverPage() {
 
             <button
               onClick={() => startFlow("after")}
-              className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-all hover:border-teal/35 active:scale-[0.98]"
+              className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-all hover:border-teal/35 active:scale-[0.98]"
             >
               <h3 className="text-base font-medium text-cream">After an episode</h3>
               <p className="mt-1 text-sm text-cream-dim">It&apos;s over - what to do now</p>
@@ -177,7 +177,7 @@ export default function CaregiverPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       {/* Progress */}
       <div className="fixed left-0 right-0 top-0 z-20 h-1 bg-slate-blue/30">
         <div className="h-full bg-teal-soft/60 transition-all duration-500" style={{ width: `${((stepIndex + 1) / flowSteps.length) * 100}%` }} />
@@ -211,7 +211,7 @@ export default function CaregiverPage() {
             {flow === "panic" && stepIndex === 3 && (
               <button
                 onClick={() => setShowBreathing(true)}
-                className="mt-6 rounded-xl border border-teal/20 bg-teal/10 px-5 py-3 text-sm text-teal-soft hover:bg-teal/20"
+                className="mt-6 rounded-2xl border border-teal/18 bg-teal/8 px-5 py-3 text-sm text-teal-soft hover:bg-teal/20"
               >
                 Show breathing guide
               </button>
@@ -225,7 +225,7 @@ export default function CaregiverPage() {
         <div className="above-nav fixed left-0 right-0 flex justify-center gap-4 px-5">
           <button
             onClick={() => setFlow("select")}
-            className="rounded-xl border border-slate-blue/30 px-6 py-3 text-sm text-cream-dim hover:text-cream"
+            className="rounded-xl border border-teal/12 px-6 py-3 text-sm text-cream-dim hover:text-cream"
           >
             Exit
           </button>

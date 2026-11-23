@@ -673,7 +673,7 @@ function SOSPageInner() {
           <a
             key={i}
             href={`tel:${c.phone}`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-blue/20 px-3 py-2 text-xs text-cream-dim/60 transition-colors hover:border-teal/30 hover:text-cream-dim"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-teal/12 px-3 py-2 text-xs text-cream-dim/60 transition-colors hover:border-teal/30 hover:text-cream-dim"
           >
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M3 2.5C3 2.5 4.5 2 5.5 3.5L6.5 5.5C6.5 5.5 5.5 6.5 6.5 8C7.5 9.5 8.5 9 8.5 9L10.5 10C12 11 11.5 12.5 11.5 12.5C10.5 14 8 13.5 6 11.5C4 9.5 2.5 7 3 5C3 5 3 3.5 3 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -756,7 +756,7 @@ function SOSPageInner() {
                 setActiveTool("breathing");
                 startBreathing(sighSteps, SOS_SIGH_CYCLES);
               }}
-              className="w-full rounded-2xl border border-candle/30 bg-candle/10 px-5 py-6 text-center transition-all hover:border-candle/40 active:scale-[0.98]"
+              className="w-full rounded-2xl border border-candle/18 bg-candle/8 px-5 py-6 text-center transition-all hover:border-candle/40 active:scale-[0.98]"
             >
               <span className="block text-lg font-medium text-cream">Just breathe with me</span>
               <span className="mt-1.5 block text-xs text-cream-dim/50">No choices needed, we&apos;ll start right away</span>
@@ -778,7 +778,7 @@ function SOSPageInner() {
                   setSelectedBodyState(opt.id);
                   setStep("context");
                 }}
-                className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 px-5 py-5 text-left transition-all hover:border-teal/30 active:scale-[0.98]"
+                className="w-full rounded-2xl border border-teal/10 bg-deep/40 px-5 py-5 text-left transition-all hover:border-teal/30 active:scale-[0.98]"
               >
                 <span className="block text-base font-medium text-cream">{opt.label}</span>
                 <span className="mt-1 block text-xs text-cream-dim/60">{opt.sub}</span>
@@ -788,7 +788,7 @@ function SOSPageInner() {
             {/* Can't sleep */}
             <button
               onClick={() => router.push("/sleep")}
-              className="w-full rounded-2xl border border-lavender/15 bg-lavender/5 px-5 py-5 text-left transition-all hover:border-lavender/25 active:scale-[0.98]"
+              className="w-full rounded-2xl border border-teal/10 bg-deep/40 px-5 py-5 text-left transition-all hover:border-teal/25 active:scale-[0.98]"
             >
               <span className="block text-base font-medium text-lavender">Can&apos;t sleep</span>
               <span className="mt-1 block text-xs text-cream-dim/60">Restless, racing thoughts, wide awake</span>
@@ -896,7 +896,7 @@ function SOSPageInner() {
           {/* Nothing has helped for a while. Lead with people, not a fourth
               exercise. The tools stay below, this just goes first. */}
           {struggling && (
-            <div className="mt-6 rounded-2xl border border-candle/30 bg-candle/8 p-5">
+            <div className="mt-6 rounded-2xl border border-candle/18 bg-candle/8 p-5">
               <p className="text-sm font-medium text-cream">
                 You&apos;ve been at this a while.
               </p>
@@ -942,9 +942,9 @@ function SOSPageInner() {
           {lastHelped && (
             <button
               onClick={() => startTool(lastHelped.id)}
-              className="mt-6 w-full rounded-xl border border-candle/25 bg-candle/8 px-4 py-3.5 text-left transition-all hover:border-candle/40 active:scale-[0.98]"
+              className="mt-6 w-full rounded-2xl border border-candle/18 bg-candle/8 px-4 py-3.5 text-left transition-all hover:border-candle/40 active:scale-[0.98]"
             >
-              <span className="block text-[10px] font-medium uppercase tracking-widest text-candle-soft/60">
+              <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-candle-soft/60">
                 Helped you last time
               </span>
               <span className="mt-1 block text-sm font-medium text-cream">{lastHelped.label}</span>
@@ -954,12 +954,12 @@ function SOSPageInner() {
           {/* Top recommendation with "why" */}
           {topPick && (
             <div className="mt-8">
-              <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-teal-soft/60">
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                 We recommend
               </p>
               <button
                 onClick={() => startTool(topPick.id)}
-                className="w-full rounded-2xl border border-teal/25 bg-teal/8 px-5 py-5 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
+                className="w-full rounded-2xl border border-teal/18 bg-teal/8 px-5 py-5 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl" role="img" aria-hidden="true">{topPick.icon}</span>
@@ -978,7 +978,7 @@ function SOSPageInner() {
           {/* Other recommended + alternatives */}
           {(otherPicks.length > 0 || alternatives.length > 0) && (
             <div className="mt-6">
-              <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-cream-dim/40">
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                 Or try one of these
               </p>
               <div className="flex flex-col gap-2">
@@ -1073,7 +1073,7 @@ function SOSPageInner() {
           {/* Recommended first */}
           {recommended.length > 0 && (
             <>
-              <p className="mb-2 mt-6 text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+              <p className="mb-2 mt-6 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                 Recommended for you
               </p>
               <div className="flex flex-col gap-2">
@@ -1081,7 +1081,7 @@ function SOSPageInner() {
                   <button
                     key={ex.id}
                     onClick={() => startTool(ex.id)}
-                    className="w-full rounded-xl border border-teal/20 bg-teal/5 px-4 py-4 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
+                    className="w-full rounded-2xl border border-teal/18 bg-teal/8 px-4 py-4 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-base" role="img" aria-hidden="true">{ex.icon}</span>
@@ -1097,7 +1097,7 @@ function SOSPageInner() {
           {/* Others */}
           {remaining.length > 0 && (
             <>
-              <p className="mb-2 mt-6 text-[10px] font-medium uppercase tracking-widest text-cream-dim/30">
+              <p className="mb-2 mt-6 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                 Other exercises
               </p>
               <div className="flex flex-col gap-2">
@@ -1105,7 +1105,7 @@ function SOSPageInner() {
                   <button
                     key={ex.id}
                     onClick={() => startTool(ex.id)}
-                    className="w-full rounded-xl border border-slate-blue/30 bg-deep/40 px-4 py-3.5 text-left transition-all hover:border-teal/20 active:scale-[0.98]"
+                    className="w-full rounded-xl border border-teal/12 bg-deep/40 px-4 py-3.5 text-left transition-all hover:border-teal/20 active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-cream">{ex.label}</span>
@@ -1227,10 +1227,10 @@ function SOSPageInner() {
         <div className="text-center">
           <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center">
             <div className="relative">
-              <div className="absolute -inset-6 animate-pulse-soft rounded-full border border-blue-400/20" />
-              <div className="absolute -inset-3 rounded-full border border-blue-400/15" />
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/10">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-blue-400">
+              <div className="absolute -inset-6 animate-pulse-soft rounded-full border border-indigo/20" />
+              <div className="absolute -inset-3 rounded-full border border-indigo/15" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo/10">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-indigo">
                   <path d="M12 2C12 2 6 10 6 14C6 17.3 8.7 20 12 20C15.3 20 18 17.3 18 14C18 10 12 2 12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
                 </svg>
               </div>
@@ -1398,7 +1398,7 @@ function SOSPageInner() {
                 recordPartialSession();
                 router.push("/crisis");
               }}
-              className="w-full rounded-2xl border border-coral/25 bg-coral/10 py-4 text-base font-medium text-coral transition-all hover:bg-coral/20 active:scale-[0.98]"
+              className="w-full rounded-2xl border border-coral/18 bg-coral/8 py-4 text-base font-medium text-coral transition-all hover:bg-coral/20 active:scale-[0.98]"
             >
               I&apos;m feeling worse
             </button>
@@ -1446,7 +1446,7 @@ function SOSPageInner() {
               <button
                 key={ex.id}
                 onClick={() => startTool(ex.id)}
-                className="w-full rounded-xl border border-slate-blue/30 bg-deep/40 px-4 py-3.5 text-left transition-all hover:border-teal/20 active:scale-[0.98]"
+                className="w-full rounded-xl border border-teal/12 bg-deep/40 px-4 py-3.5 text-left transition-all hover:border-teal/20 active:scale-[0.98]"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-cream">{ex.label}</span>
@@ -1532,7 +1532,7 @@ function SOSPageInner() {
                   } catch {}
                   setCheckBackScheduled(true);
                 }}
-                className="rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-sm text-cream-dim transition-colors hover:border-teal/30 hover:text-cream"
+                className="rounded-2xl border border-teal/12 bg-deep/50 px-8 py-3 text-sm text-cream-dim transition-colors hover:border-teal/30 hover:text-cream"
               >
                 Remind me to check in later
               </button>

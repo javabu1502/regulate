@@ -346,7 +346,7 @@ function regulationLabel(r: Regulation): string {
 function regulationColor(r: Regulation): string {
   if (r === "down") return "bg-teal/10 text-teal-soft";
   if (r === "up") return "bg-candle/10 text-candle";
-  return "bg-purple-400/10 text-purple-300";
+  return "bg-lavender/10 text-lavender";
 }
 
 function getSortedTechniques(nsState: NSState | null): ExerciseInfo[] {
@@ -764,7 +764,7 @@ function SomaticPageInner() {
 
   if (screen === "select") {
     return (
-      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -791,7 +791,7 @@ function SomaticPageInner() {
               const renderCard = (ex: ExerciseInfo) => (
                 <div
                   key={ex.id}
-                  className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]"
+                  className="relative w-full rounded-2xl border border-teal/12 bg-deep/50 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]"
                 >
                   <button
                     onClick={() => selectTechnique(ex.id)}
@@ -823,7 +823,7 @@ function SomaticPageInner() {
                 <>
                   {calming.length > 0 && (
                     <div>
-                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-teal-soft/60">
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                         Calming
                       </p>
                       <p className="mb-3 text-xs text-cream-dim/40">Slow your system down</p>
@@ -835,7 +835,7 @@ function SomaticPageInner() {
 
                   {energizing.length > 0 && (
                     <div>
-                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-candle/50">
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-candle/50">
                         Energizing
                       </p>
                       <p className="mb-3 text-xs text-cream-dim/40">Wake your body up gently</p>
@@ -847,7 +847,7 @@ function SomaticPageInner() {
 
                   {both.length > 0 && (
                     <div>
-                      <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-cream-dim/40">
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                         Calming & energizing
                       </p>
                       <p className="mb-3 text-xs text-cream-dim/40">Works either way</p>
@@ -869,7 +869,7 @@ function SomaticPageInner() {
 
   if (screen === "info") {
     return (
-      <div key="info" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="info" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           {renderBackButton({ onClick: resetToSelect, label: "Exercises" })}
 
@@ -884,13 +884,13 @@ function SomaticPageInner() {
           </header>
 
           {/* Why it works */}
-          <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-teal-soft/70">Why this works</p>
+          <div className="mb-4 rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
+            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Why this works</p>
             <p className="text-sm leading-relaxed text-cream/90">{currentExercise.why}</p>
           </div>
 
           {/* Regulation type */}
-          <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+          <div className="mb-4 rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
             <p className="text-sm text-cream-dim">
               This exercise is{" "}
               <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${regulationColor(currentExercise.regulation)}`}>
@@ -901,7 +901,7 @@ function SomaticPageInner() {
 
           {/* How-to for bilateral tapping */}
           {technique === "bilateral-tapping" && (
-            <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-4 backdrop-blur-sm">
+            <div className="mb-4 rounded-2xl border border-teal/12 bg-deep/50 p-4 backdrop-blur-sm">
               <p className="text-xs leading-relaxed text-cream-dim">
                 Cross your arms over your chest, hands on opposite shoulders. Tap one hand at a time, alternating left and right with the rhythm on screen.
               </p>
@@ -913,7 +913,7 @@ function SomaticPageInner() {
 
           {/* Movement exercises */}
           {(technique === "body-shaking" || technique === "air-punching" || technique === "dancing") && (
-            <div className="mb-4 rounded-2xl border border-candle/15 bg-candle/5 p-4 backdrop-blur-sm">
+            <div className="mb-4 rounded-2xl border border-candle/18 bg-candle/8 p-4 backdrop-blur-sm">
               <p className="text-xs leading-relaxed text-cream-dim">
                 Go at your own pace and intensity. Music can help if you have it. You can be as big or as gentle as you want. Both work. Stop any time if you need to.
               </p>
@@ -923,7 +923,7 @@ function SomaticPageInner() {
           {/* Who should skip this. Deliberately its own block, not folded into
               "Why this works", and placed where the start button is. */}
           {currentExercise.caution && (
-            <div className="mb-4 rounded-2xl border border-coral/30 bg-coral/8 p-5">
+            <div className="mb-4 rounded-2xl border border-coral/18 bg-coral/8 p-5">
               <div className="flex items-start gap-2.5">
                 <svg className="mt-0.5 h-4 w-4 shrink-0 text-coral" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
                   <path d="M10 2.5L18 17H2L10 2.5Z" />
@@ -940,13 +940,13 @@ function SomaticPageInner() {
 
           {/* Duration - only show selector for exercises without fixed steps */}
           {currentExercise.sessionSteps ? (
-            <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="mb-4 rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="text-center text-sm text-cream-dim">
                 About {duration} min
               </p>
             </div>
           ) : (
-            <div className="mb-4 rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="mb-4 rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-center text-sm text-cream-dim">Duration</p>
               <div className="flex justify-center gap-3">
                 {durationOptions.map((n) => (
@@ -1174,7 +1174,7 @@ function SomaticPageInner() {
           </p>
           <p className="mb-6 text-xs text-teal-soft/70">{phaseNames[phaseIndex]} tracking</p>
 
-          <div className="relative h-[300px] w-[300px] rounded-2xl border border-slate-blue/20 bg-deep/40">
+          <div className="relative h-[300px] w-[300px] rounded-2xl border border-teal/10 bg-deep/40">
             <div
               className="absolute h-3 w-3 rounded-full bg-teal-soft shadow-lg shadow-teal/30"
               style={{

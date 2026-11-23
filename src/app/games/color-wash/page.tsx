@@ -511,7 +511,7 @@ export default function ColorWashPage() {
           {/* Auto color toggle */}
           <button
             onClick={() => setAutoColor(!autoColor)}
-            className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide transition-all duration-200 ${
+            className={`rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] transition-all duration-200 ${
               autoColor
                 ? "bg-teal/20 text-teal-soft"
                 : "bg-cream/8 text-cream-dim/50"
@@ -606,7 +606,7 @@ export default function ColorWashPage() {
               showHelp ? "mt-2 max-h-60 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <div className="rounded-2xl border border-teal/15 bg-deep/80 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
               Repetitive, gentle movement with no goal gives your nervous system
               permission to slow down. The colors and motion engage your senses
               without demanding anything from you.

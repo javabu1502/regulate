@@ -24,23 +24,23 @@ interface StateOption {
 const states: StateOption[] = [
   {
     id: "hyperactivated",
-    dotColor: "bg-red-400",
+    dotColor: "bg-coral",
     name: "Hyperactivated",
     description: "Fight or flight. Racing heart, panic, can't sit still.",
-    color: "text-red-400",
+    color: "text-coral",
     glowColor: "shadow-red-500/20",
-    selectedBorder: "border-red-400/50",
-    selectedBg: "bg-red-500/10",
+    selectedBorder: "border-coral/50",
+    selectedBg: "bg-coral/10",
   },
   {
     id: "activated",
-    dotColor: "bg-amber-400",
+    dotColor: "bg-candle",
     name: "Activated",
     description: "On edge. Anxious, tense, worried.",
-    color: "text-amber-400",
+    color: "text-candle",
     glowColor: "shadow-amber-500/20",
-    selectedBorder: "border-amber-400/50",
-    selectedBg: "bg-amber-500/10",
+    selectedBorder: "border-candle/50",
+    selectedBg: "bg-candle/10",
   },
   {
     id: "window",
@@ -54,13 +54,13 @@ const states: StateOption[] = [
   },
   {
     id: "hypoactivated",
-    dotColor: "bg-blue-400",
+    dotColor: "bg-indigo",
     name: "Hypoactivated",
     description: "Freeze or shutdown. Numb, foggy, disconnected, exhausted.",
-    color: "text-blue-400",
+    color: "text-indigo",
     glowColor: "shadow-blue-500/20",
-    selectedBorder: "border-blue-400/50",
-    selectedBg: "bg-blue-500/10",
+    selectedBorder: "border-indigo/50",
+    selectedBg: "bg-indigo/10",
   },
 ];
 
@@ -112,7 +112,7 @@ export default function NSStateSelector({
               className={`w-full rounded-2xl border p-4 text-left transition-all duration-300 ${
                 isSelected
                   ? `${s.selectedBorder} ${s.selectedBg} shadow-lg ${s.glowColor} animate-pulse-soft`
-                  : "border-slate-blue/30 bg-deep/50 hover:border-slate-blue/50 active:scale-[0.98]"
+                  : "border-teal/12 bg-deep/50 hover:border-teal/25 active:scale-[0.98]"
               }`}
             >
               <div className="flex items-center gap-3">

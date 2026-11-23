@@ -213,7 +213,7 @@ export default function BodyScanPage() {
 
   if (screen === "intro") {
     return (
-      <div key="intro" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="intro" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -230,7 +230,7 @@ export default function BodyScanPage() {
           </header>
 
           {/* Scan mode picker */}
-          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-6 backdrop-blur-sm">
+          <div className="rounded-2xl border border-teal/12 bg-deep/50 p-6 backdrop-blur-sm">
             <p className="mb-4 text-center text-sm text-cream-dim">Scan depth</p>
             <div className="flex justify-center gap-3">
               {([
@@ -253,7 +253,7 @@ export default function BodyScanPage() {
           </div>
 
           {/* Duration picker */}
-          <div className="mt-3 rounded-2xl border border-teal/15 bg-deep/60 p-6 backdrop-blur-sm">
+          <div className="mt-3 rounded-2xl border border-teal/12 bg-deep/50 p-6 backdrop-blur-sm">
             <p className="mb-4 text-center text-sm text-cream-dim">How long?</p>
             <div className="flex justify-center gap-3">
               {durationOptions.map((n) => (
@@ -344,7 +344,7 @@ export default function BodyScanPage() {
           {/* Advance region - large, bottom-reachable */}
           <button
             onClick={advanceRegion}
-            className="mt-6 w-full max-w-[200px] rounded-2xl border border-teal/20 bg-deep/60 py-4 text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream active:scale-[0.98]"
+            className="mt-6 w-full max-w-[200px] rounded-2xl border border-teal/12 bg-deep/50 py-4 text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream active:scale-[0.98]"
           >
             Next region
           </button>

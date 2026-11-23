@@ -794,7 +794,7 @@ export default function BreathingGardenPage() {
           </button>
 
           <div className={`overflow-hidden transition-all duration-300 ease-out ${showHelp ? "mt-2 max-h-60 opacity-100" : "max-h-0 opacity-0"}`}>
-            <div className="rounded-2xl border border-teal/15 bg-deep/80 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
               Longer exhales than inhales tell your nervous system it&apos;s safe to calm down.
               Each flower is one completed breath &mdash; watch your garden grow as you settle.
             </div>

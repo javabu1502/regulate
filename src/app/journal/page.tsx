@@ -641,7 +641,7 @@ function JournalPageInner() {
 
   if (screen === "list") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -684,10 +684,10 @@ function JournalPageInner() {
 
           {/* Reflective prompt card */}
           {reflectionPrompt && !reflectionDismissed && entries.length >= 3 && (
-            <div className="mb-6 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
+            <div className="mb-6 rounded-2xl border border-teal/10 bg-deep/40 p-5">
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] uppercase tracking-widest text-purple-300/60">Reflection</p>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-lavender/60">Reflection</p>
                   <p className="mt-2 text-sm leading-relaxed text-cream">
                     &ldquo;{reflectionPrompt}&rdquo;
                   </p>
@@ -705,7 +705,7 @@ function JournalPageInner() {
               <div className="mt-4 flex items-center gap-3">
                 <button
                   onClick={handleReflect}
-                  className="flex-1 rounded-xl bg-purple-400/15 py-2.5 text-sm text-purple-200 transition-colors hover:bg-purple-400/25"
+                  className="flex-1 rounded-xl bg-lavender/15 py-2.5 text-sm text-lavender-soft transition-colors hover:bg-lavender/25"
                 >
                   Reflect on this
                 </button>
@@ -729,7 +729,7 @@ function JournalPageInner() {
 
           <button
             onClick={() => setScreen("quick-log")}
-            className="mb-6 -mt-4 w-full rounded-2xl border border-slate-blue/25 bg-deep/50 py-3.5 text-sm text-cream-dim transition-all hover:border-teal/20 active:scale-[0.98]"
+            className="mb-6 -mt-4 w-full rounded-2xl border border-teal/10 bg-deep/40 py-3.5 text-sm text-cream-dim transition-all hover:border-teal/20 active:scale-[0.98]"
           >
             Quick log
           </button>
@@ -746,7 +746,7 @@ function JournalPageInner() {
               {entries.length >= 3 && (
                 <button
                   onClick={() => { if (!reflectionPrompt) setReflectionPrompt(getReflectionPrompt()); setScreen("reflect"); }}
-                  className="rounded-full px-4 py-2 text-sm text-purple-300/70 transition-colors hover:text-purple-200"
+                  className="rounded-full px-4 py-2 text-sm text-lavender/70 transition-colors hover:text-lavender-soft"
                 >
                   Reflect
                 </button>
@@ -781,15 +781,15 @@ function JournalPageInner() {
               {entries.length > 0 && (
                 <div className="mb-6">
                   <div className="mb-3 grid grid-cols-3 gap-2">
-                    <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                    <div className="rounded-2xl border border-teal/12 bg-deep/50 p-3 text-center">
                       <p className="text-lg font-medium text-cream">{entries.length}</p>
                       <p className="text-xs text-cream-dim/60">Logged</p>
                     </div>
-                    <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                    <div className="rounded-2xl border border-teal/12 bg-deep/50 p-3 text-center">
                       <p className="text-lg font-medium text-cream">{avgIntensity}</p>
                       <p className="text-xs text-cream-dim/60">Avg intensity</p>
                     </div>
-                    <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                    <div className="rounded-2xl border border-teal/12 bg-deep/50 p-3 text-center">
                       <p className="truncate text-sm font-medium text-cream">{topTechnique}</p>
                       <p className="text-xs text-cream-dim/60">Most helpful</p>
                     </div>
@@ -808,14 +808,14 @@ function JournalPageInner() {
 
               {/* Insights dashboard */}
               {dashboard && entries.length >= 3 && (
-                  <div className="mb-6 rounded-2xl border border-teal/15 bg-deep/60 p-5">
+                  <div className="mb-6 rounded-2xl border border-teal/12 bg-deep/50 p-5">
                     <p className="mb-4 text-xs leading-relaxed text-cream-dim/60">
                       Here&apos;s what your body has been telling you
                     </p>
 
                     {/* This week summary */}
                     <div className="mb-5">
-                      <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">This week</p>
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">This week</p>
                       <p className="mb-2 text-sm text-cream">
                         {dashboard.thisWeekCount} session{dashboard.thisWeekCount !== 1 ? "s" : ""} this week
                       </p>
@@ -836,7 +836,7 @@ function JournalPageInner() {
                     {/* Technique effectiveness */}
                     {dashboard.techniqueEffectiveness.length > 0 && (
                       <div className="mb-5">
-                        <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">What helps</p>
+                        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">What helps</p>
                         <div className="space-y-2">
                           {dashboard.techniqueEffectiveness.map((t) => (
                             <div key={t.name}>
@@ -859,7 +859,7 @@ function JournalPageInner() {
                     {/* Average intensity */}
                     {dashboard.avgIntensity !== null && (
                       <div className="mb-5">
-                        <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">Average intensity</p>
+                        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Average intensity</p>
                         <p className="text-sm text-cream">
                           {dashboard.avgIntensity.toFixed(1)}/10
                           {dashboard.lastMonthAvg !== null && (
@@ -878,7 +878,7 @@ function JournalPageInner() {
                     {/* Most common triggers */}
                     {dashboard.topTriggers.length > 0 && (
                       <div>
-                        <p className="mb-2 text-[10px] uppercase tracking-wider text-cream-dim/30">Common triggers</p>
+                        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Common triggers</p>
                         <p className="text-sm text-cream">
                           {dashboard.topTriggers.map((t, i) => (
                             <span key={t.name}>
@@ -907,7 +907,7 @@ function JournalPageInner() {
                       onClick={() => { setDetailEntry(entry); setScreen("detail"); }}
                       className={`w-full rounded-xl border p-4 text-left transition-colors ${
                         entry.type === "reflection"
-                          ? "border-l-2 border-l-purple-400/40 border-t-purple-400/10 border-r-purple-400/10 border-b-purple-400/10 bg-purple-400/5 hover:border-l-purple-400/60"
+                          ? "border-l-2 border-l-purple-400/40 border-t-purple-400/10 border-r-purple-400/10 border-b-purple-400/10 bg-lavender/5 hover:border-l-purple-400/60"
                           : entry.type === "micro"
                           ? "border-l-2 border-l-teal/30 border-t-teal/10 border-r-teal/10 border-b-teal/10 bg-teal/5 hover:border-l-teal/50"
                           : "border-teal/10 bg-deep/40 hover:border-teal/25"
@@ -916,7 +916,7 @@ function JournalPageInner() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {entry.type === "reflection" ? (
-                            <span className="rounded-md bg-purple-400/15 px-2 py-0.5 text-xs font-medium text-purple-300/80">Reflection</span>
+                            <span className="rounded-md bg-lavender/15 px-2 py-0.5 text-xs font-medium text-lavender/80">Reflection</span>
                           ) : entry.type === "micro" ? (
                             <span className="rounded-md bg-teal/15 px-2 py-0.5 text-xs font-medium text-teal-soft/80">Quick note</span>
                           ) : (
@@ -968,7 +968,7 @@ function JournalPageInner() {
                     return (
                       <div
                         key={`${session.ts}-${i}`}
-                        className="w-full rounded-xl border border-teal/10 bg-deep/40 p-4 text-left"
+                        className="w-full rounded-2xl border border-teal/10 bg-deep/40 p-4 text-left"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -1015,15 +1015,15 @@ function JournalPageInner() {
               <>
                 {/* Pattern summary */}
                 <div className="mb-6 grid grid-cols-3 gap-2">
-                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                  <div className="rounded-2xl border border-teal/12 bg-deep/50 p-3 text-center">
                     <p className="text-lg font-medium text-cream">{totalSessions}</p>
                     <p className="text-xs text-cream-dim/60">Sessions</p>
                   </div>
-                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                  <div className="rounded-2xl border border-teal/12 bg-deep/50 p-3 text-center">
                     <p className="text-lg font-medium text-cream">{betterPct}%</p>
                     <p className="text-xs text-cream-dim/60">Felt better</p>
                   </div>
-                  <div className="rounded-xl border border-teal/15 bg-deep/60 p-3 text-center">
+                  <div className="rounded-2xl border border-teal/12 bg-deep/50 p-3 text-center">
                     <p className="truncate text-sm font-medium text-cream">{tlTopTechnique ? tlTopTechnique[0] : "-"}</p>
                     <p className="text-xs text-cream-dim/60">Most used</p>
                   </div>
@@ -1033,7 +1033,7 @@ function JournalPageInner() {
                 <div className="flex flex-col gap-4">
                   {dateKeys.map((dateKey) => (
                     <div key={dateKey}>
-                      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-cream-dim/40">
+                      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                         {formatDate(new Date(dateKey).getTime() + 86400000)}
                       </p>
                       <div className="flex flex-col gap-1.5">
@@ -1044,7 +1044,7 @@ function JournalPageInner() {
                           return (
                             <div
                               key={`${dateKey}-${i}`}
-                              className="flex items-center gap-3 rounded-xl border border-teal/10 bg-deep/40 px-4 py-3"
+                              className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3"
                             >
                               <div className={`h-2 w-2 shrink-0 rounded-full ${
                                 response === "better" ? "bg-teal-soft" :
@@ -1074,7 +1074,7 @@ function JournalPageInner() {
           {tab === "insights" && insights && (
             <div className="flex flex-col gap-3">
               {/* Calm streak */}
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/15">
                     <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 20 20" fill="none"><path d="M10 2L12.5 7.5H17.5L13.5 11L15 17L10 13.5L5 17L6.5 11L2.5 7.5H7.5L10 2Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /></svg>
@@ -1087,7 +1087,7 @@ function JournalPageInner() {
               </div>
 
               {/* Intensity trend */}
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-sm font-medium text-cream">Intensity trend</h3>
                   <span className={`rounded-full px-2 py-0.5 text-xs ${
@@ -1103,7 +1103,7 @@ function JournalPageInner() {
               </div>
 
               {/* Most common time */}
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-candle/10">
                     <svg className="h-5 w-5 text-candle-soft" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.2" /><path d="M10 5V10L13 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg>
@@ -1116,7 +1116,7 @@ function JournalPageInner() {
               </div>
 
               {/* Top triggers */}
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <h3 className="mb-3 text-sm font-medium text-cream">Top triggers</h3>
                 <div className="space-y-2">
                   {insights.topTriggers.map(([trigger, count]) => (
@@ -1129,7 +1129,7 @@ function JournalPageInner() {
               </div>
 
               {/* Most helpful */}
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/15">
                     <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 20 20" fill="none"><path d="M10 17.5L2 10C0.5 8.5 0.5 5.5 2 4C3.5 2.5 6 2.5 7.5 4L10 6.5L12.5 4C14 2.5 16.5 2.5 18 4C19.5 5.5 19.5 8.5 18 10L10 17.5Z" stroke="currentColor" strokeWidth="1.2" /></svg>
@@ -1142,7 +1142,7 @@ function JournalPageInner() {
               </div>
 
               {/* Monthly comparison */}
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <h3 className="mb-3 text-sm font-medium text-cream">Monthly comparison</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-xl bg-slate-blue/30 p-3 text-center">
@@ -1157,7 +1157,7 @@ function JournalPageInner() {
               </div>
 
               {/* Best week */}
-              <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+              <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal/15">
                     <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 20 20" fill="none"><path d="M5 10L9 14L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -1171,7 +1171,7 @@ function JournalPageInner() {
 
               {/* Correlations */}
               {insights.correlations && insights.correlations.length > 0 && (
-                <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+                <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
                   <h3 className="mb-3 text-sm font-medium text-cream">Patterns we noticed</h3>
                   <div className="space-y-2.5">
                     {insights.correlations.map((c: string, i: number) => (
@@ -1186,7 +1186,7 @@ function JournalPageInner() {
               {/* Share with therapist */}
               <button
                 onClick={downloadTherapistSummary}
-                className="mt-2 w-full rounded-2xl border border-teal/15 bg-deep/60 py-4 text-sm text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-2"
+                className="mt-2 w-full rounded-2xl border border-teal/12 bg-deep/50 py-4 text-sm text-teal-soft transition-colors hover:border-teal/30 flex items-center justify-center gap-2"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
                   <path d="M8 2v8M8 10L5 7M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -1195,7 +1195,7 @@ function JournalPageInner() {
               </button>
               <button
                 onClick={shareInsights}
-                className="w-full rounded-2xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/60 transition-colors hover:text-cream-dim"
+                className="w-full rounded-2xl border border-teal/10 bg-deep/40 py-3 text-xs text-cream-dim/60 transition-colors hover:text-cream-dim"
               >
                 {copied ? "Copied to clipboard" : "Or copy summary to clipboard"}
               </button>
@@ -1210,7 +1210,7 @@ function JournalPageInner() {
 
   if (screen === "quick-log") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
@@ -1220,7 +1220,7 @@ function JournalPageInner() {
           </header>
 
           {/* Intensity */}
-          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+          <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
             <p className="mb-3 text-sm text-cream-dim">How intense was it?</p>
             <div className="flex items-center gap-3">
               <input
@@ -1280,7 +1280,7 @@ function JournalPageInner() {
 
   if (screen === "log") {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
@@ -1291,13 +1291,13 @@ function JournalPageInner() {
 
           <div className="flex flex-col gap-5">
             {/* Nervous system state */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-sm text-cream-dim">Nervous system state</p>
               <NSStateSelector compact onSelect={(s) => setNsState(s)} />
             </div>
 
             {/* Intensity */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-sm text-cream-dim">Intensity</p>
               <div className="flex items-center gap-3">
                 <input
@@ -1318,7 +1318,7 @@ function JournalPageInner() {
             </div>
 
             {/* Duration */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-sm text-cream-dim">How long did it last?</p>
               <div className="grid grid-cols-2 gap-2">
                 {durationOptions.map((d) => (
@@ -1338,7 +1338,7 @@ function JournalPageInner() {
             </div>
 
             {/* Triggers */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-sm text-cream-dim">What triggered it?</p>
               <div className="flex flex-wrap gap-2">
                 {triggerOptions.map((t) => (
@@ -1358,7 +1358,7 @@ function JournalPageInner() {
             </div>
 
             {/* Techniques */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-sm text-cream-dim">What helped?</p>
               <div className="flex flex-wrap gap-2">
                 {techniqueOptions.map((t) => (
@@ -1378,20 +1378,20 @@ function JournalPageInner() {
             </div>
 
             {/* Reflection */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-sm text-cream-dim">Anything else? (optional)</p>
               <textarea
                 value={reflection}
                 onChange={(e) => setReflection(e.target.value)}
                 placeholder="How are you feeling now..."
                 rows={3}
-                className="w-full resize-none rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                className="w-full resize-none rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
               <p className="mt-2 text-xs text-cream-dim/40">Private to you - stored only on this device</p>
             </div>
 
             {/* Journaling prompts */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <button onClick={() => setShowPrompts(!showPrompts)} className="flex w-full items-center justify-between">
                 <span className="text-sm text-cream-dim">Journaling prompts</span>
                 <svg
@@ -1410,7 +1410,7 @@ function JournalPageInner() {
                     <button
                       key={prompt}
                       onClick={() => setReflection((prev) => prev ? prev + "\n\n" + prompt : prompt)}
-                      className="rounded-xl border border-teal/10 bg-deep/40 p-3 text-left text-xs text-cream-dim/60 transition-colors hover:border-teal/25 hover:text-cream-dim"
+                      className="rounded-2xl border border-teal/10 bg-deep/40 p-3 text-left text-xs text-cream-dim/60 transition-colors hover:border-teal/25 hover:text-cream-dim"
                     >
                       {prompt}
                     </button>
@@ -1463,39 +1463,39 @@ function JournalPageInner() {
     }
 
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
           <header className="mb-6 mt-6 text-center">
-            <p className="text-[10px] uppercase tracking-widest text-purple-300/60">Guided reflection</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-lavender/60">Guided reflection</p>
             <h1 className="mt-2 text-lg font-medium text-cream">A moment to pause</h1>
             <p className="mt-1 text-sm text-cream-dim">No right answers. Just honesty with yourself.</p>
           </header>
 
           <div className="flex flex-col gap-5">
             {/* Prompt card */}
-            <div className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-5">
+            <div className="rounded-2xl border border-teal/10 bg-deep/40 p-5">
               <p className="text-sm leading-relaxed text-cream italic">
                 &ldquo;{currentPrompt}&rdquo;
               </p>
               <button
                 onClick={shufflePrompt}
-                className="mt-3 text-xs text-purple-300/40 transition-colors hover:text-purple-300/70"
+                className="mt-3 text-xs text-lavender/40 transition-colors hover:text-lavender/70"
               >
                 Try a different prompt
               </button>
             </div>
 
             {/* Response textarea */}
-            <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm">
               <p className="mb-3 text-sm text-cream-dim">Your thoughts</p>
               <textarea
                 value={reflection}
                 onChange={(e) => setReflection(e.target.value)}
                 placeholder="Take your time..."
                 rows={6}
-                className="w-full resize-none rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-purple-400/30 focus:outline-none"
+                className="w-full resize-none rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-lavender/30 focus:outline-none"
                 autoFocus
               />
               <p className="mt-2 text-xs text-cream-dim/40">Private to you - stored only on this device</p>
@@ -1507,7 +1507,7 @@ function JournalPageInner() {
               disabled={!reflection.trim()}
               className={`w-full rounded-2xl py-4 text-base font-medium transition-all duration-300 active:scale-[0.98] ${
                 reflection.trim()
-                  ? "bg-purple-400/15 text-purple-200 hover:bg-purple-400/25"
+                  ? "bg-lavender/15 text-lavender-soft hover:bg-lavender/25"
                   : "bg-slate-blue/20 text-cream-dim/30 cursor-not-allowed"
               }`}
             >
@@ -1547,7 +1547,7 @@ function JournalPageInner() {
 
   if (screen === "detail" && detailEntry) {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           {renderBackButton({ onClick: () => setScreen("list"), label: "Journal" })}
 
@@ -1558,7 +1558,7 @@ function JournalPageInner() {
                 <p className="text-xs text-cream-dim/50">{formatTime(detailEntry.timestamp)}</p>
               </div>
               {detailEntry.type === "reflection" ? (
-                <span className="rounded-lg bg-purple-400/15 px-3 py-1 text-sm font-medium text-purple-300/80">Reflection</span>
+                <span className="rounded-lg bg-lavender/15 px-3 py-1 text-sm font-medium text-lavender/80">Reflection</span>
               ) : detailEntry.type === "micro" ? (
                 <span className="rounded-lg bg-teal/15 px-3 py-1 text-sm font-medium text-teal-soft/80">Quick note</span>
               ) : (
@@ -1570,8 +1570,8 @@ function JournalPageInner() {
 
             <div className="flex flex-col gap-4">
               {detailEntry.type === "reflection" && detailEntry.prompt && (
-                <div className="rounded-xl border border-purple-400/15 bg-purple-400/5 p-4">
-                  <p className="mb-1 text-xs text-purple-300/50">Prompt</p>
+                <div className="rounded-xl border border-lavender/15 bg-lavender/5 p-4">
+                  <p className="mb-1 text-xs text-lavender/50">Prompt</p>
                   <p className="text-sm italic leading-relaxed text-cream-dim">&ldquo;{detailEntry.prompt}&rdquo;</p>
                 </div>
               )}
@@ -1579,12 +1579,12 @@ function JournalPageInner() {
               {detailEntry.type === "micro" && (
                 <>
                   {detailEntry.technique && (
-                    <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                    <div className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
                       <p className="mb-1 text-xs text-cream-dim/50">After</p>
                       <p className="text-sm text-cream">{detailEntry.technique}</p>
                     </div>
                   )}
-                  <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                  <div className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
                     <p className="mb-1 text-xs text-cream-dim/50">Note</p>
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-cream-dim">{detailEntry.content || detailEntry.reflection}</p>
                   </div>
@@ -1592,21 +1592,21 @@ function JournalPageInner() {
               )}
 
               {detailEntry.nsState && (
-                <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                <div className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
                   <p className="mb-1 text-xs text-cream-dim/50">Nervous system state</p>
                   <p className="text-sm text-cream capitalize">{detailEntry.nsState === "window" ? "Window of Tolerance" : detailEntry.nsState}</p>
                 </div>
               )}
 
               {detailEntry.duration && (
-                <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                <div className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
                   <p className="mb-1 text-xs text-cream-dim/50">Duration</p>
                   <p className="text-sm text-cream">{detailEntry.duration}</p>
                 </div>
               )}
 
               {detailEntry.triggers.length > 0 && (
-                <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                <div className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
                   <p className="mb-2 text-xs text-cream-dim/50">Triggers</p>
                   <div className="flex flex-wrap gap-1.5">
                     {detailEntry.triggers.map((t) => (
@@ -1617,7 +1617,7 @@ function JournalPageInner() {
               )}
 
               {detailEntry.techniques.length > 0 && (
-                <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                <div className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
                   <p className="mb-2 text-xs text-cream-dim/50">What helped</p>
                   <div className="flex flex-wrap gap-1.5">
                     {detailEntry.techniques.map((t) => (
@@ -1628,7 +1628,7 @@ function JournalPageInner() {
               )}
 
               {detailEntry.reflection && (
-                <div className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+                <div className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
                   <p className="mb-1 text-xs text-cream-dim/50">Reflection</p>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-cream-dim">{detailEntry.reflection}</p>
                 </div>

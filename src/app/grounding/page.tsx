@@ -243,7 +243,7 @@ function GroundingPageInner() {
 
   if (screen === "select") {
     return (
-      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -262,7 +262,7 @@ function GroundingPageInner() {
           </header>
 
           <div className="flex flex-col gap-3">
-            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
+            <div className="relative w-full rounded-2xl border border-teal/12 bg-deep/50 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
               <button
                 onClick={() => selectType("sensory")}
                 className="group w-full text-left pr-6"
@@ -277,7 +277,7 @@ function GroundingPageInner() {
               />
             </div>
 
-            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
+            <div className="relative w-full rounded-2xl border border-teal/12 bg-deep/50 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
               <button
                 onClick={() => selectType("body")}
                 className="group w-full text-left pr-6"
@@ -292,7 +292,7 @@ function GroundingPageInner() {
               />
             </div>
 
-            <div className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
+            <div className="relative w-full rounded-2xl border border-teal/12 bg-deep/50 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]">
               <button
                 onClick={() => selectType("object")}
                 className="group w-full text-left pr-6"
@@ -316,7 +316,7 @@ function GroundingPageInner() {
 
   if (screen === "intro") {
     return (
-      <div key="intro" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="intro" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <button
             onClick={() => setScreen("select")}
@@ -333,7 +333,7 @@ function GroundingPageInner() {
 
             {groundingType === "sensory" && (
               <>
-                <h1 className="text-2xl font-light tracking-tight text-cream">
+                <h1 className="text-xl font-light tracking-tight text-cream">
                   Let&apos;s bring you back<br />to the present.
                 </h1>
                 <p className="mt-4 text-sm leading-relaxed text-cream-dim">
@@ -346,7 +346,7 @@ function GroundingPageInner() {
 
             {groundingType === "body" && (
               <>
-                <h1 className="text-2xl font-light tracking-tight text-cream">
+                <h1 className="text-xl font-light tracking-tight text-cream">
                   Feel your body<br />right here, right now.
                 </h1>
                 <p className="mt-4 text-sm leading-relaxed text-cream-dim">
@@ -359,7 +359,7 @@ function GroundingPageInner() {
 
             {groundingType === "object" && (
               <>
-                <h1 className="text-2xl font-light tracking-tight text-cream">
+                <h1 className="text-xl font-light tracking-tight text-cream">
                   Pick up one object near you.
                   <br />
                   Hold it.
@@ -394,7 +394,7 @@ function GroundingPageInner() {
     return (
       <div
         key="session-sensory"
-        className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8"
+        className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10"
         onClick={(e) => {
           if ((e.target as HTMLElement).closest("button")) return;
           setControlsHidden((h) => !h);

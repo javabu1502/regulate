@@ -173,7 +173,7 @@ export default function TherapistSummary() {
   return (
     <button
       onClick={handleShare}
-      className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30"
+      className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-teal/30"
     >
       <h3 className="text-sm font-medium text-cream">
         {status === "copied"

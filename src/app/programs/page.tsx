@@ -49,7 +49,7 @@ export default function ProgramsPage() {
     : null;
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <Link
           href="/"
@@ -86,11 +86,11 @@ export default function ProgramsPage() {
         {/* First Week Program Card */}
         <Link
           href="/programs/first-week"
-          className="block w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
+          className="block w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 transition-colors hover:border-teal/30"
         >
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                 7-day program
               </p>
               <h2 className="mt-1.5 text-base font-medium text-cream">
@@ -177,10 +177,10 @@ export default function ProgramsPage() {
         </Link>
 
         {/* 3-Day Nervous System Reset */}
-        <div className="mt-4 w-full rounded-2xl border border-lavender/15 bg-deep/60 p-5">
+        <div className="mt-4 w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-lavender/50">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-lavender/50">
                 3-day program
               </p>
               <h2 className="mt-1.5 text-base font-medium text-cream">
@@ -208,10 +208,10 @@ export default function ProgramsPage() {
         </div>
 
         {/* 5-Day Sleep Recovery */}
-        <div className="mt-4 w-full rounded-2xl border border-candle/15 bg-deep/60 p-5">
+        <div className="mt-4 w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-candle/50">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-candle/50">
                 5-day program
               </p>
               <h2 className="mt-1.5 text-base font-medium text-cream">
@@ -242,10 +242,10 @@ export default function ProgramsPage() {
         </div>
 
         {/* 10-Day Anxiety Management */}
-        <div className="mt-4 w-full rounded-2xl border border-teal/10 bg-deep/60 p-5">
+        <div className="mt-4 w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/40">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                 10-day program
               </p>
               <h2 className="mt-1.5 text-base font-medium text-cream">

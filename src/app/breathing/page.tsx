@@ -474,7 +474,7 @@ function BreathingPageInner() {
 
   if (screen === "select") {
     return (
-      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="select" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link
             href="/"
@@ -502,7 +502,7 @@ function BreathingPageInner() {
               return (
                 <div
                   key={p.id}
-                  className="relative w-full rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]"
+                  className="relative w-full rounded-2xl border border-teal/12 bg-deep/50 px-4 py-3.5 text-left backdrop-blur-sm transition-all duration-300 hover:border-teal/35 active:scale-[0.98]"
                 >
                   <button
                     onClick={() => selectAndShowIntro(p)}

@@ -146,7 +146,7 @@ function OnboardingPageInner() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-16 pt-12">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       {/* Skip link */}
       <div className="fixed right-5 top-5 z-10">
         <button onClick={skip} className="min-h-[44px] text-xs text-cream-dim/50 transition-colors hover:text-cream-dim">
@@ -213,7 +213,7 @@ function OnboardingPageInner() {
                   className={`w-full rounded-xl border py-4 text-left px-5 text-sm transition-all ${
                     reasons.includes(r)
                       ? "border-teal/40 bg-teal/15 text-teal-soft"
-                      : "border-slate-blue/30 bg-deep/40 text-cream-dim hover:border-teal/20"
+                      : "border-teal/12 bg-deep/40 text-cream-dim hover:border-teal/20"
                   }`}
                 >
                   {r}
@@ -242,7 +242,7 @@ function OnboardingPageInner() {
                   className={`w-full rounded-xl border py-4 text-left px-5 text-sm transition-all ${
                     helped.includes(h)
                       ? "border-teal/40 bg-teal/15 text-teal-soft"
-                      : "border-slate-blue/30 bg-deep/40 text-cream-dim hover:border-teal/20"
+                      : "border-teal/12 bg-deep/40 text-cream-dim hover:border-teal/20"
                   }`}
                 >
                   {h}
@@ -271,7 +271,7 @@ function OnboardingPageInner() {
                   className={`w-full rounded-xl border py-4 text-left px-5 text-sm transition-all ${
                     triggers.includes(t)
                       ? "border-candle/40 bg-candle/10 text-candle-soft"
-                      : "border-slate-blue/30 bg-deep/40 text-cream-dim hover:border-candle/20"
+                      : "border-teal/12 bg-deep/40 text-cream-dim hover:border-candle/20"
                   }`}
                 >
                   {t}
@@ -304,7 +304,7 @@ function OnboardingPageInner() {
                     className={`flex w-full items-center gap-3 rounded-xl border py-4 px-5 text-left text-sm transition-all ${
                       selected
                         ? "border-teal/40 bg-teal/15 text-teal-soft"
-                        : "border-slate-blue/30 bg-deep/40 text-cream-dim hover:border-teal/20"
+                        : "border-teal/12 bg-deep/40 text-cream-dim hover:border-teal/20"
                     }`}
                   >
                     <span>{mod.title}</span>

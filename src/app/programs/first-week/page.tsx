@@ -207,7 +207,7 @@ export default function FirstWeekPage() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <Link
           href="/programs"
@@ -232,7 +232,7 @@ export default function FirstWeekPage() {
         </Link>
 
         <header className="mb-8 mt-6 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
             7-day program
           </p>
           <h1 className="mt-2 text-xl font-semibold tracking-tight text-cream">
@@ -289,7 +289,7 @@ export default function FirstWeekPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-[10px] font-medium uppercase tracking-widest ${
+                        className={`text-[10px] font-medium uppercase tracking-[0.14em] ${
                           isCurrent
                             ? "text-teal-soft/70"
                             : "text-cream-dim/30"
@@ -340,7 +340,7 @@ export default function FirstWeekPage() {
                 {/* Day 7 special: toolkit review */}
                 {isDay7 && (
                   <div className="mt-4">
-                    <p className="mb-3 text-[10px] font-medium uppercase tracking-widest text-cream-dim/30">
+                    <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                       Your toolkit
                     </p>
                     <div className="flex flex-col gap-1.5">
@@ -367,7 +367,7 @@ export default function FirstWeekPage() {
                                 />
                               </svg>
                             ) : (
-                              <div className="h-3 w-3 rounded-full border border-slate-blue/20" />
+                              <div className="h-3 w-3 rounded-full border border-teal/12" />
                             )}
                             <span className="text-sm text-cream">
                               {t.name}
@@ -401,7 +401,7 @@ export default function FirstWeekPage() {
                       className={`rounded-xl border px-4 py-2.5 text-xs transition-colors ${
                         sessionToday || isDay7
                           ? "border-teal/20 text-teal-soft/70 hover:bg-teal/10"
-                          : "border-slate-blue/20 text-cream-dim/50 hover:text-cream-dim"
+                          : "border-teal/12 text-cream-dim/50 hover:text-cream-dim"
                       }`}
                     >
                       Mark complete

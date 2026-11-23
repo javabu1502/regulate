@@ -268,7 +268,7 @@ export default function ToolkitPage() {
                 </p>
 
                 {helperInstructions && (
-                  <div className="mt-8 rounded-2xl border border-candle/20 bg-candle/8 px-5 py-5">
+                  <div className="mt-8 rounded-2xl border border-candle/18 bg-candle/8 px-5 py-5">
                     <p className="mb-3 text-sm font-medium text-candle-soft/80">
                       They&apos;ve written this for you:
                     </p>
@@ -313,7 +313,7 @@ export default function ToolkitPage() {
                     className={`flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-4 text-base font-medium transition-colors ${
                       ambientPlaying === "ocean"
                         ? "border-teal/40 bg-teal/20 text-teal-soft"
-                        : "border-slate-blue/20 bg-deep/60 text-cream-dim hover:border-teal/20"
+                        : "border-teal/12 bg-deep/60 text-cream-dim hover:border-teal/20"
                     }`}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
@@ -326,7 +326,7 @@ export default function ToolkitPage() {
                     className={`flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl border px-4 py-4 text-base font-medium transition-colors ${
                       ambientPlaying === "rain"
                         ? "border-teal/40 bg-teal/20 text-teal-soft"
-                        : "border-slate-blue/20 bg-deep/60 text-cream-dim hover:border-teal/20"
+                        : "border-teal/12 bg-deep/60 text-cream-dim hover:border-teal/20"
                     }`}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
@@ -421,12 +421,12 @@ export default function ToolkitPage() {
                   Ground them gently
                 </h1>
                 <div className="mt-8 flex flex-col gap-5">
-                  <div className="rounded-2xl border border-teal/15 bg-teal/5 px-5 py-4">
+                  <div className="rounded-2xl border border-teal/18 bg-teal/8 px-5 py-4">
                     <p className="text-lg leading-relaxed text-cream">
                       Ask them: &ldquo;Can you feel your feet on the floor?&rdquo;
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-teal/15 bg-teal/5 px-5 py-4">
+                  <div className="rounded-2xl border border-teal/18 bg-teal/8 px-5 py-4">
                     <p className="text-lg leading-relaxed text-cream">
                       Ask them: &ldquo;What&apos;s one thing you can see right now?&rdquo;
                     </p>
@@ -475,7 +475,7 @@ export default function ToolkitPage() {
                             setAmbientPlaying(null);
                           }
                         }}
-                        className="flex min-h-[56px] items-center justify-center rounded-2xl border border-teal/20 bg-teal/10 px-6 py-4 text-base font-medium text-teal-soft transition-colors hover:border-teal/40 hover:bg-teal/15"
+                        className="flex min-h-[56px] items-center justify-center rounded-2xl border border-teal/18 bg-teal/8 px-6 py-4 text-base font-medium text-teal-soft transition-colors hover:border-teal/40 hover:bg-teal/15"
                       >
                         {ex.label}
                       </Link>
@@ -491,7 +491,7 @@ export default function ToolkitPage() {
                         href={m.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex min-h-[56px] items-center justify-center gap-2 rounded-2xl border border-coral/20 bg-coral/10 px-6 py-4 text-base font-medium text-coral transition-colors hover:border-coral/40 hover:bg-coral/15"
+                        className="flex min-h-[56px] items-center justify-center gap-2 rounded-2xl border border-coral/18 bg-coral/8 px-6 py-4 text-base font-medium text-coral transition-colors hover:border-coral/40 hover:bg-coral/15"
                       >
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0">
                           <path d="M4 3L14 9L4 15V3Z" fill="currentColor" opacity="0.6" />
@@ -526,7 +526,7 @@ export default function ToolkitPage() {
 
   if (editing) {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-midnight px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10 bg-midnight">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -537,7 +537,7 @@ export default function ToolkitPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => window.print()}
-                className="rounded-xl border border-slate-blue/20 px-4 py-2 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
+                className="rounded-xl border border-teal/12 px-4 py-2 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
               >
                 Print
               </button>
@@ -562,10 +562,10 @@ export default function ToolkitPage() {
           </header>
 
           {/* ── My Go-To Exercises ────────────────────────────── */}
-          <section className="mb-6">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">My go-to exercises</h2>
+          <section className="mb-9">
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">My go-to exercises</h2>
             {exercises.length === 0 ? (
-              <div className="rounded-xl border border-slate-blue/20 bg-deep/60 p-4">
+              <div className="rounded-xl border border-teal/12 bg-deep/60 p-4">
                 <p className="text-sm text-cream-dim/50 leading-relaxed">
                   Complete an exercise and tap &ldquo;Add to toolkit&rdquo; when it helps.
                   Your favorites will show up here.
@@ -578,7 +578,7 @@ export default function ToolkitPage() {
             ) : (
               <div className="flex flex-col gap-2">
                 {exercises.map((ex) => (
-                  <div key={ex.id} className="flex items-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/60 p-3">
+                  <div key={ex.id} className="flex items-center gap-2 rounded-xl border border-teal/12 bg-midnight/50 p-3.5">
                     <span className="flex-1 text-sm text-cream-dim">{ex.label}</span>
                     <button
                       onClick={() => toggleExercise(ex)}
@@ -597,13 +597,13 @@ export default function ToolkitPage() {
           </section>
 
           {/* ── My Music & Videos ─────────────────────────────── */}
-          <section className="mb-6">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">My music &amp; videos</h2>
+          <section className="mb-9">
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">My music &amp; videos</h2>
             <p className="mb-3 text-xs text-cream-dim/40">Spotify or YouTube links that calm you down.</p>
             {media.length > 0 && (
               <div className="mb-3 flex flex-col gap-2">
                 {media.map((m, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/60 p-3">
+                  <div key={i} className="flex items-center gap-2 rounded-xl border border-teal/12 bg-midnight/50 p-3.5">
                     <span className="flex-1 truncate text-sm text-cream-dim">{m.title}</span>
                     <button
                       onClick={() => removeMedia(i)}
@@ -621,14 +621,14 @@ export default function ToolkitPage() {
                 placeholder="Title (e.g., My calm playlist)"
                 value={mediaTitle}
                 onChange={(e) => setMediaTitle(e.target.value)}
-                className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
               <input
                 type="url"
                 placeholder="Spotify or YouTube URL"
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
-                className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
               <button
                 onClick={addMedia}
@@ -641,13 +641,13 @@ export default function ToolkitPage() {
           </section>
 
           {/* ── Grounding Reminders ──────────────────────────── */}
-          <section className="mb-6">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">My grounding reminders</h2>
+          <section className="mb-9">
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">My grounding reminders</h2>
             <p className="mb-3 text-xs text-cream-dim/40">Personal cues that bring you back. Things you can see, touch, or do right now.</p>
             {grounding.length > 0 && (
               <div className="mb-3 flex flex-col gap-2">
                 {grounding.map((g, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/60 p-3">
+                  <div key={i} className="flex items-center gap-2 rounded-xl border border-teal/12 bg-midnight/50 p-3.5">
                     <span className="flex-1 text-sm text-cream-dim">{g}</span>
                     <button
                       onClick={() => removeGrounding(i)}
@@ -666,7 +666,7 @@ export default function ToolkitPage() {
                 value={groundingInput}
                 onChange={(e) => setGroundingInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addGrounding()}
-                className="flex-1 rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                className="flex-1 rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
               <button
                 onClick={addGrounding}
@@ -679,12 +679,12 @@ export default function ToolkitPage() {
           </section>
 
           {/* ── Emergency Contacts ───────────────────────────── */}
-          <section className="mb-6">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">My emergency contacts</h2>
+          <section className="mb-9">
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">My emergency contacts</h2>
             {contacts.length > 0 ? (
               <div className="mb-3 flex flex-col gap-2">
                 {contacts.map((c, i) => (
-                  <div key={i} className="rounded-xl border border-slate-blue/20 bg-deep/60 p-3 text-sm text-cream-dim">
+                  <div key={i} className="rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream-dim">
                     {c.name} <span className="text-cream-dim/30">({c.phone})</span>
                   </div>
                 ))}
@@ -702,8 +702,8 @@ export default function ToolkitPage() {
           </section>
 
           {/* ── Instructions for Others ──────────────────────── */}
-          <section className="mb-6">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">Instructions for others</h2>
+          <section className="mb-9">
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Instructions for others</h2>
             <p className="mb-3 text-xs text-cream-dim/40">
               What helps when someone else is with you? They can read this on your toolkit page.
             </p>
@@ -712,13 +712,13 @@ export default function ToolkitPage() {
               onChange={(e) => saveHelperInstructions(e.target.value)}
               placeholder="e.g., Don't ask me questions. Just sit with me and put on ocean sounds."
               rows={4}
-              className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none resize-none"
+              className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none resize-none"
             />
           </section>
 
           {/* ── My Warning Signs ─────────────────────────── */}
-          <section className="mb-6">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">My warning signs</h2>
+          <section className="mb-9">
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">My warning signs</h2>
             <p className="mb-3 text-xs text-cream-dim/40">How do you know you&apos;re starting to struggle?</p>
             {warnings.length > 0 && (
               <div className="mb-3 flex flex-col gap-2">
@@ -728,7 +728,7 @@ export default function ToolkitPage() {
                       type="text"
                       value={w}
                       onChange={(e) => updateWarning(i, e.target.value)}
-                      className="flex-1 rounded-xl border border-slate-blue/20 bg-deep/60 p-3 text-sm text-cream-dim focus:border-teal/30 focus:outline-none"
+                      className="flex-1 rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream-dim focus:border-teal/30 focus:outline-none"
                     />
                     <button
                       onClick={() => removeWarning(i)}
@@ -753,8 +753,8 @@ export default function ToolkitPage() {
           </section>
 
           {/* ── Reasons to Keep Going ─────────────────────── */}
-          <section className="mb-6">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-cream-dim/40">Reasons to keep going</h2>
+          <section className="mb-9">
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Reasons to keep going</h2>
             {reasons.length > 0 && (
               <div className="mb-3 flex flex-col gap-2">
                 {reasons.map((r, i) => (
@@ -763,7 +763,7 @@ export default function ToolkitPage() {
                       type="text"
                       value={r}
                       onChange={(e) => updateReason(i, e.target.value)}
-                      className="flex-1 rounded-xl border border-slate-blue/20 bg-deep/60 p-3 text-sm text-cream-dim focus:border-teal/30 focus:outline-none"
+                      className="flex-1 rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream-dim focus:border-teal/30 focus:outline-none"
                     />
                     <button
                       onClick={() => removeReason(i)}
@@ -801,7 +801,7 @@ export default function ToolkitPage() {
   // ─── Toolkit Mode (Panic View) ────────────────────────────────────
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-midnight px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10 bg-midnight">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -811,7 +811,7 @@ export default function ToolkitPage() {
           </Link>
           <button
             onClick={() => setEditing(true)}
-            className="rounded-xl border border-slate-blue/20 px-4 py-2 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
+            className="rounded-xl border border-teal/12 px-4 py-2 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
           >
             Edit
           </button>
@@ -830,13 +830,13 @@ export default function ToolkitPage() {
         {/* ── Emergency Contacts ──────────────────────────── */}
         {contacts.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Call someone</h2>
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Call someone</h2>
             <div className="flex flex-col gap-3">
               {contacts.map((c, i) => (
                 <a
                   key={i}
                   href={`tel:${c.phone}`}
-                  className="flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-teal/20 bg-deep/60 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-teal/40"
+                  className="flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-teal/12 bg-deep/50 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-teal/40"
                 >
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0 text-teal-soft">
                     <path d="M3.5 2.5C3.5 2.5 5 2 6 3.5L7 5.5C7 5.5 6 6.5 7 8.5C8 10.5 9.5 9.5 9.5 9.5L11.5 11C13 12 12.5 13.5 12.5 13.5C11.5 15 9 14.5 7 12.5C5 10.5 3 8 3.5 5.5C3.5 5.5 3.5 3.5 3.5 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -851,7 +851,7 @@ export default function ToolkitPage() {
         {/* ── Music & Videos ──────────────────────────────── */}
         {media.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Listen</h2>
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Listen</h2>
             <div className="flex flex-col gap-3">
               {media.map((m, i) => (
                 <a
@@ -859,7 +859,7 @@ export default function ToolkitPage() {
                   href={m.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-[56px] items-center justify-center gap-2 rounded-2xl border border-coral/20 bg-coral/10 px-6 py-4 text-base font-medium text-coral transition-colors hover:border-coral/40 hover:bg-coral/15"
+                  className="flex min-h-[56px] items-center justify-center gap-2 rounded-2xl border border-coral/18 bg-coral/8 px-6 py-4 text-base font-medium text-coral transition-colors hover:border-coral/40 hover:bg-coral/15"
                 >
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0">
                     <path d="M4 3L14 9L4 15V3Z" fill="currentColor" opacity="0.6" />
@@ -874,13 +874,13 @@ export default function ToolkitPage() {
         {/* ── Quick Exercises (compact 2-col grid) ─────────── */}
         {exercises.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Try this</h2>
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Try this</h2>
             <div className="grid grid-cols-2 gap-2">
               {exercises.map((ex) => (
                 <Link
                   key={ex.id}
                   href={ex.href}
-                  className="flex items-center justify-center rounded-2xl border border-teal/20 bg-teal/10 px-3 py-2.5 text-sm font-medium text-teal-soft transition-colors hover:border-teal/40 hover:bg-teal/15"
+                  className="flex items-center justify-center rounded-2xl border border-teal/18 bg-teal/8 px-3 py-2.5 text-sm font-medium text-teal-soft transition-colors hover:border-teal/40 hover:bg-teal/15"
                 >
                   {ex.label}
                 </Link>
@@ -892,12 +892,12 @@ export default function ToolkitPage() {
         {/* ── Grounding Reminders ─────────────────────────── */}
         {grounding.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Ground yourself</h2>
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Ground yourself</h2>
             <div className="flex flex-col gap-3">
               {grounding.map((g, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-candle/15 bg-candle/5 px-5 py-4 text-sm leading-relaxed text-candle-soft"
+                  className="rounded-2xl border border-candle/18 bg-candle/8 px-5 py-4 text-sm leading-relaxed text-candle-soft"
                 >
                   {g}
                 </div>
@@ -922,7 +922,7 @@ export default function ToolkitPage() {
         {/* ── Helper Instructions ─────────────────────────── */}
         {helperInstructions && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">For someone helping me</h2>
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">For someone helping me</h2>
             <div className="rounded-2xl border border-cream/10 bg-cream/5 px-5 py-5 text-sm leading-relaxed text-cream/80">
               {helperInstructions}
             </div>
@@ -932,12 +932,12 @@ export default function ToolkitPage() {
         {/* ── Warning Signs ──────────────────────────────── */}
         {warnings.filter((w) => w.trim()).length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">My warning signs</h2>
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">My warning signs</h2>
             <div className="flex flex-col gap-2">
               {warnings.filter((w) => w.trim()).map((w, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-candle/15 bg-candle/5 px-5 py-3 text-sm leading-relaxed text-candle-soft"
+                  className="rounded-2xl border border-candle/18 bg-candle/8 px-5 py-3 text-sm leading-relaxed text-candle-soft"
                 >
                   {w}
                 </div>
@@ -949,12 +949,12 @@ export default function ToolkitPage() {
         {/* ── Reasons to Keep Going ──────────────────────── */}
         {reasons.filter((r) => r.trim()).length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Reasons to keep going</h2>
+            <h2 className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Reasons to keep going</h2>
             <div className="flex flex-col gap-2">
               {reasons.filter((r) => r.trim()).map((r, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-lavender/15 bg-lavender/5 px-5 py-3 text-sm leading-relaxed text-lavender"
+                  className="rounded-2xl border border-teal/10 bg-deep/40 px-5 py-3 text-sm leading-relaxed text-lavender"
                 >
                   {r}
                 </div>
@@ -967,7 +967,7 @@ export default function ToolkitPage() {
         <section className="mt-4 border-t border-slate-blue/15 pt-8">
           <a
             href="tel:988"
-            className="flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-cream/10 bg-deep/60 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-cream/20"
+            className="flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-teal/12 bg-deep/50 px-6 py-4 text-base font-medium text-cream transition-colors hover:border-cream/20"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0 text-cream/60">
               <path d="M3.5 2.5C3.5 2.5 5 2 6 3.5L7 5.5C7 5.5 6 6.5 7 8.5C8 10.5 9.5 9.5 9.5 9.5L11.5 11C13 12 12.5 13.5 12.5 13.5C11.5 15 9 14.5 7 12.5C5 10.5 3 8 3.5 5.5C3.5 5.5 3.5 3.5 3.5 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />

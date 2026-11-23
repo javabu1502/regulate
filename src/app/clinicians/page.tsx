@@ -116,7 +116,7 @@ export default function CliniciansPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-20 pt-12">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-2xl">
         {/* Back nav */}
         <Link
@@ -166,7 +166,7 @@ export default function CliniciansPage() {
               clients can access between sessions - tools that work
               precisely because they don&apos;t require the thinking brain.
             </p>
-            <div className="rounded-xl border border-teal/12 bg-teal/5 px-5 py-4">
+            <div className="rounded-2xl border border-teal/18 bg-teal/8 px-5 py-4">
               <p className="text-sm leading-relaxed text-cream-dim">
                 An app cannot replace the therapeutic relationship. Regulate is
                 designed to <span className="text-cream">extend</span>{" "}
@@ -267,7 +267,7 @@ export default function CliniciansPage() {
             state.
           </p>
           <div className="space-y-3">
-            <div className="rounded-2xl border border-candle/15 bg-candle/5 px-6 py-5">
+            <div className="rounded-2xl border border-candle/18 bg-candle/8 px-6 py-5">
               <p className="mb-1 text-[15px] font-medium text-candle">
                 Panicking
               </p>
@@ -280,7 +280,7 @@ export default function CliniciansPage() {
                 downregulation.
               </p>
             </div>
-            <div className="rounded-2xl border border-candle/10 bg-candle/3 px-6 py-5">
+            <div className="rounded-2xl border border-candle/18 bg-candle/8 px-6 py-5">
               <p className="mb-1 text-[15px] font-medium text-candle-soft">
                 Anxious
               </p>
@@ -293,7 +293,7 @@ export default function CliniciansPage() {
                 alongside regulation.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-blue/30 bg-slate-blue/10 px-6 py-5">
+            <div className="rounded-2xl border border-teal/12 bg-slate-blue/10 px-6 py-5">
               <p className="mb-1 text-[15px] font-medium text-cream">
                 Shutdown
               </p>

@@ -257,7 +257,7 @@ export default function MeditationPlayerPage() {
       <div className="flex flex-1 flex-col items-center justify-center">
         <div className="w-full max-w-sm text-center">
           {/* Category */}
-          <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/30">
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
             {meditation.category}
           </p>
 
@@ -377,7 +377,7 @@ export default function MeditationPlayerPage() {
 
           {/* Ambient sound selector */}
           <div className="mt-10">
-            <p className="mb-3 text-[10px] uppercase tracking-widest text-cream-dim/25">
+            <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
               Ambient Sound
             </p>
             <div className="flex items-center justify-center gap-1.5">

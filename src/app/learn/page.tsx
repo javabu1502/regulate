@@ -68,11 +68,11 @@ const sections: Section[] = [
           Your autonomic nervous system has two main branches that work like a gas pedal and a brake:
         </p>
         <div className="grid gap-3">
-          <div className="rounded-xl border border-candle/15 bg-candle/5 p-4">
+          <div className="rounded-2xl border border-candle/18 bg-candle/8 p-4">
             <p className="mb-1 font-medium text-candle">Sympathetic - the &quot;gas pedal&quot;</p>
             <p>Activates your fight-or-flight response. Increases heart rate, dilates pupils, floods your body with adrenaline. Designed to help you survive danger.</p>
           </div>
-          <div className="rounded-xl border border-teal/15 bg-teal/5 p-4">
+          <div className="rounded-2xl border border-teal/18 bg-teal/8 p-4">
             <p className="mb-1 font-medium text-teal-soft">Parasympathetic - the &quot;brake&quot;</p>
             <p>Slows heart rate, deepens breathing, promotes calm and recovery. This is the state the tools in this app help you access.</p>
           </div>
@@ -102,31 +102,31 @@ const sections: Section[] = [
     ),
     content: (
       <div className="space-y-4 text-sm leading-relaxed text-cream-dim">
-        <div id="breathing" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="breathing" className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Breathing exercises</p>
           <p>
             Slow, extended exhales stimulate the vagus nerve (the longest nerve in your body, running from brain to gut). This directly slows your heart rate and signals safety to your nervous system.
           </p>
         </div>
-        <div id="grounding" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="grounding" className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">5-4-3-2-1 Grounding</p>
           <p>
             Engages the thinking part of your brain. During panic, your threat-detection center takes over. By deliberately noticing sensory details, you pull your brain back into the present.
           </p>
         </div>
-        <div id="body-scan" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="body-scan" className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Body scan</p>
           <p>
             Builds awareness of your body&apos;s internal state. Many people with anxiety are disconnected from their body. Progressive relaxation helps you notice where you&apos;re holding tension and consciously release it.
           </p>
         </div>
-        <div id="bilateral" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="bilateral" className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Bilateral stimulation</p>
           <p>
             Alternating left-right stimulation (like the butterfly hug) is connected to EMDR therapy research. It appears to help the brain process distressing experiences by engaging both hemispheres.
           </p>
         </div>
-        <div id="physiological-sigh" className="rounded-xl border border-teal/10 bg-deep/40 p-4">
+        <div id="physiological-sigh" className="rounded-2xl border border-teal/10 bg-deep/40 p-4">
           <p className="mb-1 font-medium text-cream">Physiological sigh</p>
           <p>
             A double inhale followed by an extended exhale. A Stanford study found this was more effective than other breathing techniques at reducing stress in real time.
@@ -152,7 +152,7 @@ const sections: Section[] = [
         </p>
 
         {/* Visual diagram */}
-        <div className="rounded-xl border border-teal/15 bg-deep/60 p-5">
+        <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
           <div className="space-y-3">
             <div className="rounded-lg bg-candle/10 p-3 text-center">
               <p className="text-xs font-medium text-candle">HYPERAROUSAL</p>
@@ -278,7 +278,7 @@ export default function LearnPage() {
 
   if (showIntro) {
     return (
-      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -289,7 +289,7 @@ export default function LearnPage() {
             <div className="mb-6 flex justify-center">
               <LearnIcon className="h-10 w-10 text-teal-soft" />
             </div>
-            <h1 className="text-2xl font-light tracking-tight text-cream">
+            <h1 className="text-xl font-light tracking-tight text-cream">
               You don&apos;t need to read this right now.
             </h1>
             <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-cream-dim">
@@ -313,7 +313,7 @@ export default function LearnPage() {
   // ─── MAIN CONTENT ──────────────────────────────────────────────
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -340,7 +340,7 @@ export default function LearnPage() {
           {sections.map((section) => {
             const isOpen = openSection === section.id;
             return (
-              <div key={section.id} className="rounded-2xl border border-teal/15 bg-deep/60 backdrop-blur-sm overflow-hidden">
+              <div key={section.id} className="rounded-2xl border border-teal/12 bg-deep/50 backdrop-blur-sm overflow-hidden">
                 <button
                   onClick={() => toggle(section.id)}
                   className="flex w-full items-center gap-3 p-5 text-left transition-colors hover:bg-teal/5"

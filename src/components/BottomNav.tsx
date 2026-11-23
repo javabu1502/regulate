@@ -12,7 +12,7 @@ export default function BottomNav() {
   if (hidden) return null;
 
   return (
-    <nav aria-label="Main navigation" className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-blue/20 bg-midnight/95 backdrop-blur-md safe-bottom">
+    <nav aria-label="Main navigation" className="fixed bottom-0 left-0 right-0 z-40 border-t border-teal/12 bg-midnight/95 backdrop-blur-md safe-bottom">
       <div className="mx-auto flex max-w-md items-stretch">
         {/* Home */}
         <NavTab href="/" label="Home" icon={HomeIcon} active={pathname === "/"} />

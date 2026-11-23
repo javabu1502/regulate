@@ -282,7 +282,7 @@ function AffirmationsPageInner() {
 
   if (view === "home") {
     return (
-      <div key="home" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="home" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -298,7 +298,7 @@ function AffirmationsPageInner() {
           {/* Recommended for you */}
           {recommendedCats.length > 0 && (
             <div className="mb-4">
-              <p className="mb-2 text-[10px] uppercase tracking-widest text-teal-soft/50">Recommended for you</p>
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Recommended for you</p>
               <p className="mb-3 text-xs text-cream-dim/40">Based on how you&apos;re feeling</p>
               <div className="flex flex-col gap-2">
                 {categories
@@ -307,7 +307,7 @@ function AffirmationsPageInner() {
                     <button
                       key={`rec-${cat.id}`}
                       onClick={() => startCategory(cat.id)}
-                      className="w-full rounded-2xl border border-teal/25 bg-teal/5 px-5 py-4 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
+                      className="w-full rounded-2xl border border-teal/18 bg-teal/8 px-5 py-4 text-left transition-all hover:border-teal/40 active:scale-[0.98]"
                     >
                       <span className="text-sm font-medium text-cream">{cat.label}</span>
                       <span className="mt-0.5 block text-xs text-cream-dim/50">{cat.desc}</span>
@@ -319,7 +319,7 @@ function AffirmationsPageInner() {
 
           {/* All categories */}
           {recommendedCats.length > 0 && (
-            <p className="mb-2 text-[10px] uppercase tracking-widest text-cream-dim/30">All categories</p>
+            <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">All categories</p>
           )}
           <div className="flex flex-col gap-2.5">
             {categories.map((cat) => (
@@ -342,7 +342,7 @@ function AffirmationsPageInner() {
           <div className="mt-6 flex gap-2">
             <button
               onClick={() => setView("favorites")}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/50 transition-colors hover:border-candle/20 hover:text-cream-dim"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-teal/12 bg-deep/40 py-3 text-xs text-cream-dim/50 transition-colors hover:border-candle/20 hover:text-cream-dim"
             >
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M10 17.5L2 10C0.5 8.5 0.5 5.5 2 4C3.5 2.5 6 2.5 7.5 4L10 6.5L12.5 4C14 2.5 16.5 2.5 18 4C19.5 5.5 19.5 8.5 18 10L10 17.5Z" />
@@ -351,7 +351,7 @@ function AffirmationsPageInner() {
             </button>
             <button
               onClick={() => setView("personal")}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-blue/20 bg-deep/40 py-3 text-xs text-cream-dim/50 transition-colors hover:border-teal/20 hover:text-cream-dim"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-teal/12 bg-deep/40 py-3 text-xs text-cream-dim/50 transition-colors hover:border-teal/20 hover:text-cream-dim"
             >
               + Your words
             </button>
@@ -482,7 +482,7 @@ function AffirmationsPageInner() {
     const favAffirmations = allAffirmations.filter((a) => favorites.includes(a.text));
 
     return (
-      <div key="favorites" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="favorites" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <button onClick={() => setView("home")} className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -504,7 +504,7 @@ function AffirmationsPageInner() {
               {favAffirmations.map((a) => (
                 <div
                   key={a.text}
-                  className="flex items-start gap-3 rounded-2xl border border-candle/10 bg-candle/5 px-5 py-4"
+                  className="flex items-start gap-3 rounded-2xl border border-candle/18 bg-candle/8 px-5 py-4"
                 >
                   <p className="flex-1 text-sm leading-relaxed text-cream">&ldquo;{a.text}&rdquo;</p>
                   <button
@@ -533,7 +533,7 @@ function AffirmationsPageInner() {
 
   if (view === "personal") {
     return (
-      <div key="personal" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+      <div key="personal" className="animate-screen-enter flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
         <div className="w-full max-w-md">
           <button onClick={() => setView("home")} className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -570,7 +570,7 @@ function AffirmationsPageInner() {
           ) : (
             <div className="flex flex-col gap-2">
               {personalAffirmations.map((text, i) => (
-                <div key={i} className="flex items-start gap-3 rounded-xl border border-slate-blue/20 bg-deep/40 px-4 py-3">
+                <div key={i} className="flex items-start gap-3 rounded-xl border border-teal/12 bg-deep/40 px-4 py-3">
                   <p className="flex-1 text-sm leading-relaxed text-cream/90">&ldquo;{text}&rdquo;</p>
                   <button
                     onClick={() => removePersonalAffirmation(text)}

@@ -20,7 +20,7 @@ export default function CrisisPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px">
@@ -40,7 +40,7 @@ export default function CrisisPage() {
           {/* Custom crisis line */}
           {customLine && (
             <div className="rounded-2xl border-2 border-candle/30 bg-candle/8 p-5 shadow-sm shadow-candle/5">
-              <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-candle/60">Your crisis line</p>
+              <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em] text-candle/60">Your crisis line</p>
               <h3 className="text-sm font-medium text-cream">{customLine.name}</h3>
               <div className="mt-3 flex gap-2">
                 <a
@@ -61,7 +61,7 @@ export default function CrisisPage() {
             </div>
           )}
 
-          <div className="rounded-2xl border border-candle/15 bg-candle/5 p-5">
+          <div className="rounded-2xl border border-candle/18 bg-candle/8 p-5">
             <h3 className="text-sm font-medium text-cream">988 Suicide & Crisis Lifeline</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Free, confidential support for people in distress.</p>
             <div className="mt-3 flex gap-2">
@@ -80,13 +80,13 @@ export default function CrisisPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <h3 className="text-sm font-medium text-cream">Crisis Text Line</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Text-based crisis counseling, anytime.</p>
             <p className="mt-3 text-sm text-teal-soft">Text HOME to 741741</p>
           </div>
 
-          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <h3 className="text-sm font-medium text-cream">International Association for Suicide Prevention</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Find a crisis center in your country.</p>
             <a
@@ -99,7 +99,7 @@ export default function CrisisPage() {
             </a>
           </div>
 
-          <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <h3 className="text-sm font-medium text-cream">SAMHSA National Helpline</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Free referral and information service for mental health and substance use.</p>
             <a
@@ -113,13 +113,13 @@ export default function CrisisPage() {
 
         {/* Find a therapist */}
         <div className="mt-6">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-cream-dim/30">Find a therapist</p>
+          <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Find a therapist</p>
           <div className="flex flex-col gap-3">
             <a
               href="https://www.psychologytoday.com/us/therapists"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
+              className="rounded-2xl border border-teal/12 bg-deep/50 p-5 transition-colors hover:border-teal/30"
             >
               <h3 className="text-sm font-medium text-cream">Psychology Today</h3>
               <p className="mt-1 text-xs text-cream-dim/60">Search therapists by specialty, insurance, and location.</p>
@@ -128,7 +128,7 @@ export default function CrisisPage() {
               href="https://www.openpathcollective.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
+              className="rounded-2xl border border-teal/12 bg-deep/50 p-5 transition-colors hover:border-teal/30"
             >
               <h3 className="text-sm font-medium text-cream">Open Path Collective</h3>
               <p className="mt-1 text-xs text-cream-dim/60">Affordable therapy - sessions from $30 to $80.</p>
@@ -137,7 +137,7 @@ export default function CrisisPage() {
               href="https://www.betterhelp.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/30"
+              className="rounded-2xl border border-teal/12 bg-deep/50 p-5 transition-colors hover:border-teal/30"
             >
               <h3 className="text-sm font-medium text-cream">BetterHelp</h3>
               <p className="mt-1 text-xs text-cream-dim/60">Online therapy from your phone. Financial aid available.</p>

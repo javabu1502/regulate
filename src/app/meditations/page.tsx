@@ -91,7 +91,7 @@ export default function MeditationsPage() {
         <div className="flex flex-col gap-8">
           {categories.map((group) => (
             <section key={group.category}>
-              <p className="mb-3 text-[10px] uppercase tracking-widest text-cream-dim/40">
+              <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
                 {group.category}
               </p>
               <div className="flex flex-col gap-2">
@@ -104,7 +104,7 @@ export default function MeditationsPage() {
                       className={`group flex items-center justify-between rounded-2xl border px-4 py-3.5 transition-all ${
                         isRecorded
                           ? "border-teal/10 bg-deep/60 hover:border-teal/25"
-                          : "border-slate-blue/10 bg-deep/30 hover:border-slate-blue/25"
+                          : "border-slate-blue/10 bg-deep/30 hover:border-teal/25"
                       }`}
                     >
                       <div className="min-w-0 flex-1">

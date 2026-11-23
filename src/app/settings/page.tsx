@@ -281,7 +281,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim transition-colors hover:text-cream">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="translate-y-px"><path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -293,10 +293,10 @@ export default function SettingsPage() {
         </header>
 
         <div className="flex flex-col gap-3">
-          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Practice</p>
+          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Practice</p>
 
           {/* Haptic feedback */}
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-medium text-cream">Haptic feedback</h3>
@@ -322,12 +322,12 @@ export default function SettingsPage() {
           </div>
 
           {/* Text size */}
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <div>
               <h3 className="text-sm font-medium text-cream">Text size</h3>
               <p className="mt-1 text-xs text-cream-dim/60">Make text larger for readability</p>
             </div>
-            <div className="mt-3 flex rounded-xl border border-slate-blue/20 overflow-hidden">
+            <div className="mt-3 flex rounded-xl border border-teal/12 overflow-hidden">
               {([["default", "Default"], ["large", "Large"], ["xl", "Extra Large"]] as const).map(([value, label]) => (
                 <button
                   key={value}
@@ -358,7 +358,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Voice Guidance */}
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-medium text-cream">Voice guidance</h3>
@@ -440,12 +440,12 @@ export default function SettingsPage() {
           </div>
 
           {/* Night mode */}
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <div>
               <h3 className="text-sm font-medium text-cream">Night mode</h3>
               <p className="mt-1 text-xs text-cream-dim/60">Warmer, dimmer colors for late sessions</p>
             </div>
-            <div className="mt-3 flex rounded-xl border border-slate-blue/20 overflow-hidden">
+            <div className="mt-3 flex rounded-xl border border-teal/12 overflow-hidden">
               {([["auto", "Auto"], ["on", "Always on"], ["off", "Always off"]] as const).map(([value, label]) => (
                 <button
                   key={value}
@@ -475,9 +475,9 @@ export default function SettingsPage() {
           </div>
 
 
-          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Privacy</p>
+          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Privacy</p>
 
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <h3 className="text-sm font-medium text-cream">Your data stays here</h3>
             <p className="mt-2 text-xs text-cream-dim/50">
               Your data never leaves this device. No accounts, no cloud, no tracking.
@@ -487,10 +487,10 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Safety</p>
+          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Safety</p>
 
           {/* Custom crisis line */}
-          <div className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5">
+          <div className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5">
             <h3 className="text-sm font-medium text-cream">Crisis line</h3>
             <p className="mt-1 text-xs text-cream-dim/60">
               Not everyone is in the US. Add your local crisis line here.
@@ -501,21 +501,21 @@ export default function SettingsPage() {
                 value={crisisName}
                 onChange={(e) => setCrisisName(e.target.value)}
                 placeholder="Name (e.g., Lifeline Australia)"
-                className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
               <input
                 type="tel"
                 value={crisisNumber}
                 onChange={(e) => setCrisisNumber(e.target.value)}
                 placeholder="Phone number"
-                className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
               <input
                 type="tel"
                 value={crisisText}
                 onChange={(e) => setCrisisText(e.target.value)}
                 placeholder="Text number (optional)"
-                className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+                className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
               />
               <div className="flex gap-2">
                 <button
@@ -528,7 +528,7 @@ export default function SettingsPage() {
                 {crisisName && (
                   <button
                     onClick={removeCrisisLine}
-                    className="rounded-xl border border-slate-blue/20 px-4 py-2.5 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
+                    className="rounded-xl border border-teal/12 px-4 py-2.5 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
                   >
                     Remove
                   </button>
@@ -573,12 +573,12 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-wider text-cream-dim/30">Your data</p>
+          <p className="mt-4 mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">Your data</p>
 
           {/* About */}
           <Link
             href="/about"
-            className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30 block"
+            className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-teal/30 block"
           >
             <h3 className="text-sm font-medium text-cream">About Regulate</h3>
             <p className="mt-1 text-xs text-cream-dim/60">What this app is and how it works</p>
@@ -587,7 +587,7 @@ export default function SettingsPage() {
           {/* Review preferences */}
           <Link
             href="/settings/preferences"
-            className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30 block"
+            className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-teal/30 block"
           >
             <h3 className="text-sm font-medium text-cream">Review your preferences</h3>
             <p className="mt-1 text-xs text-cream-dim/60">View and update your saved preferences</p>
@@ -596,7 +596,7 @@ export default function SettingsPage() {
           {/* Download data */}
           <button
             onClick={downloadData}
-            className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30"
+            className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-teal/30"
           >
             <h3 className="text-sm font-medium text-cream">Download my data</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Export all app data as a JSON backup file</p>
@@ -616,7 +616,7 @@ export default function SettingsPage() {
           <button
             onClick={() => document.getElementById("restore-file-input")?.click()}
             disabled={importLoading}
-            className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30 disabled:opacity-50"
+            className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-teal/30 disabled:opacity-50"
           >
             <h3 className="text-sm font-medium text-teal-soft">
               {importLoading ? (
@@ -639,7 +639,7 @@ export default function SettingsPage() {
           {/* Clear journal */}
           <button
             onClick={() => setConfirmClear("journal")}
-            className="w-full rounded-2xl border border-teal/15 bg-deep/60 p-5 text-left transition-colors hover:border-teal/30"
+            className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-teal/30"
           >
             <h3 className="text-sm font-medium text-cream">Clear journal data</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Delete all journal entries</p>
@@ -648,7 +648,7 @@ export default function SettingsPage() {
           {/* Clear all data */}
           <button
             onClick={() => setConfirmClear("all")}
-            className="w-full rounded-2xl border border-candle/15 bg-deep/60 p-5 text-left transition-colors hover:border-candle/30"
+            className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-candle/30"
           >
             <h3 className="text-sm font-medium text-candle-soft">Clear all app data</h3>
             <p className="mt-1 text-xs text-cream-dim/60">Reset everything and start fresh</p>
@@ -688,7 +688,7 @@ export default function SettingsPage() {
               <div className="mt-5 flex gap-2">
                 <button
                   onClick={() => setImportConfirm(null)}
-                  className="flex-1 rounded-xl border border-slate-blue/30 py-3 text-sm text-cream-dim hover:text-cream"
+                  className="flex-1 rounded-xl border border-teal/12 py-3 text-sm text-cream-dim hover:text-cream"
                 >
                   Cancel
                 </button>
@@ -716,7 +716,7 @@ export default function SettingsPage() {
               <div className="mt-5 flex gap-2">
                 <button
                   onClick={() => setConfirmClear(null)}
-                  className="flex-1 rounded-xl border border-slate-blue/30 py-3 text-sm text-cream-dim hover:text-cream"
+                  className="flex-1 rounded-xl border border-teal/12 py-3 text-sm text-cream-dim hover:text-cream"
                 >
                   Cancel
                 </button>

@@ -1134,7 +1134,7 @@ export default function BurnNotePage() {
               showHelp ? "mt-2 max-h-60 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <div className="rounded-2xl border border-teal/15 bg-deep/80 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
+            <div className="rounded-2xl border border-teal/12 bg-deep/50 p-4 text-sm leading-relaxed text-cream-dim backdrop-blur-sm">
               Writing something down and destroying it can genuinely reduce
               how much it bothers you. Research backs this up. The physical
               act of letting go helps your brain let go too.

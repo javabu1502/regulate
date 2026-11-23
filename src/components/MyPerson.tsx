@@ -82,14 +82,14 @@ function ContactModal({
             placeholder="Their name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+            className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
           />
           <input
             type="tel"
             placeholder="Phone number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full rounded-xl border border-slate-blue/30 bg-midnight/60 p-3 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
+            className="w-full rounded-xl border border-teal/12 bg-midnight/50 p-3.5 text-sm text-cream placeholder:text-cream-dim/30 focus:border-teal/30 focus:outline-none"
           />
           <div className="flex flex-wrap gap-2">
             {(Object.keys(LABEL_DISPLAY) as ContactLabel[]).map((l) => (
@@ -111,14 +111,14 @@ function ContactModal({
           {initial && onDelete && (
             <button
               onClick={onDelete}
-              className="rounded-xl border border-red-500/20 px-3 py-3 text-sm text-red-400/60 hover:text-red-400"
+              className="rounded-xl border border-coral/20 px-3 py-3 text-sm text-coral/60 hover:text-coral"
             >
               Remove
             </button>
           )}
           <button
             onClick={onClose}
-            className="flex-1 rounded-xl border border-slate-blue/30 py-3 text-sm text-cream-dim hover:text-cream"
+            className="flex-1 rounded-xl border border-teal/12 py-3 text-sm text-cream-dim hover:text-cream"
           >
             Cancel
           </button>
@@ -196,7 +196,7 @@ export default function MyPersonSection() {
           <div key={i} className="flex items-center gap-2">
             <a
               href={`tel:${contact.phone}`}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-teal/20 bg-deep/60 py-3 text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-teal/12 bg-deep/50 py-3 text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 2.5C3 2.5 4.5 2 5.5 3.5L6.5 5.5C6.5 5.5 5.5 6.5 6.5 8C7.5 9.5 8.5 9 8.5 9L10.5 10C12 11 11.5 12.5 11.5 12.5C10.5 14 8 13.5 6 11.5C4 9.5 2.5 7 3 5C3 5 3 3.5 3 2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -206,7 +206,7 @@ export default function MyPersonSection() {
             </a>
             <button
               onClick={() => setEditIndex(i)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-blue/30 text-cream-dim/40 hover:text-cream-dim"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-teal/12 text-cream-dim/40 hover:text-cream-dim"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M10 1.5L12.5 4L4.5 12H2V9.5L10 1.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -260,7 +260,7 @@ export function CallPersonButton() {
         <a
           key={i}
           href={`tel:${contact.phone}`}
-          className="rounded-xl border border-teal/20 bg-deep/60 px-8 py-3 text-center text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream"
+          className="rounded-2xl border border-teal/12 bg-deep/50 px-8 py-3 text-center text-sm text-cream-dim transition-colors hover:border-teal/40 hover:text-cream"
         >
           Call {contact.name}
           <span className="ml-2 text-[10px] text-cream-dim/30">{LABEL_DISPLAY[contact.label]}</span>

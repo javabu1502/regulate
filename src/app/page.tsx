@@ -208,7 +208,7 @@ export default function Home() {
       <div className="flex min-h-screen flex-col items-center justify-center px-5">
         <main className="w-full max-w-md text-center">
           <WaveIcon className="mx-auto mb-4 h-8 w-8 text-teal-soft/60" />
-          <h1 className="text-2xl font-light tracking-tight text-cream">
+          <h1 className="text-xl font-light tracking-tight text-cream">
             Regulate
           </h1>
           <p className="mt-3 text-sm text-cream/80">
@@ -221,7 +221,7 @@ export default function Home() {
                 dismissFirstOpen();
                 router.push("/sos");
               }}
-              className="rounded-2xl border border-candle/20 bg-candle/5 px-6 py-4 text-sm font-medium text-candle-soft transition-colors hover:bg-candle/10"
+              className="rounded-2xl border border-candle/18 bg-candle/8 px-6 py-4 text-sm font-medium text-candle-soft transition-colors hover:bg-candle/10"
             >
               No, I need help
             </button>
@@ -230,7 +230,7 @@ export default function Home() {
                 dismissFirstOpen();
                 router.push("/onboarding");
               }}
-              className="rounded-2xl border border-teal/20 bg-teal/5 px-6 py-4 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/10"
+              className="rounded-2xl border border-teal/18 bg-teal/8 px-6 py-4 text-sm font-medium text-teal-soft transition-colors hover:bg-teal/10"
             >
               I&apos;m okay, show me around
             </button>
@@ -295,7 +295,7 @@ export default function Home() {
         {/* Panic shortcut — always visible */}
         <button
           onClick={() => router.push("/sos")}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-candle/20 bg-candle/5 px-5 py-3.5 text-sm font-medium text-candle-soft transition-colors hover:bg-candle/10 active:scale-[0.98]"
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-candle/18 bg-candle/8 px-5 py-3.5 text-sm font-medium text-candle-soft transition-colors hover:bg-candle/10 active:scale-[0.98]"
         >
           <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M8 2v8M8 12v1" />
@@ -305,7 +305,7 @@ export default function Home() {
 
         {/* Check-back banner (after SOS use) */}
         {checkBack && (
-          <div className="mb-4 rounded-2xl border border-teal/20 bg-teal/5 p-5 text-center">
+          <div className="mb-4 rounded-2xl border border-teal/18 bg-teal/8 p-5 text-center">
             <p className="text-sm font-medium text-cream">
               How are you holding up?
             </p>
@@ -326,7 +326,7 @@ export default function Home() {
                     "/sos?state=" + (checkBack.state || "anxious"),
                   );
                 }}
-                className="rounded-xl border border-candle/15 bg-candle/5 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10"
+                className="rounded-2xl border border-candle/18 bg-candle/8 py-3 text-sm text-candle-soft transition-colors hover:bg-candle/10"
               >
                 Still shaky - I need support
               </button>
@@ -342,7 +342,7 @@ export default function Home() {
 
         {/* First-session nudge */}
         {firstSessionNudge && (
-          <div className="mb-4 rounded-2xl border border-teal/25 bg-teal/5 p-5 text-center">
+          <div className="mb-4 rounded-2xl border border-teal/18 bg-teal/8 p-5 text-center">
             <p className="text-sm font-medium text-cream">
               Ready to try {firstSessionNudge.label}?
             </p>
@@ -371,7 +371,7 @@ export default function Home() {
         {isNightTime && (
           <Link
             href="/sleep"
-            className="mb-4 block rounded-2xl border border-lavender/15 bg-lavender/5 px-5 py-4 text-center transition-all hover:border-lavender/25"
+            className="mb-4 block rounded-2xl border border-teal/10 bg-deep/40 px-5 py-4 text-center transition-all hover:border-teal/25"
           >
             <p className="text-sm font-medium text-lavender">Can&apos;t sleep?</p>
             <p className="mt-0.5 text-xs text-cream-dim/50">Try the sleep sequence</p>
@@ -446,7 +446,7 @@ export default function Home() {
 
         {/* Install banner */}
         {installPrompt && !installDismissed && (
-          <div className="mt-8 flex items-center justify-between rounded-2xl border border-teal/15 bg-deep/60 px-4 py-3">
+          <div className="mt-8 flex items-center justify-between rounded-2xl border border-teal/12 bg-deep/50 px-4 py-3">
             <p className="text-sm text-cream-dim/60">
               Add Regulate to your home screen for instant access
             </p>

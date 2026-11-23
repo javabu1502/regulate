@@ -230,7 +230,7 @@ function QuickJournal({ technique }: { technique: string }) {
         placeholder="What do you want to remember about this moment?"
         rows={3}
         autoFocus
-        className="w-full rounded-xl border border-teal/15 bg-deep/60 px-4 py-3 text-sm text-cream placeholder:text-cream-dim/40 focus:border-teal/30 focus:outline-none resize-none"
+        className="w-full rounded-2xl border border-teal/12 bg-deep/50 px-4 py-3 text-sm text-cream placeholder:text-cream-dim/40 focus:border-teal/30 focus:outline-none resize-none"
       />
       <div className="flex gap-2 justify-end">
         <button
@@ -293,7 +293,7 @@ function ToolkitPrompt({
   }
 
   return (
-    <div className="w-full max-w-xs rounded-xl border border-candle/15 bg-candle/5 px-5 py-4 text-center animate-screen-enter">
+    <div className="w-full max-w-xs rounded-2xl border border-candle/18 bg-candle/8 px-5 py-4 text-center animate-screen-enter">
       <p className="text-sm text-cream-dim">
         Add <span className="text-cream">{technique}</span> to your emergency toolkit?
       </p>
@@ -433,7 +433,7 @@ export default function AftercareFlow({
           {/* About the same */}
           <button
             onClick={() => handleFeeling("same")}
-            className="flex w-full items-center gap-4 rounded-2xl border border-slate-blue/30 bg-deep/60 px-5 py-5 text-left transition-all hover:border-candle/20 active:scale-[0.98]"
+            className="flex w-full items-center gap-4 rounded-2xl border border-teal/10 bg-deep/40 px-5 py-5 text-left transition-all hover:border-candle/20 active:scale-[0.98]"
             style={{ minHeight: 80 }}
           >
             <span
@@ -457,7 +457,7 @@ export default function AftercareFlow({
           {/* Heavier */}
           <button
             onClick={() => handleFeeling("harder")}
-            className="flex w-full items-center gap-4 rounded-2xl border border-candle/15 bg-candle/5 px-5 py-5 text-left transition-all hover:bg-candle/10 active:scale-[0.98]"
+            className="flex w-full items-center gap-4 rounded-2xl border border-candle/18 bg-candle/8 px-5 py-5 text-left transition-all hover:bg-candle/10 active:scale-[0.98]"
             style={{ minHeight: 80 }}
           >
             <span
@@ -646,7 +646,7 @@ export default function AftercareFlow({
             </button>
             <Link
               href="/games"
-              className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+              className="w-56 rounded-2xl border border-teal/12 bg-deep/50 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
             >
               Sit with something easy
             </Link>
@@ -681,14 +681,14 @@ export default function AftercareFlow({
             {onRestart && (
               <button
                 onClick={onRestart}
-                className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+                className="w-56 rounded-2xl border border-teal/12 bg-deep/50 px-8 py-3 text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
               >
                 Try this one again
               </button>
             )}
             <Link
               href="/games"
-              className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+              className="w-56 rounded-2xl border border-teal/12 bg-deep/50 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
             >
               Something with no instructions
             </Link>
@@ -722,7 +722,7 @@ export default function AftercareFlow({
             </Link>
             <Link
               href={gentle.href}
-              className="w-56 rounded-xl border border-teal/15 bg-deep/60 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
+              className="w-56 rounded-2xl border border-teal/12 bg-deep/50 px-8 py-3 text-center text-sm font-medium text-teal-soft transition-colors hover:border-teal/30 hover:bg-deep/80"
             >
               Try something gentler ({gentle.label})
             </Link>

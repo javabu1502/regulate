@@ -173,7 +173,7 @@ export default function PracticePage() {
   const practicedToday = weekDays.some((d) => d.date === new Date().toDateString() && d.practiced);
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <header className="mb-6 text-center">
           <WaveIcon className="mx-auto mb-3 h-7 w-7 text-teal-soft/60" />
@@ -183,8 +183,8 @@ export default function PracticePage() {
         </header>
 
         {/* ── This week ── */}
-        <div className="rounded-2xl border border-teal/15 bg-deep/60 p-5">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+        <div className="rounded-2xl border border-teal/12 bg-deep/50 p-5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
             This week
           </p>
           <div className="mt-4 flex justify-between">
@@ -200,7 +200,7 @@ export default function PracticePage() {
                       day.practiced
                         ? "bg-teal/25 border border-teal/40"
                         : isToday
-                          ? "border border-slate-blue/30 bg-slate-blue/10"
+                          ? "border border-teal/12 bg-slate-blue/10"
                           : "border border-slate-blue/15"
                     }`}
                   >
@@ -218,8 +218,8 @@ export default function PracticePage() {
         </div>
 
         {/* ── Suggested exercise ── */}
-        <div className="mt-3 rounded-2xl border border-teal/15 bg-teal/5 p-5">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+        <div className="mt-3 rounded-2xl border border-teal/18 bg-teal/8 p-5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
             {practicedToday ? "Another one to try" : "Try today"}
           </p>
           <p className="mt-2 text-sm font-medium text-cream">
@@ -243,8 +243,8 @@ export default function PracticePage() {
 
         {/* ── What helps your body ── */}
         {topTechniques && topTechniques.length > 0 && (
-          <div className="mt-3 rounded-2xl border border-teal/15 bg-deep/60 p-5">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/50">
+          <div className="mt-3 rounded-2xl border border-teal/12 bg-deep/50 p-5">
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
               What&apos;s been helping
             </p>
             <div className="mt-3 flex flex-col gap-3">
@@ -275,7 +275,7 @@ export default function PracticePage() {
         {programState && programState.status !== "completed" && (
           <Link
             href="/programs/first-week"
-            className="mt-3 block rounded-2xl border border-teal/20 bg-teal/8 p-5 transition-colors hover:border-teal/30"
+            className="mt-3 block rounded-2xl border border-teal/18 bg-teal/8 p-5 transition-colors hover:border-teal/30"
           >
             {programState.status === "not-started" ? (
               <>
@@ -313,7 +313,7 @@ export default function PracticePage() {
         {/* ── Tools explored ── */}
         {toolsExplored && toolsExplored.count < toolsExplored.total && (
           <div className="mt-3 rounded-2xl border border-teal/10 bg-deep/40 p-5">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-teal-soft/40">
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-cream-dim/40">
               Tools explored
             </p>
             <p className="mt-2 text-sm text-cream">
@@ -349,7 +349,7 @@ export default function PracticePage() {
         {/* ── Meditations link ── */}
         <Link
           href="/meditations"
-          className="mt-3 flex items-center gap-3 rounded-2xl border border-teal/15 bg-deep/60 p-5 transition-colors hover:border-teal/25"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-teal/12 bg-deep/50 p-5 transition-colors hover:border-teal/25"
         >
           <svg className="h-5 w-5 text-teal-soft/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="4" r="2" />
@@ -372,9 +372,9 @@ export default function PracticePage() {
         {/* ── Journal link ── */}
         <Link
           href="/journal"
-          className="mt-3 flex items-center gap-3 rounded-2xl border border-purple-400/15 bg-purple-400/5 p-5 transition-colors hover:border-purple-400/25"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 p-5 transition-colors hover:border-teal/25"
         >
-          <JournalIcon className="h-5 w-5 text-purple-300/60" />
+          <JournalIcon className="h-5 w-5 text-lavender/60" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-cream">Journal</p>
             <p className="text-xs text-cream-dim/50">Write about what you&apos;re noticing</p>
@@ -387,7 +387,7 @@ export default function PracticePage() {
         {/* ── Learn link (Learn gave up its nav slot to the toolkit) ── */}
         <Link
           href="/learn"
-          className="mt-3 flex items-center gap-3 rounded-2xl border border-slate-blue/20 bg-deep/40 p-5 transition-colors hover:border-slate-blue/35"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 p-5 transition-colors hover:border-teal/25"
         >
           <LearnIcon className="h-5 w-5 text-cream-dim/50" />
           <div className="min-w-0 flex-1">
@@ -402,7 +402,7 @@ export default function PracticePage() {
         {/* ── Browse everything (single entry point for the full list) ── */}
         <Link
           href="/exercises"
-          className="mt-3 flex items-center gap-3 rounded-2xl border border-slate-blue/20 bg-deep/40 p-5 transition-colors hover:border-slate-blue/35"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 p-5 transition-colors hover:border-teal/25"
         >
           <WaveIcon className="h-5 w-5 text-teal-soft/50" />
           <div className="min-w-0 flex-1">
@@ -416,7 +416,7 @@ export default function PracticePage() {
 
         {/* ── Empty state ── */}
         {totalSessions === 0 && !topTechniques && (
-          <div className="mt-6 rounded-2xl border border-slate-blue/15 bg-deep/40 p-6 text-center">
+          <div className="mt-6 rounded-2xl border border-teal/10 bg-deep/40 p-6 text-center">
             <p className="text-sm text-cream-dim/60">
               Your insights will appear here as you practice.
             </p>

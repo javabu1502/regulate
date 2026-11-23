@@ -5,7 +5,7 @@ import { WaveIcon } from "@/components/Icons";
 
 export default function AboutPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-12">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         {/* Back */}
         <Link

@@ -429,7 +429,7 @@ export default function GamesPage() {
 
   return (
     <PageTransition>
-    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-8">
+    <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-between">
         <Link
@@ -560,7 +560,7 @@ export default function GamesPage() {
                 >
                   <span className="flex min-w-0 flex-col items-start gap-1 pr-3 text-left">
                     <span className="flex items-baseline gap-2">
-                      <span className="text-[11px] uppercase tracking-widest text-cream-dim/75">
+                      <span className="text-[11px] uppercase tracking-[0.14em] text-cream-dim/40">
                         {groupName}
                       </span>
                       {suits > 0 && (
@@ -594,7 +594,7 @@ export default function GamesPage() {
             <Link
               key={game.href}
               href={game.href}
-              className="group rounded-2xl border border-teal/15 bg-deep/60 p-5 backdrop-blur-sm transition-all hover:bg-teal/5 active:scale-[0.98]"
+              className="group rounded-2xl border border-teal/12 bg-deep/50 p-5 backdrop-blur-sm transition-all hover:bg-teal/5 active:scale-[0.98]"
             >
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal/10">
