@@ -38,10 +38,15 @@ const fullRegions: BodyRegion[] = [
   { id: "feet", name: "Feet & Ground", instruction: "Feel the ground beneath you. You are held. You are here.", yRange: [82, 100] },
 ];
 
+// The quick scan says the same words as the full one, three regions at a
+// time. Its three cues used to be paraphrases, which meant three more clips
+// to record; they are the full regions' own sentences now, so the audio is
+// built by joining the recordings that already exist. The text here has to
+// stay word for word with that join.
 const quickRegions: BodyRegion[] = [
-  { id: "head", name: "Upper Body", instruction: "Soften your forehead, unclench your jaw. Let your shoulders drop. Breathe into your chest and let it soften.", yRange: [0, 35] },
-  { id: "belly", name: "Core", instruction: "Let your belly be soft. Unclench your fists, relax your fingers. Feel the warmth in your palms.", yRange: [35, 55] },
-  { id: "legs", name: "Lower Body", instruction: "Release the muscles in your hips. Soften your thighs and calves. Feel the ground beneath your feet.", yRange: [55, 100] },
+  { id: "head", name: "Upper Body", instruction: "Soften your forehead. Unclench your jaw. Let your eyes rest. Let your shoulders drop away from your ears. Release the back of your neck. Notice your heartbeat. Breathe into the space around it. Soften.", yRange: [0, 35] },
+  { id: "belly", name: "Core", instruction: "Let your belly be soft. No holding. Just breathing. Unclench your fists. Let your fingers relax. Feel the warmth in your palms.", yRange: [35, 55] },
+  { id: "legs", name: "Lower Body", instruction: "Release the muscles in your hips. Let your weight settle. Soften your thighs. Let go of tension in your knees and calves. Feel the ground beneath you. You are held. You are here.", yRange: [55, 100] },
 ];
 
 type ScanMode = "quick" | "full";
