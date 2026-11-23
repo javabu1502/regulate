@@ -19,7 +19,7 @@ const games = [
     states: ["shutdown", "anxious"] as BodyState[],
     forWhat: "Wakes you up a little when you're numb",
     title: "Looking Around",
-    description: "Find the light. Look where it went.",
+    description: "Find the light, touch it, look for the next.",
     color: "candle",
     icon: (
       <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">

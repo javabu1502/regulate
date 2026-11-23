@@ -83,6 +83,11 @@ export default function LookingAroundPage() {
   const sizeRef = useRef({ w: 0, h: 0 });
 
   const [foundCount, setFoundCount] = useState(0);
+  // The light is tappable and nothing said so. If one sits untouched for a
+  // few seconds, say it plainly and ring it, which is the universal "this
+  // responds to a finger" signal.
+  const [needsNudge, setNeedsNudge] = useState(false);
+  const nudgeShownRef = useRef(false);
 
   const reducedMotion = usePrefersReducedMotion();
   const reducedMotionRef = useRef(false);
@@ -105,6 +110,8 @@ export default function LookingAroundPage() {
       found: false,
       foundAt: 0,
     };
+    nudgeShownRef.current = false;
+    setNeedsNudge(false);
   }, []);
 
   useEffect(() => {
@@ -162,6 +169,20 @@ export default function LookingAroundPage() {
           ctx!.fillStyle = glow;
           ctx!.fill();
 
+          // Waited a while: ring it so it reads as touchable.
+          if (age > 3.5) {
+            if (!nudgeShownRef.current) {
+              nudgeShownRef.current = true;
+              setNeedsNudge(true);
+            }
+            const ringT = reducedMotionRef.current ? 0.5 : ((age - 3.5) % 1.8) / 1.8;
+            ctx!.beginPath();
+            ctx!.arc(light.x, light.y, 24 + ringT * 40, 0, Math.PI * 2);
+            ctx!.strokeStyle = `rgba(226, 203, 140, ${0.3 * (1 - ringT)})`;
+            ctx!.lineWidth = 1.5;
+            ctx!.stroke();
+          }
+
           ctx!.beginPath();
           ctx!.arc(light.x, light.y, 11 * appear, 0, Math.PI * 2);
           ctx!.fillStyle = `rgba(245, 232, 198, ${0.9 * appear})`;
@@ -185,8 +206,14 @@ export default function LookingAroundPage() {
     if (!light || light.found) return;
     const dx = e.clientX - light.x;
     const dy = e.clientY - light.y;
-    // Generous target: this is not a test of aim.
-    if (Math.sqrt(dx * dx + dy * dy) > 90) return;
+    // Generous target: this is not a test of aim. A miss means they are
+    // trying to interact, so that is the moment to say what to aim at
+    // rather than leave the tap unanswered.
+    if (Math.sqrt(dx * dx + dy * dy) > 90) {
+      nudgeShownRef.current = true;
+      setNeedsNudge(true);
+      return;
+    }
     light.found = true;
     light.foundAt = performance.now();
     playFound();
@@ -226,9 +253,11 @@ export default function LookingAroundPage() {
       </div>
 
       <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
-        {foundCount === 0
-          ? "Find the light. Turn your head if you need to."
-          : "Keep going for as long as it feels good."}
+        {needsNudge
+          ? "Touch the light."
+          : foundCount === 0
+            ? "Find the light, then touch it. Turn your head if you need to."
+            : "Keep going for as long as it feels good."}
       </p>
     </div>
   );
