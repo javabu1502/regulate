@@ -105,44 +105,6 @@ body {
   }
 }
 
-/* ── Game preview thumbnails ──────────────────────────────────────────
-   Small motions that show what a game is before you open it. CSS rather
-   than canvas so fourteen of them on one list cost nothing, and so the
-   reduce-motion rule above stops them all without extra code. */
-
-@keyframes gp-cross {
-  0%, 100% { transform: translateX(-9px); }
-  50%      { transform: translateX(9px); }
-}
-@keyframes gp-swell {
-  0%, 100% { transform: scale(0.62); opacity: 0.45; }
-  50%      { transform: scale(1);    opacity: 0.9; }
-}
-@keyframes gp-rise {
-  0%   { transform: translateY(7px); opacity: 0; }
-  30%  { opacity: 0.85; }
-  100% { transform: translateY(-9px); opacity: 0; }
-}
-@keyframes gp-ring {
-  0%   { r: 2; opacity: 0.75; }
-  100% { r: 13; opacity: 0; }
-}
-@keyframes gp-blink {
-  0%, 68%, 100% { opacity: 0.12; }
-  12%, 46%      { opacity: 0.95; }
-}
-@keyframes gp-strike {
-  0%, 100% { opacity: 0.22; }
-  14%      { opacity: 1; }
-}
-
-.gp-cross  { animation: gp-cross 2s ease-in-out infinite; }
-.gp-swell  { animation: gp-swell 5s ease-in-out infinite; transform-origin: center; }
-.gp-rise   { animation: gp-rise 3.4s linear infinite; }
-.gp-ring   { animation: gp-ring 2.6s ease-out infinite; }
-.gp-blink  { animation: gp-blink 4s ease-in-out infinite; }
-.gp-strike { animation: gp-strike 3s ease-in-out infinite; }
-
 /* ── Somatic movement guides ──────────────────────────────────────────
    Ten of the fourteen somatic exercises were step text and a timer. Reading
    a paragraph is the hardest thing to do mid-panic, so each one gets a plain
