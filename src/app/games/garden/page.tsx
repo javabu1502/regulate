@@ -124,6 +124,8 @@ export default function BreathingGardenPage() {
   const [countdown, setCountdown] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
   const [patternIdx, setPatternIdx] = useState(0);
+  // Clearing a garden grown over weeks should take two taps, not one.
+  const [confirmClear, setConfirmClear] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
   const phaseRef = useRef<"idle" | "inhale" | "hold" | "exhale" | "rest">("idle");
@@ -738,8 +740,38 @@ export default function BreathingGardenPage() {
             {BREATH_PATTERNS[patternIdx].label}
           </button>
 
-          {/* Stop button (when breathing) */}
-          {(phase === "inhale" || phase === "exhale" || phase === "rest") && (
+          {/* Clear the garden */}
+          {flowerCount > 0 && (
+            <button
+              className={`rounded-full px-3 py-1.5 text-xs backdrop-blur-sm transition-colors ${
+                confirmClear
+                  ? "bg-coral/15 text-coral"
+                  : "bg-deep/60 text-cream-dim/60 hover:text-cream-dim"
+              }`}
+              onClick={() => {
+                if (!confirmClear) {
+                  setConfirmClear(true);
+                  // Forget the question if it goes unanswered.
+                  setTimeout(() => setConfirmClear(false), 3500);
+                  return;
+                }
+                flowersRef.current = [];
+                growingRef.current = null;
+                setCycleCount(0);
+                setConfirmClear(false);
+                haptics.transition();
+                try {
+                  localStorage.removeItem("regulate-garden-flowers-v2");
+                } catch { /* ignore */ }
+              }}
+            >
+              {confirmClear ? "Clear them all?" : "Clear"}
+            </button>
+          )}
+
+          {/* Stop button (when breathing). The hold phase was missing here,
+              so Stop vanished for seven seconds in the middle of 4:7:8. */}
+          {phase !== "idle" && (
             <button
               className="rounded-full bg-deep/60 px-3 py-1.5 text-xs text-cream-dim/60 backdrop-blur-sm transition-colors hover:text-cream-dim"
               onClick={stopBreathing}
