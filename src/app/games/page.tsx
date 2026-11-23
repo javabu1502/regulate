@@ -390,6 +390,8 @@ export default function GamesPage() {
   // than being a flat eight, so someone frozen is not handed the most
   // sedating option first.
   const [bodyState, setBodyState] = useState<BodyState | null>(null);
+  // One group open at a time, the same way the exercises list behaves.
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   useEffect(() => {
     // The state selector speaks in polyvagal terms; the games are tagged in
     // the same words the SOS triage uses.
@@ -399,7 +401,27 @@ export default function GamesPage() {
       hypoactivated: "shutdown",
     };
     const current = getCurrentNSState();
-    if (current && map[current]) setBodyState(map[current]);
+    const state = current ? map[current] : undefined;
+    if (!state) {
+      // Nothing known about them, so lead with the group that asks least.
+      setOpenGroup(GROUP_ORDER[0]);
+      return;
+    }
+    setBodyState(state);
+    // Open whichever group holds the most that suits them, so nobody has to
+    // tap twice to reach something useful.
+    let best = GROUP_ORDER[0] as string;
+    let bestCount = -1;
+    for (const g of GROUP_ORDER) {
+      const count = games.filter(
+        (x) => x.group === g && x.states.includes(state),
+      ).length;
+      if (count > bestCount) {
+        bestCount = count;
+        best = g;
+      }
+    }
+    setOpenGroup(best);
   }, []);
 
   // Read after mount: a lazy initializer would read localStorage during the
@@ -512,12 +534,12 @@ export default function GamesPage() {
 
         {bodyState && (
           <p className="mb-3 text-[11px] text-cream-dim/40">
-            Each group leads with what suits how you said you were feeling.
-            Anything here is fine to try.
+            Opened on what suits how you said you were feeling. Anything here
+            is fine to try.
           </p>
         )}
 
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-1">
           {GROUP_ORDER.map((groupName) => {
             // Inside a group, anything suiting the reported state comes first.
             const inGroup = games
@@ -529,12 +551,41 @@ export default function GamesPage() {
                   : 0,
               );
             if (inGroup.length === 0) return null;
+            const isOpen = openGroup === groupName;
+            const suits = bodyState
+              ? inGroup.filter((g) => g.states.includes(bodyState)).length
+              : 0;
             return (
               <section key={groupName}>
-                <p className="mb-3 text-[10px] uppercase tracking-widest text-cream-dim/40">
-                  {groupName}
-                </p>
-                <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setOpenGroup(isOpen ? null : groupName)}
+                  aria-expanded={isOpen}
+                  className="flex w-full items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-deep/40"
+                >
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-[10px] uppercase tracking-widest text-cream-dim/50">
+                      {groupName}
+                    </span>
+                    {suits > 0 && (
+                      <span className="text-[10px] text-teal-soft/50">suits you now</span>
+                    )}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-[10px] text-cream-dim/25">{inGroup.length}</span>
+                    <svg
+                      className={`h-3.5 w-3.5 text-cream-dim/25 transition-transform ${isOpen ? "rotate-90" : ""}`}
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M6 4l4 4-4 4" />
+                    </svg>
+                  </span>
+                </button>
+                <div className={`flex flex-col gap-3 ${isOpen ? "mt-3" : "hidden"}`}>
                   {inGroup.map((game) => (
 
             <Link
