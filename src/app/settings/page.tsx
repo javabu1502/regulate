@@ -28,6 +28,10 @@ export default function SettingsPage() {
   const [confirmClear, setConfirmClear] = useState<string | null>(null);
   const [hapticsOn, setHapticsOn] = useState(true);
   const [voiceOn, setVoiceOn] = useState(false);
+  // Voice failing is invisible: no error, no sound, nothing to tell apart a
+  // switched-off setting from a clip that will not load. This runs the real
+  // playback path on a real clip and says which.
+  const [voiceTest, setVoiceTest] = useState<string | null>(null);
   const [textSize, setTextSize] = useState<"default" | "large" | "xl">("default");
   const [crisisName, setCrisisName] = useState("");
   const [crisisNumber, setCrisisNumber] = useState("");
@@ -373,6 +377,66 @@ export default function SettingsPage() {
               </button>
             </div>
             <p className="mt-3 text-xs text-cream-dim/40">You can also turn it on or off from inside any exercise.</p>
+
+            <button
+              onClick={async () => {
+                setVoiceTest("Checking...");
+                if (!voiceGuidance.isEnabled()) {
+                  setVoiceTest("Voice is switched off. Turn it on above, then test again.");
+                  return;
+                }
+                try {
+                  const Ctor =
+                    window.AudioContext ||
+                    (window as unknown as { webkitAudioContext: typeof AudioContext })
+                      .webkitAudioContext;
+                  if (!Ctor) {
+                    setVoiceTest("This browser has no Web Audio, so the voice cannot play here.");
+                    return;
+                  }
+                  const ctx = new Ctor();
+                  if (ctx.state === "suspended") await ctx.resume();
+
+                  const res = await fetch("/audio/breathing/inhale.mp3");
+                  if (!res.ok) {
+                    setVoiceTest(`The clip would not download (${res.status}).`);
+                    return;
+                  }
+                  const bytes = await res.arrayBuffer();
+                  if (bytes.byteLength < 2000) {
+                    setVoiceTest(
+                      `The clip came back truncated (${bytes.byteLength} bytes), so it cannot be decoded.`,
+                    );
+                    return;
+                  }
+                  let buf: AudioBuffer;
+                  try {
+                    buf = await ctx.decodeAudioData(bytes);
+                  } catch {
+                    setVoiceTest("The clip downloaded but this browser could not decode it.");
+                    return;
+                  }
+                  const src = ctx.createBufferSource();
+                  src.buffer = buf;
+                  src.connect(ctx.destination);
+                  src.start(0);
+                  setVoiceTest(
+                    ctx.state === "running"
+                      ? "Playing now. If you heard nothing, check the ring/silent switch on the side of your phone."
+                      : `Audio is blocked by the browser (state: ${ctx.state}).`,
+                  );
+                } catch (err) {
+                  setVoiceTest(`Something failed: ${String(err).slice(0, 90)}`);
+                }
+              }}
+              className="mt-3 rounded-xl border border-teal/20 px-4 py-2 text-xs text-teal-soft transition-colors hover:bg-teal/10"
+            >
+              Test the voice
+            </button>
+
+            {voiceTest && (
+              <p className="mt-2 text-xs leading-relaxed text-cream-dim/70">{voiceTest}</p>
+            )}
           </div>
 
           {/* Night mode */}
