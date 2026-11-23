@@ -16,6 +16,17 @@ export type BodyState = "panicking" | "anxious" | "shutdown";
 // Seventeen games is too many to scan as one list. Ordered so the ones that
 // ask least of you come first, and the single activating one is called out
 // at the end rather than hidden among the calming ones.
+// What each group is actually for. A run of game names read as noise and
+// said nothing; a line of purpose is the thing you are choosing between.
+const GROUP_BLURB: Record<string, string> = {
+  "Something to follow": "A rhythm or a path. Nothing to decide.",
+  "Quiet company": "Something present that asks nothing of you.",
+  "Busy hands": "Repetitive and tactile. Somewhere to put the restlessness.",
+  "Make something": "Open-ended. You leave a mark.",
+  "Let it go": "Set something down and have it taken.",
+  "When you're numb": "Wakes you up a little instead of settling you.",
+};
+
 const GROUP_ORDER = [
   "Something to follow",
   "Quiet company",
@@ -522,7 +533,7 @@ export default function GamesPage() {
           </p>
         )}
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           {GROUP_ORDER.map((groupName) => {
             // Inside a group, anything suiting the reported state comes first.
             const inGroup = games
@@ -543,11 +554,11 @@ export default function GamesPage() {
                 <button
                   onClick={() => setOpenGroup(isOpen ? null : groupName)}
                   aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between rounded-xl px-1 py-2 transition-colors hover:bg-deep/40"
+                  className="flex w-full items-center justify-between rounded-xl px-1 py-3.5 transition-colors hover:bg-deep/40"
                 >
                   <span className="flex min-w-0 flex-col items-start gap-1 pr-3 text-left">
                     <span className="flex items-baseline gap-2">
-                      <span className="text-[10px] uppercase tracking-widest text-cream-dim/50">
+                      <span className="text-[11px] uppercase tracking-widest text-cream-dim/75">
                         {groupName}
                       </span>
                       {suits > 0 && (
@@ -555,8 +566,8 @@ export default function GamesPage() {
                       )}
                     </span>
                     {!isOpen && (
-                      <span className="truncate text-[11px] text-cream-dim/30">
-                        {inGroup.map((g) => g.title).join(" · ")}
+                      <span className="text-[11px] leading-relaxed text-cream-dim/40">
+                        {GROUP_BLURB[groupName]}
                       </span>
                     )}
                   </span>
