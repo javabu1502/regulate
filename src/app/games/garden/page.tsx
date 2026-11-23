@@ -488,9 +488,6 @@ export default function BreathingGardenPage() {
       progressRef.current = 0;
       setCountdown(0);
       const t = setTimeout(() => {
-        // The spot is used up; let the next one land somewhere new unless
-        // the person picks a place.
-        tapPosRef.current = null;
         phaseStartRef.current = Date.now();
         setPhase("inhale");
       }, 1500);
@@ -533,6 +530,8 @@ export default function BreathingGardenPage() {
       } else if (phase === "exhale") {
         // Breath complete — grow a flower!
         spawnFlower();
+        // Used up. The next breath scatters unless another spot is chosen.
+        tapPosRef.current = null;
         setCycleCount((c) => c + 1);
         progressRef.current = 0;
         setCountdown(0);
@@ -621,17 +620,22 @@ export default function BreathingGardenPage() {
 
   // ── Guide text ──────────────────────────────────────────────────
 
-  let guideText = "Tap to begin";
-  let subText = "Breathe and grow your garden";
+  let guideText = "Tap where you want the first flower";
+  let subText = "Breathe and plant your garden";
   if (phase === "inhale") {
     guideText = "Breathe in";
+    subText = countdown > 0 ? `${countdown}` : "";
+  } else if (phase === "hold") {
+    // The hold phase was added without a line here, so a seven second hold
+    // sat under the text telling you to tap to begin.
+    guideText = "Hold";
     subText = countdown > 0 ? `${countdown}` : "";
   } else if (phase === "exhale") {
     guideText = "Breathe out";
     subText = countdown > 0 ? `${countdown}` : "";
   } else if (phase === "rest") {
-    guideText = "Another breath coming. Tap anywhere to choose where it grows.";
-    subText = "";
+    guideText = "Another breath coming";
+    subText = "Tap anywhere to plant the next one there";
   }
 
   const flowerCount = flowersRef.current.length + (growingRef.current ? 1 : 0);
@@ -647,8 +651,16 @@ export default function BreathingGardenPage() {
         className="absolute inset-0 touch-none"
         onPointerDown={(e) => {
           e.preventDefault();
+          // Taps used to be ignored once a breath was under way, which meant
+          // the only way to choose a spot was to catch the gap between
+          // breaths. Now a tap at any point in the breath plants that
+          // breath's flower where you touched, and the marker shows where it
+          // will come up.
           if (phase === "idle" || phase === "rest") {
             startBreathing(e.clientX, e.clientY);
+          } else {
+            tapPosRef.current = { x: e.clientX, y: e.clientY };
+            haptics.subtle();
           }
         }}
       />
