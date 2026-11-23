@@ -11,6 +11,7 @@ import SessionProgressBar from "@/components/SessionProgressBar";
 import { voiceGuidance } from "@/lib/voice-guidance";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
 import VoiceToggle from "@/components/VoiceToggle";
+import AmbientPicker from "@/components/AmbientPicker";
 import EyesClosedMode from "@/components/EyesClosedMode";
 import { haptics } from "@/lib/haptics";
 import { ambientAudio, type AmbientSound } from "@/lib/ambient-audio";
@@ -298,20 +299,11 @@ export default function BodyScanPage() {
         <div className={`fixed left-0 right-0 top-0 z-20 flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-2 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
           <VoiceToggle onChange={(on) => { setVoiceOn(on); if (!on) bodyScanAudio.stop(); }} />
           <EyesClosedMode />
-          {(["rain", "ocean", "off"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => {
-                if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
-                else { ambientAudio.start(s); setAmbientSound(s); }
-              }}
-              className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-                ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/30 hover:text-cream-dim/50"
-              }`}
-            >
-              {s === "off" ? "Quiet" : s === "rain" ? "Rain" : "Ocean"}
-            </button>
-          ))}
+          <AmbientPicker
+            value={ambientSound}
+            onChange={setAmbientSound}
+            options={["off", "rain", "ocean"]}
+          />
         </div>
 
         {/* Session progress bar */}

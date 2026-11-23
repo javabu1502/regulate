@@ -13,6 +13,7 @@ import { getInstructions, type Scenario } from "@/lib/sos-scenarios";
 import PresenceCue from "@/components/PresenceCue";
 import { useAudioGuide } from "@/hooks/useAudioGuide";
 import VoiceToggle from "@/components/VoiceToggle";
+import AmbientPicker from "@/components/AmbientPicker";
 
 // ─── Breathing patterns ──────────────────────────────────────────────
 
@@ -659,25 +660,7 @@ function SOSPageInner() {
           className="px-2.5 py-2"
           onChange={(on) => { if (!on) { breathingAudio.stop(); sosAudio.stop(); } }}
         />
-        {(["rain", "ocean", "forest", "white-noise", "off"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => {
-              if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
-              else { ambientAudio.start(s); setAmbientSound(s); }
-            }}
-            className={`rounded-full px-2.5 py-2 text-[10px] transition-all ${
-              ambientSound === s
-                ? "bg-teal/20 text-teal-soft"
-                : "text-cream-dim/60 hover:text-cream-dim/70"
-            }`}
-            aria-label={`${s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : s === "forest" ? "Forest" : "White noise"} ambient sound`}
-            aria-pressed={ambientSound === s}
-          >
-            {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : s === "forest" ? "Forest" : "Noise"}
-          </button>
-        ))}
-      </div>
+<AmbientPicker value={ambientSound} onChange={setAmbientSound} />      </div>
     );
   }
 

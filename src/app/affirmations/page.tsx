@@ -450,7 +450,7 @@ function AffirmationsPageInner() {
         </div>
 
         {/* Count */}
-        <p className="fixed bottom-12 text-[10px] text-cream-dim/30">
+        <p className="above-nav fixed text-[10px] text-cream-dim/30">
           {(currentIndex % filtered.length) + 1} of {filtered.length}
         </p>
       </div>

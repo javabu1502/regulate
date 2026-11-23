@@ -222,7 +222,7 @@ export default function CaregiverPage() {
 
       {/* Bottom controls */}
       {!showBreathing && (
-        <div className="fixed bottom-8 left-0 right-0 flex justify-center gap-4 px-5">
+        <div className="above-nav fixed left-0 right-0 flex justify-center gap-4 px-5">
           <button
             onClick={() => setFlow("select")}
             className="rounded-xl border border-slate-blue/30 px-6 py-3 text-sm text-cream-dim hover:text-cream"

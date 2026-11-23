@@ -166,6 +166,21 @@ body {
 .sg-rub     { animation: sg-rub 4s linear infinite; transform-origin: center; }
 .sg-hold    { animation: sg-hold 5s ease-in-out infinite; transform-origin: center; }
 
+/* ── Clearing the bottom nav ──────────────────────────────────────────
+   The nav is fixed at the bottom and paints over anything beneath it, so a
+   control positioned with a small bottom offset ends up unreachable. The
+   caregiver flow's Next button was fully hidden behind it and a somatic
+   session's pause and End controls were clipped. These two put an element
+   above the nav, and pick up the iOS home-indicator inset as well. */
+
+.above-nav {
+  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.above-nav-2 {
+  bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* Safe area for bottom nav on notched devices */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);

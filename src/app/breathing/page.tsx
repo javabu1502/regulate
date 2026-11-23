@@ -192,7 +192,7 @@ function GetReadyScreen({ onReady, onCancel }: { onReady: () => void; onCancel: 
       </div>
       <button
         onClick={onCancel}
-        className="fixed bottom-12 text-sm text-cream-dim/30 transition-colors hover:text-cream-dim/60"
+        className="above-nav fixed text-sm text-cream-dim/30 transition-colors hover:text-cream-dim/60"
       >
         Cancel
       </button>

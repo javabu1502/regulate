@@ -1,164 +1,200 @@
 "use client";
 
 // ─── Somatic movement guides ────────────────────────────────────────
-// Four of the fourteen somatic exercises had their own visual and the other
-// ten were a paragraph of instructions, a row of dots and a countdown.
-// Reading is the first thing to go when you are panicking, so each of those
-// ten gets a plain diagram of the movement instead.
+// Ten of the fourteen somatic exercises were a paragraph, a row of dots and
+// a countdown. Reading is the first thing to go when you are panicking, so
+// each one shows the shape of the movement instead.
 //
-// Deliberately crude: a few strokes, soft colour, nothing to study. It shows
-// the shape of the movement, it does not demonstrate it. The animation is CSS
-// so the global reduce-motion rule freezes every one of these into a still
-// diagram without any extra handling here.
+// The first attempt drew a stick figure. Rendered on a phone it looked like
+// clipart next to the rest of the app, which is all soft arcs, thin strokes
+// and low-opacity glow. These are abstract: a soft presence standing in for
+// the body, and luminous traces for where the movement goes. They show the
+// shape of a motion rather than demonstrating one, so there is nothing to
+// study and nothing to perform.
+//
+// CSS keyframes, so the global reduce-motion rule freezes each of them into
+// a still diagram with no extra handling.
 
-const TEAL = "rgba(153, 246, 228, 0.75)";
-const TEAL_DIM = "rgba(125, 211, 200, 0.28)";
-const CANDLE = "rgba(226, 203, 140, 0.8)";
+const TEAL = "rgba(153, 246, 228, ";
+const CANDLE = "rgba(226, 203, 140, ";
 
 function Frame({ children, label }: { children: React.ReactNode; label: string }) {
   return (
-    <svg
-      viewBox="0 0 80 56"
-      className="h-20 w-28"
-      fill="none"
-      role="img"
-      aria-label={label}
-    >
+    <svg viewBox="0 0 120 80" className="h-24 w-36" fill="none" role="img" aria-label={label}>
+      <defs>
+        <radialGradient id="sg-body" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(153,246,228,0.22)" />
+          <stop offset="100%" stopColor="rgba(153,246,228,0)" />
+        </radialGradient>
+        <linearGradient id="sg-fall" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(226,203,140,0)" />
+          <stop offset="45%" stopColor="rgba(226,203,140,0.85)" />
+          <stop offset="100%" stopColor="rgba(226,203,140,0)" />
+        </linearGradient>
+        <linearGradient id="sg-out" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(226,203,140,0)" />
+          <stop offset="100%" stopColor="rgba(226,203,140,0.8)" />
+        </linearGradient>
+      </defs>
       {children}
     </svg>
   );
 }
 
-/** A simple upright figure the movement guides hang off. */
-function Figure({ className = "" }: { className?: string }) {
+/** A soft upright presence. Stands in for the body without drawing one. */
+function Presence({ className = "" }: { className?: string }) {
   return (
-    <g className={className} stroke={TEAL} strokeWidth="1.6" strokeLinecap="round">
-      <circle cx="40" cy="14" r="5" />
-      <path d="M40 19v18" />
-      <path d="M40 23l-9 7M40 23l9 7" />
-      <path d="M40 37l-7 12M40 37l7 12" />
+    <g className={className}>
+      <ellipse cx="60" cy="40" rx="30" ry="34" fill="url(#sg-body)" />
+      <rect x="52" y="16" width="16" height="48" rx="8" fill={`${TEAL}0.1)`} />
+      <rect
+        x="52"
+        y="16"
+        width="16"
+        height="48"
+        rx="8"
+        stroke={`${TEAL}0.4)`}
+        strokeWidth="1"
+      />
     </g>
   );
 }
 
 export default function SomaticGuide({ technique }: { technique: string }) {
   switch (technique) {
-    // Loose shaking: the whole figure trembles.
     case "body-shaking":
       return (
-        <Frame label="A figure shaking loosely from head to feet">
-          <Figure className="sg-jitter" />
+        <Frame label="The whole body shaking loose">
+          <g className="sg-jitter">
+            <Presence />
+          </g>
+          <g className="sg-jitter" style={{ animationDelay: "0.08s" }}>
+            <circle cx="40" cy="30" r="2" fill={`${TEAL}0.5)`} />
+            <circle cx="80" cy="46" r="2" fill={`${TEAL}0.4)`} />
+            <circle cx="44" cy="56" r="1.6" fill={`${TEAL}0.35)`} />
+          </g>
         </Frame>
       );
 
-    // Alternating punches forward.
     case "air-punching":
       return (
-        <Frame label="Arms punching forward, alternating left and right">
-          <Figure />
-          <g stroke={CANDLE} strokeWidth="1.8" strokeLinecap="round">
-            <path className="sg-punch-a" d="M49 28h10" />
-            <path className="sg-punch-b" d="M31 32h10" transform="scale(-1,1) translate(-80,0)" />
+        <Frame label="Punching forward, alternating arms">
+          <Presence />
+          <g strokeLinecap="round" strokeWidth="3">
+            <path className="sg-punch-a" d="M70 32h22" stroke="url(#sg-out)" />
+            <path className="sg-punch-b" d="M70 48h22" stroke="url(#sg-out)" />
           </g>
         </Frame>
       );
 
-    // Free movement: the figure drifts rather than follows a pattern.
     case "dancing":
       return (
-        <Frame label="A figure moving freely, no set pattern">
-          <Figure className="sg-swing" />
-          <g fill={TEAL_DIM}>
-            <circle className="sg-swell" cx="18" cy="20" r="2.5" />
-            <circle className="sg-swell" cx="63" cy="34" r="2" style={{ animationDelay: "1.6s" }} />
+        <Frame label="Moving freely, no set pattern">
+          <g className="sg-swing">
+            <Presence />
+          </g>
+          <g fill="none" stroke={`${TEAL}0.3)`} strokeWidth="1.4" strokeLinecap="round">
+            <path className="sg-swell" d="M26 52c6-10 6-20 0-28" />
+            <path className="sg-swell" style={{ animationDelay: "1.8s" }} d="M94 52c-6-10-6-20 0-28" />
           </g>
         </Frame>
       );
 
-    // Havening: slow strokes down the arms.
     case "havening":
       return (
         <Frame label="Hands stroking slowly down from the shoulders">
-          <Figure />
-          <g stroke={CANDLE} strokeWidth="2" strokeLinecap="round">
-            <path className="sg-stroke" d="M29 26h7" />
-            <path className="sg-stroke" d="M44 26h7" style={{ animationDelay: "1.3s" }} />
+          <Presence />
+          {/* Two trails falling down the arms, offset so it reads as repeating */}
+          <g strokeWidth="3.5" strokeLinecap="round">
+            <path className="sg-stroke" d="M44 22v18" stroke="url(#sg-fall)" />
+            <path
+              className="sg-stroke"
+              style={{ animationDelay: "1.3s" }}
+              d="M76 22v18"
+              stroke="url(#sg-fall)"
+            />
           </g>
         </Frame>
       );
 
-    // Palms resting over closed eyes.
     case "eye-press":
       return (
         <Frame label="Palms resting gently over closed eyes">
-          <g stroke={TEAL} strokeWidth="1.6" strokeLinecap="round">
-            <circle cx="40" cy="26" r="13" />
-            <path d="M33 24c1.6-1.6 3.4-1.6 5 0M42 24c1.6-1.6 3.4-1.6 5 0" />
+          <circle cx="60" cy="40" r="22" fill="url(#sg-body)" />
+          <g stroke={`${TEAL}0.45)`} strokeWidth="1.4" strokeLinecap="round">
+            <path d="M50 38c2-2.4 4.4-2.4 6.4 0" />
+            <path d="M63.6 38c2-2.4 4.4-2.4 6.4 0" />
           </g>
-          <g className="sg-press" stroke={CANDLE} strokeWidth="1.8" strokeLinecap="round">
-            <path d="M26 20c-3 4-3 9 0 13" />
-            <path d="M54 20c3 4 3 9 0 13" />
+          <g className="sg-press" stroke={`${CANDLE}0.7)`} strokeWidth="2.4" strokeLinecap="round" fill="none">
+            <path d="M34 28c-5 7-5 17 0 24" />
+            <path d="M86 28c5 7 5 17 0 24" />
           </g>
         </Frame>
       );
 
-    // Bearing down: steady downward pressure through the middle.
     case "bearing-down":
       return (
-        <Frame label="Steady downward pressure through the middle of the body">
-          <Figure />
+        <Frame label="Steady downward pressure through the middle">
+          <Presence />
           <g className="sg-hold">
-            <rect x="33" y="24" width="14" height="13" rx="6" fill="rgba(226,203,140,0.16)" />
-            <path d="M40 24v13" stroke={CANDLE} strokeWidth="1.6" strokeLinecap="round" />
-            <path d="M36 34l4 4 4-4" stroke={CANDLE} strokeWidth="1.6" strokeLinecap="round" />
+            <rect x="48" y="30" width="24" height="24" rx="11" fill={`${CANDLE}0.14)`} />
+            <path
+              d="M60 28v22M54 44l6 6 6-6"
+              stroke={`${CANDLE}0.8)`}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
           </g>
         </Frame>
       );
 
-    // Orienting: the gaze travels around the room.
     case "orienting":
       return (
-        <Frame label="Gaze moving slowly left, right, up and down around the room">
-          <rect x="10" y="8" width="60" height="40" rx="4" stroke={TEAL_DIM} strokeWidth="1.4" />
-          <circle className="sg-gaze" cx="40" cy="28" r="4.5" fill={CANDLE} />
+        <Frame label="Gaze moving slowly around the room">
+          <rect x="16" y="12" width="88" height="56" rx="8" stroke={`${TEAL}0.2)`} strokeWidth="1.2" />
+          <g className="sg-gaze">
+            <circle cx="60" cy="40" r="14" fill="url(#sg-body)" />
+            <circle cx="60" cy="40" r="5" fill={`${CANDLE}0.85)`} />
+          </g>
         </Frame>
       );
 
-    // Pendulation: attention swings between a tight place and an easy one.
     case "pendulation":
       return (
-        <Frame label="Attention moving back and forth between a tense place and a comfortable one">
-          <circle cx="22" cy="28" r="9" stroke="rgba(194,122,106,0.4)" strokeWidth="1.4" />
-          <circle cx="58" cy="28" r="9" stroke={TEAL_DIM} strokeWidth="1.4" />
-          <path d="M31 28h18" stroke={TEAL_DIM} strokeWidth="1.2" strokeDasharray="2 3" />
-          <circle className="sg-swing" cx="40" cy="28" r="4" fill={TEAL} />
+        <Frame label="Attention moving between a tense place and an easy one">
+          <circle cx="34" cy="40" r="15" stroke="rgba(194,122,106,0.4)" strokeWidth="1.3" />
+          <circle cx="86" cy="40" r="15" stroke={`${TEAL}0.3)`} strokeWidth="1.3" />
+          <path d="M49 40h22" stroke={`${TEAL}0.2)`} strokeWidth="1.2" strokeDasharray="2 4" />
+          <g className="sg-swing">
+            <circle cx="60" cy="40" r="12" fill="url(#sg-body)" />
+            <circle cx="60" cy="40" r="5" fill={`${TEAL}0.9)`} />
+          </g>
         </Frame>
       );
 
-    // Return to safety: hands on chest and belly.
     case "return-to-safety":
       return (
         <Frame label="One hand on the chest, one on the belly">
-          <Figure />
+          <Presence />
           <g className="sg-swell">
-            <circle cx="35" cy="26" r="4.5" fill="rgba(153,246,228,0.3)" />
-            <circle cx="45" cy="34" r="4.5" fill="rgba(226,203,140,0.26)" />
+            <circle cx="52" cy="32" r="8" fill={`${TEAL}0.26)`} />
+            <circle cx="68" cy="48" r="8" fill={`${CANDLE}0.22)`} />
           </g>
         </Frame>
       );
 
-    // Vagus nerve massage: small circles behind the ear and down the neck.
     case "vagus-nerve-massage":
       return (
-        <Frame label="Small circles behind the ear and down the side of the neck">
-          <g stroke={TEAL} strokeWidth="1.6" strokeLinecap="round">
-            <circle cx="40" cy="22" r="12" />
-            <path d="M40 34v8" />
+        <Frame label="Small circles behind the ear and down the neck">
+          <circle cx="60" cy="34" r="20" fill="url(#sg-body)" />
+          <circle cx="60" cy="34" r="20" stroke={`${TEAL}0.35)`} strokeWidth="1.2" />
+          <path d="M60 54v12" stroke={`${TEAL}0.3)`} strokeWidth="1.2" strokeLinecap="round" />
+          <circle cx="80" cy="36" r="9" stroke={`${TEAL}0.2)`} strokeWidth="1.1" strokeDasharray="2 4" />
+          <g className="sg-rub" style={{ transformOrigin: "80px 36px" }}>
+            <circle cx="89" cy="36" r="3.4" fill={`${CANDLE}0.85)`} />
           </g>
-          <g className="sg-rub" style={{ transformOrigin: "52px 24px" }}>
-            <circle cx="55" cy="24" r="3" fill={CANDLE} />
-          </g>
-          <circle cx="52" cy="24" r="6.5" stroke={TEAL_DIM} strokeWidth="1.2" strokeDasharray="2 3" />
         </Frame>
       );
 

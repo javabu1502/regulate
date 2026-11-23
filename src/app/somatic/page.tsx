@@ -13,6 +13,7 @@ import MicroExplanation from "@/components/MicroExplanation";
 import VoiceToggle from "@/components/VoiceToggle";
 import EyesClosedMode from "@/components/EyesClosedMode";
 import SomaticGuide from "@/components/SomaticGuide";
+import AmbientPicker from "@/components/AmbientPicker";
 import { getCurrentNSState, type NSState } from "@/components/NSStateSelector";
 import { haptics, getHapticsEnabled } from "@/lib/haptics";
 import { isGameSoundEnabled } from "@/lib/game-sound";
@@ -715,30 +716,17 @@ function SomaticPageInner() {
 
   function renderAmbientToggle() {
     return (
-      <div className={`fixed bottom-20 left-0 right-0 flex justify-center gap-1 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <div className={`above-nav-2 fixed left-0 right-0 flex flex-wrap items-center justify-center gap-1 px-14 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <VoiceToggle className="px-2.5 py-2" onChange={(on) => { if (!on) somaticAudio.stop(); }} />
         <EyesClosedMode className="px-2.5 py-2" />
-        {(["off", "rain", "ocean", "forest", "white-noise"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => {
-              if (s === "off" || ambientSound === s) { ambientAudio.stop(); setAmbientSound("off"); }
-              else { ambientAudio.start(s); setAmbientSound(s); }
-            }}
-            className={`rounded-full px-2 py-1 text-[10px] transition-all ${
-              ambientSound === s ? "bg-teal/20 text-teal-soft" : "text-cream-dim/50 hover:text-cream-dim/70"
-            }`}
-          >
-            {s === "off" ? "Quiet" : s === "rain" ? "Rain" : s === "ocean" ? "Ocean" : s === "forest" ? "Forest" : "White noise"}
-          </button>
-        ))}
+        <AmbientPicker value={ambientSound} onChange={setAmbientSound} />
       </div>
     );
   }
 
   function renderSessionControls() {
     return (
-      <div className={`fixed bottom-6 left-0 right-0 flex items-center justify-center gap-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <div className={`above-nav fixed left-0 right-0 flex items-center justify-center gap-6 transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <button
           onClick={() => setIsPaused((p) => !p)}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-teal/20 bg-deep/80 text-cream-dim transition-colors hover:text-cream"

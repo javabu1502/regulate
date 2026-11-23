@@ -20,7 +20,6 @@ const SCALE = [196, 220, 261.63, 293.66, 329.63, 392, 440, 523.25, 587.33];
 
 let audioCtx: AudioContext | null = null;
 let master: GainNode | null = null;
-let reverb: ConvolverNode | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioCtx) {
@@ -28,59 +27,42 @@ function getAudioContext(): AudioContext {
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     audioCtx = new Ctor();
-
     master = audioCtx.createGain();
-    master.gain.value = 0.55;
+    master.gain.value = 0.5;
     master.connect(audioCtx.destination);
-
-    // A short synthetic impulse gives the chimes a room to ring in, which is
-    // most of the difference between "a tone" and "a chime".
-    try {
-      const len = audioCtx.sampleRate * 2.4;
-      const impulse = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
-      for (let ch = 0; ch < 2; ch++) {
-        const data = impulse.getChannelData(ch);
-        for (let i = 0; i < len; i++) {
-          data[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 2.6;
-        }
-      }
-      reverb = audioCtx.createConvolver();
-      reverb.buffer = impulse;
-      const wet = audioCtx.createGain();
-      wet.gain.value = 0.4;
-      reverb.connect(wet);
-      wet.connect(audioCtx.destination);
-    } catch {
-      reverb = null;
-    }
   }
   return audioCtx;
 }
 
+// This started out with a ConvolverNode for room sound, which made it the
+// only game here doing something the others do not. It produced no sound at
+// all on a real device. The ringing comes from stacked partials and a long
+// decay instead, which is the same plain oscillator graph every other game
+// in this app already uses.
 function strike(freq: number, velocity = 1) {
   if (!isGameSoundEnabled()) return;
   try {
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
+    const now = ctx.currentTime;
 
-    // Two partials an octave and a twelfth up, quieter and shorter, which is
-    // roughly how a struck metal bar behaves.
+    // A struck metal bar: the fundamental rings longest, the partials above
+    // it are quieter and die away sooner.
     [
-      { mult: 1, gain: 0.3, decay: 5.5 },
-      { mult: 2.01, gain: 0.1, decay: 3.2 },
-      { mult: 3.02, gain: 0.04, decay: 1.8 },
-    ].forEach(({ mult, gain: g, decay }) => {
+      { mult: 1, gain: 0.34, decay: 6.0 },
+      { mult: 2.01, gain: 0.11, decay: 3.4 },
+      { mult: 3.02, gain: 0.05, decay: 2.0 },
+      { mult: 4.07, gain: 0.02, decay: 1.2 },
+    ].forEach(({ mult, gain: level, decay }) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.value = freq * mult;
-      const now = ctx.currentTime;
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(g * velocity, now + 0.008);
+      gain.gain.linearRampToValueAtTime(level * velocity, now + 0.006);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
       osc.connect(gain);
-      if (master) gain.connect(master);
-      if (reverb) gain.connect(reverb);
+      gain.connect(master ?? ctx.destination);
       osc.start(now);
       osc.stop(now + decay + 0.1);
     });
@@ -153,9 +135,17 @@ export default function ChimesPage() {
         const len = h * (0.3 + (1 - i / n) * 0.34);
         const top = (h - len) / 2;
 
-        // Resting bar
+        // Resting bar. Built from arcs rather than roundRect, which only
+        // exists in Safari 16.4 and up; where it is missing it throws and
+        // takes the whole draw loop down with it.
+        const r = barW / 2;
+        const x0 = cx - r;
         ctx!.beginPath();
-        ctx!.roundRect(cx - barW / 2, top, barW, len, barW / 2);
+        ctx!.moveTo(x0, top + r);
+        ctx!.arc(cx, top + r, r, Math.PI, 0);
+        ctx!.lineTo(x0 + barW, top + len - r);
+        ctx!.arc(cx, top + len - r, r, 0, Math.PI);
+        ctx!.closePath();
         ctx!.fillStyle = `rgba(125, 211, 200, ${0.07 + bar.energy * 0.22})`;
         ctx!.fill();
         ctx!.strokeStyle = `rgba(153, 246, 228, ${0.1 + bar.energy * 0.4})`;

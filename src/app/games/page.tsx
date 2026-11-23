@@ -15,6 +15,54 @@ export type BodyState = "panicking" | "anxious" | "shutdown";
 
 const games = [
   {
+    href: "/games/koi",
+    states: ["shutdown", "anxious"] as BodyState[],
+    forWhat: "Company, on its own terms",
+    title: "Koi",
+    description: "Hold still and the fish come over.",
+    color: "teal",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+        <ellipse cx="13" cy="12" rx="5" ry="2.6" />
+        <path d="M8 12l-3.5 2.2V9.8L8 12Z" />
+        <circle cx="16" cy="11.2" r="0.6" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    href: "/games/beads",
+    states: ["anxious", "panicking"] as BodyState[],
+    forWhat: "The hand counts so you don't have to",
+    title: "Beads",
+    description: "Move one bead at a time. One per breath.",
+    color: "candle",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+        <circle cx="12" cy="12" r="7.5" opacity="0.4" />
+        <circle cx="12" cy="4.5" r="2" fill="currentColor" opacity="0.8" />
+        <circle cx="19.5" cy="12" r="1.5" />
+        <circle cx="12" cy="19.5" r="1.5" />
+        <circle cx="4.5" cy="12" r="1.5" />
+      </svg>
+    ),
+  },
+  {
+    href: "/games/tide",
+    states: ["anxious", "panicking"] as BodyState[],
+    forWhat: "Set something down and let it go",
+    title: "Tide",
+    description: "Put a stone on the sand. The water takes it.",
+    color: "lavender",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+        <path d="M2 15c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0" />
+        <path d="M2 19c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0" opacity="0.5" />
+        <ellipse cx="9" cy="9" rx="2.4" ry="1.6" />
+      </svg>
+    ),
+  },
+
+  {
     href: "/games/labyrinth",
     states: ["panicking", "anxious"] as BodyState[],
     forWhat: "One line, one direction, nothing to decide",
