@@ -19,7 +19,8 @@ export type BodyState = "panicking" | "anxious" | "shutdown";
 // What each group is actually for. A run of game names read as noise and
 // said nothing; a line of purpose is the thing you are choosing between.
 const GROUP_BLURB: Record<string, string> = {
-  "Something to follow": "A rhythm or a path. Nothing to decide.",
+  "Something to follow": "A path for your hand or eye. Nothing to decide.",
+  "Breathe with it": "A rhythm slower than yours, to settle onto.",
   "Quiet company": "Something present that asks nothing of you.",
   "Busy hands": "Repetitive and tactile. Somewhere to put the restlessness.",
   "Make something": "Open-ended. You leave a mark.",
@@ -28,6 +29,7 @@ const GROUP_BLURB: Record<string, string> = {
 };
 
 const GROUP_ORDER = [
+  "Breathe with it",
   "Something to follow",
   "Quiet company",
   "Busy hands",
@@ -167,7 +169,7 @@ const games = [
   },
   {
     href: "/games/nothing",
-    group: "Something to follow",
+    group: "Breathe with it",
     states: ["panicking", "anxious", "shutdown"] as BodyState[],
     forWhat: "When following instructions is too much",
     title: "Nothing To Do",
@@ -199,7 +201,7 @@ const games = [
   },
   {
     href: "/games/garden",
-    group: "Something to follow",
+    group: "Breathe with it",
     states: ["anxious", "panicking"] as BodyState[],
     forWhat: "Paces your breathing",
     title: "Breathing Garden",
