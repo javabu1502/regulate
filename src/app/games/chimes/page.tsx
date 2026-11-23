@@ -11,7 +11,9 @@ import { canvasHeight } from "@/lib/canvas-area";
 // The only game here led by sound rather than by what is on screen. It works
 // with your eyes closed, and better with headphones.
 //
-// Played the way a real bowl is played. Tap one and it rings. Or circle a
+// Played the way a real bowl is played, with one liberty taken: the speed of
+// the circling bends the note up to a fifth, so the hand has something to
+// steer. Tap one and it rings. Or circle a
 // finger slowly around a rim and it sings: the tone grows while you keep
 // going round and falls away when you stop. The circling is the point. It
 // needs a slow, steady, continuous hand, which is difficult to do while
@@ -34,6 +36,8 @@ interface Bowl {
   freq: number;
   ring: number;   // struck energy, decays on its own
   sing: number;   // rubbed energy, only held up by circling
+  rate: number;   // how fast the rim is being circled, radians a second
+  dot: number;    // where the bright point has got to on the rim
 }
 
 let audioCtx: AudioContext | null = null;
@@ -93,6 +97,14 @@ function strike(freq: number, velocity = 1) {
 let singVoice: { oscs: OscillatorNode[]; gain: GainNode; freq: number } | null = null;
 const SING_MULTS = [1, 2.75, 5.4];
 
+// How far the tone bends when the finger is flying round. A fifth: far
+// enough that speed is obviously doing something, close enough that it is
+// still the same bowl and still in tune with the other four.
+const BEND = 0.5;
+// The circling speed, in radians a second, that reaches the top of the bend.
+// Roughly two turns a second, which is about as fast as a finger goes.
+const BEND_AT = 13;
+
 function ensureSingVoice(freq: number) {
   if (!isGameSoundEnabled()) return;
   try {
@@ -100,13 +112,7 @@ function ensureSingVoice(freq: number) {
     if (ctx.state === "suspended") ctx.resume();
 
     if (singVoice) {
-      if (singVoice.freq !== freq) {
-        // Glide across rather than cutting between bowls.
-        singVoice.oscs.forEach((osc, i) => {
-          osc.frequency.linearRampToValueAtTime(freq * SING_MULTS[i], ctx.currentTime + 0.25);
-        });
-        singVoice.freq = freq;
-      }
+      singVoice.freq = freq;
       return;
     }
 
@@ -129,6 +135,31 @@ function ensureSingVoice(freq: number) {
     singVoice = { oscs, gain, freq };
   } catch {
     /* sound is optional */
+  }
+}
+
+/**
+ * Bend the sung tone with the speed of the circling.
+ *
+ * A real bowl does not do this. Rub one faster and it gets louder and the
+ * upper partials come out, but the fundamental stays put. This is the one
+ * place the game leaves the physics behind, because a tone you can steer
+ * is worth more here than one that is accurate: it gives the hand something
+ * to listen for, and slowing down to bring the note back down is the whole
+ * point of the exercise.
+ *
+ * setTargetAtTime rather than a ramp, so calling it every frame glides
+ * instead of stepping, and a jump between bowls arrives the same smooth way.
+ */
+function setSingPitch(freq: number, ratio: number) {
+  if (!singVoice) return;
+  try {
+    const ctx = getAudioContext();
+    singVoice.oscs.forEach((osc, i) => {
+      osc.frequency.setTargetAtTime(freq * SING_MULTS[i] * ratio, ctx.currentTime, 0.06);
+    });
+  } catch {
+    /* ignore */
   }
 }
 
@@ -171,6 +202,8 @@ export default function BowlsPage() {
   const lastAngleRef = useRef<number | null>(null);
   const activeRef = useRef(-1);
   const turnedRef = useRef(0);
+  const lastMoveRef = useRef(0);
+  const lastFrameRef = useRef(0);
 
   const [touched, setTouched] = useState(false);
   const [singing, setSinging] = useState(false);
@@ -202,6 +235,8 @@ export default function BowlsPage() {
         freq: b.freq,
         ring: 0,
         sing: 0,
+        rate: 0,
+        dot: -Math.PI / 2,
       }));
     }
 
@@ -220,7 +255,7 @@ export default function BowlsPage() {
     resize();
     window.addEventListener("resize", resize);
 
-    function drawBowl(b: Bowl, now: number) {
+    function drawBowl(b: Bowl) {
       const energy = Math.max(b.ring, b.sing);
       const rimY = b.y - b.r * 0.5;
       const rimRx = b.r;
@@ -265,7 +300,7 @@ export default function BowlsPage() {
 
       // A bright point travelling the rim while it is being circled
       if (b.sing > 0.02) {
-        const a = reducedMotionRef.current ? -Math.PI / 2 : now / 320;
+        const a = reducedMotionRef.current ? -Math.PI / 2 : b.dot;
         ctx!.beginPath();
         ctx!.arc(b.x + Math.cos(a) * rimRx, rimY + Math.sin(a) * rimRy, 3.5, 0, Math.PI * 2);
         ctx!.fillStyle = `rgba(255, 246, 220, ${0.5 + b.sing * 0.5})`;
@@ -277,17 +312,28 @@ export default function BowlsPage() {
       const { w, h } = sizeRef.current;
       ctx!.clearRect(0, 0, w, h);
 
+      const dt = Math.min(0.05, (now - (lastFrameRef.current || now)) / 1000);
+      lastFrameRef.current = now;
+
       for (const b of bowlsRef.current) {
         b.ring *= reducedMotionRef.current ? 0.93 : 0.986;
         // Singing dies away unless the finger keeps going round.
         b.sing *= 0.955;
-        drawBowl(b, now);
+        // So does the speed, which is what lets the note fall back down
+        // when you ease off instead of hanging where you left it.
+        b.rate *= 0.93;
+        // The bright point keeps pace with the finger.
+        b.dot += b.rate * dt;
+        drawBowl(b);
       }
 
       const active = activeRef.current;
       if (active >= 0) {
         const b = bowlsRef.current[active];
-        if (b) setSingLevel(Math.min(0.26, b.sing * 0.26));
+        if (b) {
+          setSingLevel(Math.min(0.26, b.sing * 0.26));
+          setSingPitch(b.freq, 1 + Math.min(1, b.rate / BEND_AT) * BEND);
+        }
       }
 
       animRef.current = requestAnimationFrame(draw);
@@ -325,6 +371,8 @@ export default function BowlsPage() {
     if (i < 0) return;
     const b = bowlsRef.current[i];
     lastAngleRef.current = Math.atan2(e.clientY - b.y, e.clientX - b.x);
+    lastMoveRef.current = performance.now();
+    b.dot = lastAngleRef.current;
     if (!touched) setTouched(true);
   }, [touched]);
 
@@ -342,6 +390,17 @@ export default function BowlsPage() {
     if (d > Math.PI) d -= Math.PI * 2;
     if (d < -Math.PI) d += Math.PI * 2;
     turnedRef.current += Math.abs(d);
+
+    // Speed, for the pitch. The floor on dt keeps two events in the same
+    // millisecond from reading as an impossible spin, and a long gap means
+    // the finger stopped and started rather than covered that arc quickly.
+    const t = performance.now();
+    const gap = t - lastMoveRef.current;
+    lastMoveRef.current = t;
+    if (gap < 140) {
+      const inst = Math.abs(d) / (Math.max(8, gap) / 1000);
+      b.rate += (Math.min(BEND_AT * 1.4, inst) - b.rate) * 0.3;
+    }
 
     // Going round the rim is what makes it sing; a straight swipe does not.
     ensureSingVoice(b.freq);
@@ -378,7 +437,9 @@ export default function BowlsPage() {
         Five singing bowls in a row, the largest and lowest on the left. Tap
         one and it rings. Or slowly circle a finger around a bowl&apos;s rim
         and it begins to sing, growing while you keep circling and falling
-        away when you stop. They are tuned so no combination sounds wrong.
+        away when you stop. Circle faster and the note rises, up to about a
+        fifth above where it started; slow down and it comes back. They are
+        tuned so no combination sounds wrong.
         This one works with your eyes closed.
       </p>
 
@@ -427,7 +488,7 @@ export default function BowlsPage() {
 
       <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
         {singing
-          ? "Keep going round. Slow and even."
+          ? "Faster lifts the note, slower lets it back down."
           : touched
             ? "Circle a rim to make it sing. Tap to ring it."
             : "Tap a bowl, or circle slowly around its rim."}
