@@ -481,19 +481,15 @@ export default function BreathingGardenPage() {
     }
 
     if (phase === "rest") {
-      // A short beat between breaths, then the next one starts on its own.
-      // Requiring a tap between every breath meant you had to open your eyes
-      // and aim before each one, which is the opposite of settling into a
-      // rhythm. Tapping still chooses where a flower grows; it is no longer
-      // the only way to take another breath.
+      // It waits here. The next breath used to begin on its own after a
+      // beat and a half, on the reasoning that aiming before each one
+      // breaks the rhythm. In practice one tap started a cycle that then
+      // ran on by itself, so the game went from something you were doing
+      // to something playing at you. One tap, one breath, one flower.
       phaseRef.current = "idle";
       progressRef.current = 0;
       setCountdown(0);
-      const t = setTimeout(() => {
-        phaseStartRef.current = Date.now();
-        setPhase("inhale");
-      }, 1500);
-      return () => clearTimeout(t);
+      return;
     }
 
     phaseRef.current = phase;
@@ -644,8 +640,8 @@ export default function BreathingGardenPage() {
     guideText = "Breathe out";
     subText = countdown > 0 ? `${countdown}` : "";
   } else if (phase === "rest") {
-    guideText = "Another breath coming";
-    subText = "Tap anywhere to plant the next one there";
+    guideText = "When you're ready";
+    subText = "Tap again for the next breath, wherever you want it";
   }
 
   const flowerCount = flowersRef.current.length + (growingRef.current ? 1 : 0);

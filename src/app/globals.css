@@ -163,6 +163,64 @@ body {
   40%, 70% { transform: scaleY(0.82); opacity: 0.95; }
 }
 
+/* sg-swell was used by two guides and never existed, so those two did not
+   move at all. These are the movements a stick figure needs. */
+@keyframes sg-swell {
+  0%, 100% { transform: translateY(1.2px); }
+  50%      { transform: translateY(-1.2px); }
+}
+@keyframes sg-sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50%      { transform: rotate(5deg); }
+}
+@keyframes sg-head-turn {
+  0%, 100% { transform: translateX(-5px); }
+  25%      { transform: translateX(-5px); }
+  50%      { transform: translateX(5px); }
+  75%      { transform: translateX(5px); }
+}
+@keyframes sg-arm-a {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-58deg); }
+}
+@keyframes sg-arm-b {
+  0%, 100% { transform: rotate(0deg); }
+  75%      { transform: rotate(58deg); }
+}
+/* Pendulation moves between a tight place and an easy one, which are drawn
+   one above the other on the body, so this swing is vertical. */
+/* Havening strokes down the outside of the arms, which run diagonally, so
+   the hands have to travel diagonally too. sg-stroke moved them straight
+   down and they drifted off the arm and onto the chest. */
+@keyframes sg-stroke-l {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  18%  { opacity: 0.95; }
+  100% { transform: translate(-13px, 20px); opacity: 0; }
+}
+@keyframes sg-stroke-r {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  18%  { opacity: 0.95; }
+  100% { transform: translate(13px, 20px); opacity: 0; }
+}
+@keyframes sg-pend {
+  0%, 100% { transform: translateY(-11px); }
+  50%      { transform: translateY(11px); }
+}
+@keyframes sg-shake-arm {
+  0%, 100% { transform: rotate(-9deg); }
+  50%      { transform: rotate(9deg); }
+}
+
+.sg-swell     { animation: sg-swell 5.5s ease-in-out infinite; }
+.sg-sway      { animation: sg-sway 3.4s ease-in-out infinite; transform-origin: 50px 72px; }
+.sg-head-turn { animation: sg-head-turn 7s ease-in-out infinite; }
+.sg-arm-a     { animation: sg-arm-a 1.6s ease-in-out infinite; }
+.sg-arm-b     { animation: sg-arm-b 1.6s ease-in-out infinite; }
+.sg-stroke-l  { animation: sg-stroke-l 2.8s ease-in-out infinite; }
+.sg-stroke-r  { animation: sg-stroke-r 2.8s ease-in-out infinite; }
+.sg-pend      { animation: sg-pend 5s ease-in-out infinite; }
+.sg-shake-arm { animation: sg-shake-arm 0.26s ease-in-out infinite; }
+
 .sg-jitter  { animation: sg-jitter 0.32s linear infinite; }
 .sg-punch-a { animation: sg-punch-a 1.6s ease-in-out infinite; }
 .sg-punch-b { animation: sg-punch-b 1.6s ease-in-out infinite; }
