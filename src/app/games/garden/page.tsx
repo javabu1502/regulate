@@ -612,20 +612,11 @@ export default function BreathingGardenPage() {
     progressRef.current = 0;
   }, [phase]);
 
-  // Breathing starts by itself. It was gated behind planting the first
-  // flower, which had it backwards: the breath is the exercise and the
-  // planting is the part you can take or leave.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setPhase((p) => {
-        if (p !== "idle") return p;
-        phaseStartRef.current = Date.now();
-        progressRef.current = 0;
-        return "inhale";
-      });
-    }, 1800);
-    return () => clearTimeout(t);
-  }, []);
+  // Nothing happens until you touch the ground. This started by itself for
+  // a while, on the reasoning that the breath is the exercise and planting
+  // is optional, and that was wrong: a breath cycle counting at you the
+  // moment the page loads is something being done to you. Putting the first
+  // flower in is what says you are ready.
 
   const stopBreathing = useCallback(() => {
     cancelAnimationFrame(breathAnimRef.current);
@@ -637,8 +628,10 @@ export default function BreathingGardenPage() {
 
   // ── Guide text ──────────────────────────────────────────────────
 
-  let guideText = "Settling";
-  let subText = "Breathe with it. Tap anywhere to plant a flower there";
+  // The idle line said "Settling" over "Breathe with it", which described a
+  // breath that was already running. Nothing runs until you plant.
+  let guideText = "Plant something";
+  let subText = "Touch the ground where you want it. The breath starts there";
   if (phase === "inhale") {
     guideText = "Breathe in";
     subText = countdown > 0 ? `${countdown}` : "";
