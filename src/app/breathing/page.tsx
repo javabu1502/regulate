@@ -204,6 +204,39 @@ function GetReadyScreen({ onReady, onCancel }: { onReady: () => void; onCancel: 
 
 type Screen = "select" | "intro" | "getready" | "session" | "complete";
 
+/**
+ * One control in the session bar: the icon, and underneath it the word for
+ * what it does and what state it is in.
+ *
+ * The bar was six bare glyphs. Nobody could tell that the voice was off,
+ * because "off" was a diagonal line drawn through a shape that did not read
+ * as anything at eighteen pixels in the first place.
+ */
+function CueButton({
+  on,
+  label,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className={`flex w-14 flex-col items-center gap-1 transition-all ${
+        on ? "text-teal-soft" : "text-cream-dim/35"
+      }`}
+    >
+      {children}
+      <span className="text-[9px] leading-none">{label}</span>
+    </button>
+  );
+}
+
 export default function BreathingPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-midnight" />}>
@@ -617,21 +650,30 @@ function BreathingPageInner() {
 
         {/* Compact icon bar — tap screen to reveal */}
         <div className={`fixed left-0 right-0 top-0 z-20 safe-top transition-opacity duration-300 ${controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-          <div className="flex items-center justify-center gap-5 pt-3 pb-2">
+          {/* Six bare icons at eighteen pixels, one of which was an
+              unrecognisable shape whose crossed-out state was the only sign
+              that the voice was off. Every one carries its name now, and
+              the state each is in reads from the word rather than from
+              whether a diagonal line is drawn through a glyph. */}
+          <div className="flex items-start justify-center gap-4 pt-3 pb-2">
             <EyesClosedMode />
-            {/* Voice toggle */}
-            <button
+            {/* Voice */}
+            <CueButton
+              on={voiceOn}
+              label={voiceOn ? "Voice" : "Voice off"}
               onClick={() => { const next = voiceGuidance.toggle(); setVoiceOn(next); if (!next) breathingAudio.stop(); }}
-              className={`transition-all ${voiceOn ? "text-teal-soft" : "text-cream-dim/25"}`}
-              aria-label={voiceOn ? "Voice on" : "Voice off"}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 1C12 1 8 5 8 10C8 15 12 19 12 19" /><path d="M12 1C12 1 16 5 16 10C16 15 12 19 12 19" />
-                {!voiceOn && <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />}
+                <rect x="9" y="2" width="6" height="11" rx="3" />
+                <path d="M5 11a7 7 0 0 0 14 0" />
+                <path d="M12 18v3" />
+                {!voiceOn && <line x1="4" y1="3" x2="20" y2="21" strokeWidth="2" />}
               </svg>
-            </button>
-            {/* Ambient sound cycle */}
-            <button
+            </CueButton>
+            {/* Ambient sound */}
+            <CueButton
+              on={ambientSound !== "off"}
+              label={ambientSound === "off" ? "Sound off" : ambientSound.charAt(0).toUpperCase() + ambientSound.slice(1)}
               onClick={() => {
                 const sounds: AmbientSound[] = ["off", "rain", "ocean", "forest"];
                 const idx = sounds.indexOf(ambientSound);
@@ -639,44 +681,37 @@ function BreathingPageInner() {
                 if (next === "off") { ambientAudio.stop(); setAmbientSound("off"); }
                 else { ambientAudio.start(next); setAmbientSound(next); }
               }}
-              className={`transition-all ${ambientSound !== "off" ? "text-teal-soft" : "text-cream-dim/25"}`}
-              aria-label={`Ambient sound: ${ambientSound}`}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 18V12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12V18" /><path d="M21 19C21 20.1 20.1 21 19 21H18C16.9 21 16 20.1 16 19V16C16 14.9 16.9 14 18 14H21V19Z" /><path d="M3 19C3 20.1 3.9 21 5 21H6C7.1 21 8 20.1 8 19V16C8 14.9 7.1 14 6 14H3V19Z" />
               </svg>
-            </button>
-            {/* Eyes-free toggle */}
-            <button
+            </CueButton>
+            {/* Timer only */}
+            <CueButton
+              on={eyesFree}
+              label="Timer only"
               onClick={() => setEyesFree((v) => !v)}
-              className={`transition-all ${eyesFree ? "text-teal-soft" : "text-cream-dim/25"}`}
-              aria-label={eyesFree ? "Eyes-free on" : "Eyes-free off"}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12C1 12 5 5 12 5C19 5 23 12 23 12C23 12 19 19 12 19C5 19 1 12 1 12Z" /><circle cx="12" cy="12" r="3" />
-                {eyesFree && <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />}
+                <circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M9 2h6" />
               </svg>
-            </button>
-            {/* Pause/play */}
-            <button
+            </CueButton>
+            {/* Pause */}
+            <CueButton
+              on={false}
+              label={isPaused ? "Resume" : "Pause"}
               onClick={() => setIsPaused((p) => !p)}
-              className="text-cream-dim/25 transition-all"
-              aria-label={isPaused ? "Resume" : "Pause"}
             >
               {isPaused ? (
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><path d="M5 3L15 9L5 15V3Z" /></svg>
               ) : (
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="4" y="3" width="3" height="12" rx="1" /><rect x="11" y="3" width="3" height="12" rx="1" /></svg>
               )}
-            </button>
-            {/* End session */}
-            <button
-              onClick={resetToSelect}
-              className="text-cream-dim/25 transition-all"
-              aria-label="End session"
-            >
+            </CueButton>
+            {/* End */}
+            <CueButton on={false} label="End" onClick={resetToSelect}>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 4L14 14M14 4L4 14" /></svg>
-            </button>
+            </CueButton>
           </div>
         </div>
 

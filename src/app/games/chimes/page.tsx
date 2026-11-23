@@ -13,21 +13,28 @@ import { canvasHeight } from "@/lib/canvas-area";
 //
 // Played the way a real bowl is played, with one liberty taken: the speed of
 // the circling bends the note up to a fifth, so the hand has something to
-// steer. Tap one and it rings. Or circle a
-// finger slowly around a rim and it sings: the tone grows while you keep
-// going round and falls away when you stop. The circling is the point. It
-// needs a slow, steady, continuous hand, which is difficult to do while
-// braced, and breathing tends to follow the hand.
+// steer. Tap it and it rings. Or circle a finger slowly around the rim and
+// it sings: the tone grows while you keep going round and falls away when
+// you stop. The circling is the point. It needs a slow, steady, continuous
+// hand, which is difficult to do while braced, and breathing tends to
+// follow the hand.
 //
-// Five bowls, pentatonic, so nothing you can play sounds wrong.
+// One bowl. There were five in a pentatonic row, which made this a little
+// instrument you played rather than one object you sat with, and choosing
+// between five is already more than this is for.
+//
+// The five notes did not go away, they moved into the hand. How wide you
+// circle picks the note, wide and low near the rim through to tight and
+// high near the middle, and how fast you circle bends it from there. Both
+// live in the same motion, so there is nothing to choose before you start
+// and nothing on screen to aim at.
 
-const BOWLS = [
-  { freq: 130.81, scale: 1.0 },  // largest and lowest, as in a real set
-  { freq: 146.83, scale: 0.9 },
-  { freq: 174.61, scale: 0.82 },
-  { freq: 196.0, scale: 0.74 },
-  { freq: 261.63, scale: 0.64 },
-];
+const BOWL = { freq: 146.83, scale: 1 };
+
+// The old row of bowls, now the notes the radius of the circling picks out.
+// Quantised rather than continuous, so a wandering hand still lands in tune.
+// Widest first.
+const NOTES = [130.81, 146.83, 174.61, 196.0, 261.63];
 
 interface Bowl {
   x: number;
@@ -38,6 +45,7 @@ interface Bowl {
   sing: number;   // rubbed energy, only held up by circling
   rate: number;   // how fast the rim is being circled, radians a second
   dot: number;    // where the bright point has got to on the rim
+  reach: number;  // how wide the circling is, in pixels from the centre
 }
 
 let audioCtx: AudioContext | null = null;
@@ -97,10 +105,10 @@ function strike(freq: number, velocity = 1) {
 let singVoice: { oscs: OscillatorNode[]; gain: GainNode; freq: number } | null = null;
 const SING_MULTS = [1, 2.75, 5.4];
 
-// How far the tone bends when the finger is flying round. A fifth: far
-// enough that speed is obviously doing something, close enough that it is
-// still the same bowl and still in tune with the other four.
-const BEND = 0.5;
+// How far the tone bends when the finger is flying round. A minor third,
+// narrower than it was: the width of the circle now carries the range, and
+// a wide bend on top of that would blur one note into the next.
+const BEND = 0.3;
 // The circling speed, in radians a second, that reaches the top of the bend.
 // Roughly two turns a second, which is about as fast as a finger goes.
 const BEND_AT = 13;
@@ -193,6 +201,21 @@ function stopSingVoice() {
   }, 900);
 }
 
+/**
+ * The note the width of the circling is asking for.
+ *
+ * Circling out near the rim is the big bowl, circling tight in the middle
+ * is the small one, which is the way round a real set works. The band is
+ * generous at both ends so resting a finger just inside or outside does not
+ * fall off the scale.
+ */
+function noteFor(b: Bowl): number {
+  const ratio = b.r > 0 ? b.reach / b.r : 1;
+  // 1.4 of the rim and wider is the lowest note, 0.45 and tighter the highest.
+  const t = Math.min(1, Math.max(0, (1.4 - ratio) / (1.4 - 0.45)));
+  return NOTES[Math.min(NOTES.length - 1, Math.round(t * (NOTES.length - 1)))];
+}
+
 export default function BowlsPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -226,18 +249,17 @@ export default function BowlsPage() {
     if (!ctx) return;
 
     function layout(w: number, h: number) {
-      const slot = w / BOWLS.length;
-      const base = Math.min(slot * 0.44, h * 0.14);
-      bowlsRef.current = BOWLS.map((b, i) => ({
-        x: slot * (i + 0.5),
+      bowlsRef.current = [{
+        x: w / 2,
         y: h * 0.5,
-        r: base * b.scale,
-        freq: b.freq,
+        r: Math.min(w * 0.3, h * 0.22) * BOWL.scale,
+        freq: BOWL.freq,
         ring: 0,
         sing: 0,
         rate: 0,
         dot: -Math.PI / 2,
-      }));
+        reach: 0,
+      }];
     }
 
     function resize() {
@@ -263,8 +285,8 @@ export default function BowlsPage() {
 
       if (energy > 0.01) {
         const glow = ctx!.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 2.6);
-        glow.addColorStop(0, `rgba(226, 203, 140, ${0.16 * energy})`);
-        glow.addColorStop(1, "rgba(226, 203, 140, 0)");
+        glow.addColorStop(0, `rgba(214, 189, 146, ${0.16 * energy})`);
+        glow.addColorStop(1, "rgba(214, 189, 146, 0)");
         ctx!.beginPath();
         ctx!.arc(b.x, b.y, b.r * 2.6, 0, Math.PI * 2);
         ctx!.fillStyle = glow;
@@ -280,12 +302,12 @@ export default function BowlsPage() {
         b.x + rimRx, rimY,
       );
       const body = ctx!.createLinearGradient(b.x - rimRx, rimY, b.x + rimRx, rimY + b.r);
-      body.addColorStop(0, `rgba(226, 203, 140, ${0.12 + energy * 0.16})`);
-      body.addColorStop(0.5, `rgba(226, 203, 140, ${0.05 + energy * 0.1})`);
+      body.addColorStop(0, `rgba(214, 189, 146, ${0.12 + energy * 0.16})`);
+      body.addColorStop(0.5, `rgba(214, 189, 146, ${0.05 + energy * 0.1})`);
       body.addColorStop(1, `rgba(170, 140, 84, ${0.1 + energy * 0.14})`);
       ctx!.fillStyle = body;
       ctx!.fill();
-      ctx!.strokeStyle = `rgba(226, 203, 140, ${0.3 + energy * 0.45})`;
+      ctx!.strokeStyle = `rgba(214, 189, 146, ${0.3 + energy * 0.45})`;
       ctx!.lineWidth = 1.2;
       ctx!.stroke();
 
@@ -298,11 +320,23 @@ export default function BowlsPage() {
       ctx!.lineWidth = 1.4;
       ctx!.stroke();
 
+      // The circle being traced, so the width you are using is visible.
+      // Without it the note changing with the radius is invisible and reads
+      // as the thing being unreliable.
+      if (b.sing > 0.02 && b.reach > 4) {
+        ctx!.beginPath();
+        ctx!.ellipse(b.x, rimY, b.reach, b.reach * 0.3, 0, 0, Math.PI * 2);
+        ctx!.strokeStyle = `rgba(214, 189, 146, ${0.1 + b.sing * 0.14})`;
+        ctx!.lineWidth = 1;
+        ctx!.stroke();
+      }
+
       // A bright point travelling the rim while it is being circled
       if (b.sing > 0.02) {
         const a = reducedMotionRef.current ? -Math.PI / 2 : b.dot;
         ctx!.beginPath();
-        ctx!.arc(b.x + Math.cos(a) * rimRx, rimY + Math.sin(a) * rimRy, 3.5, 0, Math.PI * 2);
+        const pr = b.reach > 4 ? b.reach : rimRx;
+        ctx!.arc(b.x + Math.cos(a) * pr, rimY + Math.sin(a) * pr * 0.3, 3.5, 0, Math.PI * 2);
         ctx!.fillStyle = `rgba(255, 246, 220, ${0.5 + b.sing * 0.5})`;
         ctx!.fill();
       }
@@ -348,28 +382,17 @@ export default function BowlsPage() {
     };
   }, []);
 
-  const bowlAt = (x: number, y: number) => {
-    const bowls = bowlsRef.current;
-    let best = -1;
-    let bestD = Infinity;
-    for (let i = 0; i < bowls.length; i++) {
-      const d = Math.hypot(bowls[i].x - x, bowls[i].y - y);
-      if (d < bestD) {
-        bestD = d;
-        best = i;
-      }
-    }
-    return best >= 0 && bestD < bowls[best].r * 2.4 ? best : -1;
-  };
-
   const onDown = useCallback((e: React.PointerEvent) => {
     draggingRef.current = true;
     turnedRef.current = 0;
     lastAngleRef.current = null;
-    const i = bowlAt(e.clientX, e.clientY);
-    activeRef.current = i;
-    if (i < 0) return;
-    const b = bowlsRef.current[i];
+    // One bowl, so anywhere on the screen plays it. A proximity test would
+    // only create a dead zone to land in by accident.
+    activeRef.current = bowlsRef.current.length ? 0 : -1;
+    const b = bowlsRef.current[0];
+    if (!b) return;
+    b.reach = Math.hypot(e.clientX - b.x, e.clientY - b.y);
+    b.freq = noteFor(b);
     lastAngleRef.current = Math.atan2(e.clientY - b.y, e.clientX - b.x);
     lastMoveRef.current = performance.now();
     b.dot = lastAngleRef.current;
@@ -394,6 +417,12 @@ export default function BowlsPage() {
     // Speed, for the pitch. The floor on dt keeps two events in the same
     // millisecond from reading as an impossible spin, and a long gap means
     // the finger stopped and started rather than covered that arc quickly.
+    // How wide the circling is. Smoothed, because a hand going round is
+    // never a perfect circle and the note should not rattle between two
+    // steps on the wobble.
+    b.reach += (Math.hypot(e.clientX - b.x, e.clientY - b.y) - b.reach) * 0.18;
+    b.freq = noteFor(b);
+
     const t = performance.now();
     const gap = t - lastMoveRef.current;
     lastMoveRef.current = t;
@@ -431,15 +460,16 @@ export default function BowlsPage() {
     <div
       className="relative h-dvh w-screen overflow-hidden bg-midnight"
       role="application"
-      aria-label="Bowls - tap a bowl to ring it, or circle its rim to make it sing"
+      aria-label="Bowls - tap to ring the bowl, or circle its rim to make it sing"
     >
       <p className="sr-only">
-        Five singing bowls in a row, the largest and lowest on the left. Tap
-        one and it rings. Or slowly circle a finger around a bowl&apos;s rim
-        and it begins to sing, growing while you keep circling and falling
-        away when you stop. Circle faster and the note rises, up to about a
-        fifth above where it started; slow down and it comes back. They are
-        tuned so no combination sounds wrong.
+        One singing bowl in the middle of the screen. Tap anywhere and it
+        rings. Or slowly circle a finger around it and it begins to sing,
+        growing while you keep circling and falling away when you stop. Wide
+        circles out near the rim give the low notes and tight circles near
+        the middle give the high ones, through five notes that are tuned so
+        nothing you play sounds wrong. Circling faster bends whichever note
+        you are on upward, and slowing down lets it back.
         This one works with your eyes closed.
       </p>
 
@@ -488,10 +518,10 @@ export default function BowlsPage() {
 
       <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
         {singing
-          ? "Faster lifts the note, slower lets it back down."
+          ? "Wider goes lower, tighter goes higher. Faster lifts it."
           : touched
-            ? "Circle a rim to make it sing. Tap to ring it."
-            : "Tap a bowl, or circle slowly around its rim."}
+            ? "Circle wide or tight to find a note. Tap to ring it."
+            : "Tap the bowl, or circle slowly around its rim."}
       </p>
     </div>
   );

@@ -16,8 +16,12 @@ class VoiceGuidance {
     if (typeof window !== "undefined") {
       this.synth = window.speechSynthesis;
       try {
+        // On unless it has been turned off. It used to be the other way
+        // round, which meant every exercise ran silent until someone found
+        // an unlabelled icon and guessed what it did. There is a recorded
+        // voice for all 173 cues; shipping it muted by default wasted it.
         const stored = localStorage.getItem(STORAGE_KEY);
-        this.enabled = stored === "1";
+        this.enabled = stored !== "0";
       } catch { /* */ }
 
       // Pre-cache best voice once voices load

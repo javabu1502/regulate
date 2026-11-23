@@ -207,12 +207,12 @@ export default function LabyrinthPage() {
       ctx!.beginPath();
       ctx!.moveTo(path[0].x, path[0].y);
       for (const p of path) ctx!.lineTo(p.x, p.y);
-      ctx!.strokeStyle = "rgba(125, 211, 200, 0.12)";
+      ctx!.strokeStyle = "rgba(128, 166, 161, 0.12)";
       ctx!.lineWidth = 14;
       ctx!.lineCap = "round";
       ctx!.stroke();
 
-      ctx!.strokeStyle = "rgba(125, 211, 200, 0.2)";
+      ctx!.strokeStyle = "rgba(128, 166, 161, 0.2)";
       ctx!.lineWidth = 1;
       ctx!.stroke();
 
@@ -222,7 +222,7 @@ export default function LabyrinthPage() {
         ctx!.beginPath();
         ctx!.moveTo(path[0].x, path[0].y);
         for (let i = 1; i <= upto; i++) ctx!.lineTo(path[i].x, path[i].y);
-        ctx!.strokeStyle = "rgba(153, 246, 228, 0.5)";
+        ctx!.strokeStyle = "rgba(167, 203, 197, 0.5)";
         ctx!.lineWidth = 9;
         ctx!.lineCap = "round";
         ctx!.stroke();
@@ -232,8 +232,8 @@ export default function LabyrinthPage() {
       const head = path[Math.min(upto, path.length - 1)];
       const breathe = reducedMotionRef.current ? 1 : 1 + Math.sin(now / 700) * 0.12;
       const glow = ctx!.createRadialGradient(head.x, head.y, 0, head.x, head.y, 34 * breathe);
-      glow.addColorStop(0, "rgba(153, 246, 228, 0.4)");
-      glow.addColorStop(1, "rgba(153, 246, 228, 0)");
+      glow.addColorStop(0, "rgba(167, 203, 197, 0.4)");
+      glow.addColorStop(1, "rgba(167, 203, 197, 0)");
       ctx!.beginPath();
       ctx!.arc(head.x, head.y, 34 * breathe, 0, Math.PI * 2);
       ctx!.fillStyle = glow;
@@ -251,7 +251,7 @@ export default function LabyrinthPage() {
         const c = path[path.length - 1];
         ctx!.beginPath();
         ctx!.arc(c.x, c.y, 24, 0, Math.PI * 2);
-        ctx!.strokeStyle = "rgba(226, 203, 140, 0.4)";
+        ctx!.strokeStyle = "rgba(214, 189, 146, 0.4)";
         ctx!.lineWidth = 1.5;
         ctx!.stroke();
       }

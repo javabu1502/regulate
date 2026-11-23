@@ -113,7 +113,7 @@ export default function KoiPage() {
         const p = (now - r.born) / 2600;
         ctx!.beginPath();
         ctx!.arc(r.x, r.y, 8 + p * 54, 0, Math.PI * 2);
-        ctx!.strokeStyle = `rgba(153, 246, 228, ${0.22 * (1 - p)})`;
+        ctx!.strokeStyle = `rgba(167, 203, 197, ${0.22 * (1 - p)})`;
         ctx!.lineWidth = 1;
         ctx!.stroke();
       }
@@ -175,8 +175,8 @@ export default function KoiPage() {
           f.hue === "cream"
             ? "250, 245, 239"
             : f.hue === "candle"
-              ? "226, 203, 140"
-              : "153, 246, 228";
+              ? "214, 189, 146"
+              : "167, 203, 197";
 
         ctx!.save();
         ctx!.translate(f.x, f.y);

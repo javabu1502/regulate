@@ -149,7 +149,7 @@ export default function LookingAroundPage() {
           const r = 16 + p * 46;
           ctx!.beginPath();
           ctx!.arc(light.x, light.y, r, 0, Math.PI * 2);
-          ctx!.strokeStyle = `rgba(153, 246, 228, ${0.35 * (1 - p)})`;
+          ctx!.strokeStyle = `rgba(167, 203, 197, ${0.35 * (1 - p)})`;
           ctx!.lineWidth = 2 * (1 - p);
           ctx!.stroke();
           if (p >= 1) spawn();
@@ -162,8 +162,8 @@ export default function LookingAroundPage() {
           const appear = Math.min(age / 0.9, 1);
 
           const glow = ctx!.createRadialGradient(light.x, light.y, 0, light.x, light.y, 62);
-          glow.addColorStop(0, `rgba(226, 203, 140, ${0.42 * pulse * appear})`);
-          glow.addColorStop(1, "rgba(226, 203, 140, 0)");
+          glow.addColorStop(0, `rgba(214, 189, 146, ${0.42 * pulse * appear})`);
+          glow.addColorStop(1, "rgba(214, 189, 146, 0)");
           ctx!.beginPath();
           ctx!.arc(light.x, light.y, 62, 0, Math.PI * 2);
           ctx!.fillStyle = glow;
@@ -178,7 +178,7 @@ export default function LookingAroundPage() {
             const ringT = reducedMotionRef.current ? 0.5 : ((age - 3.5) % 1.8) / 1.8;
             ctx!.beginPath();
             ctx!.arc(light.x, light.y, 24 + ringT * 40, 0, Math.PI * 2);
-            ctx!.strokeStyle = `rgba(226, 203, 140, ${0.3 * (1 - ringT)})`;
+            ctx!.strokeStyle = `rgba(214, 189, 146, ${0.3 * (1 - ringT)})`;
             ctx!.lineWidth = 1.5;
             ctx!.stroke();
           }

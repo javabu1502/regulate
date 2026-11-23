@@ -456,11 +456,11 @@ export default function RipplePoolPage() {
       <style>{`
         @keyframes affirmationRipple {
           0%, 100% {
-            text-shadow: 0 0 8px rgba(94, 234, 212, 0.15);
+            text-shadow: 0 0 8px rgba(125, 176, 170, 0.15);
             transform: scale(1);
           }
           50% {
-            text-shadow: 0 0 20px rgba(94, 234, 212, 0.3), 0 0 40px rgba(94, 234, 212, 0.1);
+            text-shadow: 0 0 20px rgba(125, 176, 170, 0.3), 0 0 40px rgba(125, 176, 170, 0.1);
             transform: scale(1.03);
           }
         }

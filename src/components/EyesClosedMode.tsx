@@ -47,10 +47,15 @@ export default function EyesClosedMode({ className = "" }: { className?: string 
   return (
     <button
       onClick={enable}
-      aria-label="Dim the screen and be guided by voice"
-      className={`rounded-full px-2 py-1 text-[10px] text-cream-dim/30 transition-colors hover:text-cream-dim/50 ${className}`}
+      aria-label="Turn the screen off and be guided by voice"
+      className={`flex w-14 flex-col items-center gap-1 text-cream-dim/35 transition-colors hover:text-cream-dim/60 ${className}`}
     >
-      Eyes closed
+      {/* A closed eye, to sit with the other icons in the bar */}
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 12c3 4.5 6.7 6.5 10 6.5S19 16.5 22 12" />
+        <path d="M4 16l-1.3 2M9 18.3L8.4 20.6M15 18.3l.6 2.3M20 16l1.3 2" />
+      </svg>
+      <span className="text-[9px] leading-none">Screen off</span>
     </button>
   );
 }

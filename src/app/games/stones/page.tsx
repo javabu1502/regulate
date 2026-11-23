@@ -317,7 +317,7 @@ export default function StoneStackingPage() {
       ctx!.beginPath();
       ctx!.moveTo(0, gy);
       ctx!.lineTo(w, gy);
-      ctx!.strokeStyle = "rgba(94, 234, 212, 0.12)";
+      ctx!.strokeStyle = "rgba(125, 176, 170, 0.12)";
       ctx!.lineWidth = 1;
       ctx!.stroke();
 
@@ -359,7 +359,7 @@ export default function StoneStackingPage() {
         ctx!.setLineDash([6, 6]);
         ctx!.moveTo(previewX, active.y + active.height / 2);
         ctx!.lineTo(previewX, landY);
-        ctx!.strokeStyle = "rgba(94, 234, 212, 0.25)";
+        ctx!.strokeStyle = "rgba(125, 176, 170, 0.25)";
         ctx!.lineWidth = 1.5;
         ctx!.stroke();
         ctx!.setLineDash([]);
@@ -369,7 +369,7 @@ export default function StoneStackingPage() {
         if (ts) {
           ctx!.beginPath();
           ctx!.arc(ts.x, ts.y, 3, 0, Math.PI * 2);
-          ctx!.fillStyle = "rgba(94, 234, 212, 0.3)";
+          ctx!.fillStyle = "rgba(125, 176, 170, 0.3)";
           ctx!.fill();
         }
 

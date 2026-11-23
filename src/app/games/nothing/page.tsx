@@ -84,8 +84,8 @@ export default function NothingPage() {
 
       // Outer haze
       const haze = ctx!.createRadialGradient(cx, cy, r * 0.3, cx, cy, r * 2.1);
-      haze.addColorStop(0, `rgba(125, 211, 200, ${0.09 + eased * 0.05})`);
-      haze.addColorStop(1, "rgba(125, 211, 200, 0)");
+      haze.addColorStop(0, `rgba(128, 166, 161, ${0.09 + eased * 0.05})`);
+      haze.addColorStop(1, "rgba(128, 166, 161, 0)");
       ctx!.beginPath();
       ctx!.arc(cx, cy, r * 2.1, 0, Math.PI * 2);
       ctx!.fillStyle = haze;
@@ -93,8 +93,8 @@ export default function NothingPage() {
 
       // The shape
       const body = ctx!.createRadialGradient(cx, cy - r * 0.2, 0, cx, cy, r);
-      body.addColorStop(0, `rgba(153, 246, 228, ${0.3 + eased * 0.1})`);
-      body.addColorStop(1, `rgba(94, 234, 212, ${0.1 + eased * 0.06})`);
+      body.addColorStop(0, `rgba(167, 203, 197, ${0.3 + eased * 0.1})`);
+      body.addColorStop(1, `rgba(125, 176, 170, ${0.1 + eased * 0.06})`);
       ctx!.beginPath();
       ctx!.arc(cx, cy, r, 0, Math.PI * 2);
       ctx!.fillStyle = body;
@@ -102,7 +102,7 @@ export default function NothingPage() {
 
       ctx!.beginPath();
       ctx!.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx!.strokeStyle = `rgba(153, 246, 228, ${0.16 + eased * 0.1})`;
+      ctx!.strokeStyle = `rgba(167, 203, 197, ${0.16 + eased * 0.1})`;
       ctx!.lineWidth = 1;
       ctx!.stroke();
 

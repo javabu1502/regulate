@@ -17,16 +17,16 @@
 // abstract, but legible. CSS keyframes, so the global reduce-motion rule
 // freezes every guide into a still diagram.
 
-const TEAL = "rgba(153, 246, 228, ";
-const CANDLE = "rgba(226, 203, 140, ";
+const TEAL = "rgba(167, 203, 197, ";
+const CANDLE = "rgba(214, 189, 146, ";
 
 function Frame({ children, label }: { children: React.ReactNode; label: string }) {
   return (
     <svg viewBox="0 0 120 80" className="h-24 w-36" fill="none" role="img" aria-label={label}>
       <defs>
         <radialGradient id="sg-halo" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(153,246,228,0.2)" />
-          <stop offset="100%" stopColor="rgba(153,246,228,0)" />
+          <stop offset="0%" stopColor="rgba(167, 203, 197,0.2)" />
+          <stop offset="100%" stopColor="rgba(167, 203, 197,0)" />
         </radialGradient>
         {/* Arrowhead, so a stroke reads as a direction rather than a mark */}
         <marker id="sg-tip" markerWidth="5" markerHeight="5" refX="3.6" refY="2.5" orient="auto">

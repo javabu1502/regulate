@@ -144,14 +144,14 @@ export default function BeadsPage() {
       // The cord
       ctx!.beginPath();
       ctx!.arc(cx, cy, ringR, 0, Math.PI * 2);
-      ctx!.strokeStyle = "rgba(125, 211, 200, 0.14)";
+      ctx!.strokeStyle = "rgba(128, 166, 161, 0.14)";
       ctx!.lineWidth = 1;
       ctx!.stroke();
 
       // Where a bead counts as having passed
       ctx!.beginPath();
       ctx!.arc(cx, cy - ringR, 21, 0, Math.PI * 2);
-      ctx!.strokeStyle = "rgba(226, 203, 140, 0.22)";
+      ctx!.strokeStyle = "rgba(214, 189, 146, 0.22)";
       ctx!.lineWidth = 1;
       ctx!.stroke();
 
@@ -168,8 +168,8 @@ export default function BeadsPage() {
 
         if (atTop > 0.2) {
           const glow = ctx!.createRadialGradient(bx, by, 0, bx, by, rad * 3);
-          glow.addColorStop(0, `rgba(226, 203, 140, ${0.22 * atTop})`);
-          glow.addColorStop(1, "rgba(226, 203, 140, 0)");
+          glow.addColorStop(0, `rgba(214, 189, 146, ${0.22 * atTop})`);
+          glow.addColorStop(1, "rgba(214, 189, 146, 0)");
           ctx!.beginPath();
           ctx!.arc(bx, by, rad * 3, 0, Math.PI * 2);
           ctx!.fillStyle = glow;
@@ -179,12 +179,12 @@ export default function BeadsPage() {
         ctx!.beginPath();
         ctx!.arc(bx, by, rad, 0, Math.PI * 2);
         ctx!.fillStyle = isMarker
-          ? `rgba(226, 203, 140, ${0.3 + atTop * 0.4})`
-          : `rgba(153, 246, 228, ${0.18 + atTop * 0.4})`;
+          ? `rgba(214, 189, 146, ${0.3 + atTop * 0.4})`
+          : `rgba(167, 203, 197, ${0.18 + atTop * 0.4})`;
         ctx!.fill();
         ctx!.strokeStyle = isMarker
-          ? "rgba(226, 203, 140, 0.45)"
-          : "rgba(153, 246, 228, 0.3)";
+          ? "rgba(214, 189, 146, 0.45)"
+          : "rgba(167, 203, 197, 0.3)";
         ctx!.lineWidth = 1;
         ctx!.stroke();
       }

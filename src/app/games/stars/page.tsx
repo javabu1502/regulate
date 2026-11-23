@@ -273,7 +273,7 @@ export default function StarCreatorPage() {
       lineWidth: number,
     ) {
       if (path.length < 2) return;
-      ctx!.strokeStyle = `rgba(94, 234, 212, ${opacity})`;
+      ctx!.strokeStyle = `rgba(125, 176, 170, ${opacity})`;
       ctx!.lineWidth = lineWidth;
       ctx!.lineCap = "round";
       ctx!.lineJoin = "round";
@@ -353,7 +353,7 @@ export default function StarCreatorPage() {
         for (const s of c.stars) {
           ctx!.beginPath();
           ctx!.arc(s.x, s.y, 3, 0, Math.PI * 2);
-          ctx!.fillStyle = `rgba(153, 246, 228, ${op * 0.7})`;
+          ctx!.fillStyle = `rgba(167, 203, 197, ${op * 0.7})`;
           ctx!.fill();
         }
       }
@@ -380,7 +380,7 @@ export default function StarCreatorPage() {
           }
           const endX = from.x + (to.x - from.x) * progress;
           const endY = from.y + (to.y - from.y) * progress;
-          ctx!.strokeStyle = `rgba(94, 234, 212, ${0.5 * globalOpacity})`;
+          ctx!.strokeStyle = `rgba(125, 176, 170, ${0.5 * globalOpacity})`;
           ctx!.lineWidth = 2;
           ctx!.lineCap = "round";
           ctx!.beginPath();
@@ -403,9 +403,9 @@ export default function StarCreatorPage() {
           star.x, star.y, glowRadius,
         );
         const glowAlpha = (0.4 + 0.2 * pulseIntensity) * globalOpacity;
-        glow.addColorStop(0, `rgba(153, 246, 228, ${glowAlpha})`);
-        glow.addColorStop(0.5, `rgba(153, 246, 228, ${glowAlpha * 0.3})`);
-        glow.addColorStop(1, "rgba(153, 246, 228, 0)");
+        glow.addColorStop(0, `rgba(167, 203, 197, ${glowAlpha})`);
+        glow.addColorStop(0.5, `rgba(167, 203, 197, ${glowAlpha * 0.3})`);
+        glow.addColorStop(1, "rgba(167, 203, 197, 0)");
         ctx!.beginPath();
         ctx!.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
         ctx!.fillStyle = glow;
@@ -414,7 +414,7 @@ export default function StarCreatorPage() {
         // Core
         ctx!.beginPath();
         ctx!.arc(star.x, star.y, 4 * pulse, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(153, 246, 228, ${0.9 * globalOpacity})`;
+        ctx!.fillStyle = `rgba(167, 203, 197, ${0.9 * globalOpacity})`;
         ctx!.fill();
       }
 
@@ -435,7 +435,7 @@ export default function StarCreatorPage() {
         const lifeRatio = 1 - p.life / p.maxLife;
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, p.size * lifeRatio, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(153, 246, 228, ${0.6 * lifeRatio * globalOpacity})`;
+        ctx!.fillStyle = `rgba(167, 203, 197, ${0.6 * lifeRatio * globalOpacity})`;
         ctx!.fill();
       }
 

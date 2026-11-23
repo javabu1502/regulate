@@ -140,14 +140,14 @@ export default function CrossingPage() {
         const frac = i / trail.length;
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, 3 + frac * 7, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(153, 246, 228, ${0.03 + frac * 0.1})`;
+        ctx!.fillStyle = `rgba(167, 203, 197, ${0.03 + frac * 0.1})`;
         ctx!.fill();
       }
 
       // The light itself
       const glow = ctx!.createRadialGradient(x, y, 0, x, y, 54);
-      glow.addColorStop(0, "rgba(153, 246, 228, 0.5)");
-      glow.addColorStop(1, "rgba(153, 246, 228, 0)");
+      glow.addColorStop(0, "rgba(167, 203, 197, 0.5)");
+      glow.addColorStop(1, "rgba(167, 203, 197, 0)");
       ctx!.beginPath();
       ctx!.arc(x, y, 54, 0, Math.PI * 2);
       ctx!.fillStyle = glow;
@@ -162,7 +162,7 @@ export default function CrossingPage() {
       ctx!.beginPath();
       ctx!.moveTo(margin, y);
       ctx!.lineTo(w - margin, y);
-      ctx!.strokeStyle = "rgba(125, 211, 200, 0.07)";
+      ctx!.strokeStyle = "rgba(128, 166, 161, 0.07)";
       ctx!.lineWidth = 1;
       ctx!.stroke();
 

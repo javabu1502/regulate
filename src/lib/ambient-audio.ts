@@ -1,7 +1,9 @@
 type AmbientSound = "rain" | "ocean" | "forest" | "white-noise" | "off";
 
 const FADE_DURATION = 1; // seconds
-const MASTER_VOLUME = 0.15;
+// 0.15 was inaudible underneath a voice track, which is the only place
+// these are ever used.
+const MASTER_VOLUME = 0.3;
 const NOISE_BUFFER_SECONDS = 4;
 
 class AmbientAudio {
@@ -51,12 +53,27 @@ class AmbientAudio {
 
   private createMasterGain(ctx: AudioContext): GainNode {
     const master = ctx.createGain();
-    // Start at 0 for fade-in
     master.gain.setValueAtTime(0, ctx.currentTime);
-    master.gain.linearRampToValueAtTime(MASTER_VOLUME, ctx.currentTime + FADE_DURATION);
     master.connect(ctx.destination);
     this.masterGain = master;
     this.allNodes.push(master);
+
+    // The fade-in used to be scheduled right here, against the currentTime
+    // of a context that may still have been suspended. resume() is a
+    // promise: on a context that had been created outside a gesture, the
+    // whole one-second ramp could be scheduled and consumed before the
+    // clock ever started running, and the sound came up at zero and stayed
+    // there. Schedule it once the context is actually going.
+    const rampUp = () => {
+      if (this.masterGain !== master) return; // a later sound took over
+      const now = ctx.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setValueAtTime(0, now);
+      master.gain.linearRampToValueAtTime(MASTER_VOLUME, now + FADE_DURATION);
+    };
+    if (ctx.state === "running") rampUp();
+    else ctx.resume().then(rampUp).catch(rampUp);
+
     return master;
   }
 

@@ -3,11 +3,14 @@
 
 const base = "shrink-0";
 
+// A breath: up, over, and back down, with the turn at the top marked.
+// This was a pointed oval with a line through it, which at the size it is
+// used did not read as a breath at all.
 export function BreathingIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg className={`${base} ${className}`} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 4C12 4 8 8 8 12C8 16 12 20 12 20C12 20 16 16 16 12C16 8 12 4 12 4Z" />
-      <path d="M12 8V16" strokeWidth="1" opacity="0.4" />
+      <path d="M3 17c3.4 0 3.6-10 9-10s5.6 10 9 10" />
+      <circle cx="12" cy="7.2" r="1.5" fill="currentColor" stroke="none" />
     </svg>
   );
 }

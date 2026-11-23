@@ -359,13 +359,13 @@ export default function BreathingGardenPage() {
         const markerY = getGroundY(markerX);
         const pulse = 0.4 + 0.3 * Math.sin(timeRef.current * 0.06);
         const markerGlow = ctx!.createRadialGradient(markerX, markerY, 0, markerX, markerY, 12);
-        markerGlow.addColorStop(0, `rgba(94, 234, 212, ${pulse * 0.5})`);
-        markerGlow.addColorStop(1, "rgba(94, 234, 212, 0)");
+        markerGlow.addColorStop(0, `rgba(125, 176, 170, ${pulse * 0.5})`);
+        markerGlow.addColorStop(1, "rgba(125, 176, 170, 0)");
         ctx!.fillStyle = markerGlow;
         ctx!.fillRect(markerX - 12, markerY - 12, 24, 24);
         ctx!.beginPath();
         ctx!.arc(markerX, markerY, 3, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(94, 234, 212, ${pulse * 0.6})`;
+        ctx!.fillStyle = `rgba(125, 176, 170, ${pulse * 0.6})`;
         ctx!.fill();
       }
 
@@ -425,8 +425,8 @@ export default function BreathingGardenPage() {
         p === "exhale"
           ? "rgba(196, 181, 253, 0.08)"
           : p === "hold"
-            ? "rgba(226, 203, 140, 0.09)"
-            : "rgba(94, 234, 212, 0.08)";
+            ? "rgba(214, 189, 146, 0.09)"
+            : "rgba(125, 176, 170, 0.08)";
       const glow = ctx!.createRadialGradient(circleX, circleY, 0, circleX, circleY, glowR);
       glow.addColorStop(0, glowColor);
       glow.addColorStop(1, "transparent");
@@ -438,12 +438,12 @@ export default function BreathingGardenPage() {
       ctx!.arc(circleX, circleY, radius, 0, Math.PI * 2);
       const borderColor =
         p === "inhale"
-          ? `rgba(94, 234, 212, ${0.25 + prog * 0.25})`
+          ? `rgba(125, 176, 170, ${0.25 + prog * 0.25})`
           : p === "hold"
-            ? "rgba(226, 203, 140, 0.45)"
+            ? "rgba(214, 189, 146, 0.45)"
             : p === "exhale"
               ? `rgba(196, 181, 253, ${0.5 - prog * 0.25})`
-              : "rgba(94, 234, 212, 0.12)";
+              : "rgba(125, 176, 170, 0.12)";
       ctx!.strokeStyle = borderColor;
       ctx!.lineWidth = 2;
       ctx!.stroke();
@@ -451,12 +451,12 @@ export default function BreathingGardenPage() {
       // Fill
       const fillColor =
         p === "inhale"
-          ? `rgba(94, 234, 212, ${0.03 + prog * 0.04})`
+          ? `rgba(125, 176, 170, ${0.03 + prog * 0.04})`
           : p === "hold"
-            ? "rgba(226, 203, 140, 0.05)"
+            ? "rgba(214, 189, 146, 0.05)"
             : p === "exhale"
               ? `rgba(196, 181, 253, ${0.07 - prog * 0.04})`
-              : "rgba(94, 234, 212, 0.02)";
+              : "rgba(125, 176, 170, 0.02)";
       ctx!.fillStyle = fillColor;
       ctx!.fill();
 
@@ -689,7 +689,7 @@ export default function BreathingGardenPage() {
           style={{
             color:
               phase === "inhale"
-                ? "rgba(94, 234, 212, 0.8)"
+                ? "rgba(125, 176, 170, 0.8)"
                 : phase === "exhale"
                   ? "rgba(196, 181, 253, 0.8)"
                   : "rgba(226, 232, 240, 0.35)",
@@ -703,7 +703,7 @@ export default function BreathingGardenPage() {
             style={{
               color:
                 phase === "inhale"
-                  ? "rgba(94, 234, 212, 0.5)"
+                  ? "rgba(125, 176, 170, 0.5)"
                   : "rgba(196, 181, 253, 0.5)",
             }}
           >

@@ -1,16 +1,23 @@
 @import "tailwindcss";
 
+/* The palette read as neon on a device: a cyan-leaning teal sitting on a
+   near-black navy, which is the look of a dashboard rather than of anything
+   you would open at two in the morning. Everything here moved the same two
+   steps. The background came up off black and lost some of its blue, so it
+   reads as a dim room rather than as a void. The teal moved away from cyan
+   toward sea glass, so it still carries the brand without glowing. Nothing
+   changed its job, only its saturation. */
 @theme inline {
-  --color-midnight: #101b2e;
-  --color-deep: #172440;
-  --color-slate-blue: #243754;
-  --color-teal: #348285;
-  --color-teal-muted: #4a9fa2;
-  --color-teal-soft: #6ec4c7;
-  --color-candle: #f0c97d;
-  --color-candle-soft: #f5deb3;
-  --color-cream: #f7f2eb;
-  --color-cream-dim: #d0c9be;
+  --color-midnight: #151e2b;
+  --color-deep: #1d2736;
+  --color-slate-blue: #2b3747;
+  --color-teal: #4a7a78;
+  --color-teal-muted: #6d9693;
+  --color-teal-soft: #93b8b3;
+  --color-candle: #e2c391;
+  --color-candle-soft: #efdcc0;
+  --color-cream: #f4efe8;
+  --color-cream-dim: #c9c3b9;
   --color-coral: #c27a6a;
   --color-coral-soft: #d49183;
   --color-indigo: #7b7fb5;
@@ -274,12 +281,12 @@ body.text-size-xl .text-\[11px\] {
 
 /* Night mode — auto-applied 10pm–6am */
 .night-mode {
-  --color-midnight: #080c18;
-  --color-deep: #0e1628;
-  --color-teal: #2a6b6e;
-  --color-teal-soft: #4ea8ab;
-  --color-cream: #e0dbd4;
-  --color-cream-dim: #b0a99e;
+  --color-midnight: #0d1420;
+  --color-deep: #141d2a;
+  --color-teal: #3d6765;
+  --color-teal-soft: #7ba09c;
+  --color-cream: #ded9d2;
+  --color-cream-dim: #aaa49a;
 }
 
 .night-mode body {
@@ -290,7 +297,7 @@ body.text-size-xl .text-\[11px\] {
 @media (prefers-contrast: more) {
   :root {
     --color-cream-dim: #e0d8cc;
-    --color-teal-soft: #7cc8cb;
+    --color-teal-soft: #b2d2cd;
     --color-candle-soft: #f5deb3;
   }
 }

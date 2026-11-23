@@ -137,11 +137,11 @@ export default function TidePage() {
       ctx!.clearRect(0, 0, w, h);
 
       // Sand
-      ctx!.fillStyle = "rgba(226, 203, 140, 0.05)";
+      ctx!.fillStyle = "rgba(214, 189, 146, 0.05)";
       ctx!.fillRect(0, sandTop, w, h - sandTop);
 
       // Wet line left behind by the furthest reach
-      ctx!.fillStyle = "rgba(125, 211, 200, 0.04)";
+      ctx!.fillStyle = "rgba(128, 166, 161, 0.04)";
       ctx!.fillRect(0, waterLine, w, h - waterLine);
 
       // Water, with a soft edge that ripples a little
@@ -159,7 +159,7 @@ export default function TidePage() {
       ctx!.lineTo(w, h);
       ctx!.closePath();
       const water = ctx!.createLinearGradient(0, waterLine, 0, h);
-      water.addColorStop(0, "rgba(94, 234, 212, 0.17)");
+      water.addColorStop(0, "rgba(125, 176, 170, 0.17)");
       water.addColorStop(1, "rgba(61, 90, 128, 0.3)");
       ctx!.fillStyle = water;
       ctx!.fill();
@@ -169,7 +169,7 @@ export default function TidePage() {
       for (let x = 0; x <= w; x += 12) {
         ctx!.lineTo(x, waterLine + Math.sin(x * 0.02 + now / 900) * 3 * wobble);
       }
-      ctx!.strokeStyle = "rgba(153, 246, 228, 0.22)";
+      ctx!.strokeStyle = "rgba(167, 203, 197, 0.22)";
       ctx!.lineWidth = 1;
       ctx!.stroke();
 
