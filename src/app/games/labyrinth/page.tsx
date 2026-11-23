@@ -16,13 +16,23 @@ import { canvasHeight } from "@/lib/canvas-area";
 // You cannot leave the path and you cannot do it wrong. Lift your finger and
 // it waits. Reach the middle and you can turn around and come back out.
 
-const TURNS = 3.1;          // how many times the spiral wraps
 const POINTS = 620;         // path resolution
 
 interface PathPoint {
   x: number;
   y: number;
 }
+
+// Four paths, each asking for something different from the hand. Open shapes
+// have a destination; closed ones just keep going, which suits a longer sit.
+type Shape = "spiral" | "switchback" | "eight" | "square";
+
+const SHAPES: { id: Shape; label: string; closed: boolean; hint: string }[] = [
+  { id: "spiral",     label: "Spiral",    closed: false, hint: "Winds inward to a middle." },
+  { id: "switchback", label: "Switchback", closed: false, hint: "Doubles back on itself, like a path up a hill." },
+  { id: "eight",      label: "Figure 8",  closed: true,  hint: "Crosses the middle again and again, left to right." },
+  { id: "square",     label: "Box",       closed: true,  hint: "Four equal sides. Breathe one side per count if you like." },
+];
 
 let audioCtx: AudioContext | null = null;
 
@@ -70,6 +80,9 @@ export default function LabyrinthPage() {
 
   const [atCenter, setAtCenter] = useState(false);
   const [started, setStarted] = useState(false);
+  const [shape, setShape] = useState<Shape>("spiral");
+  const shapeRef = useRef<Shape>("spiral");
+  const shapeMeta = SHAPES.find((x) => x.id === shape)!;
 
   const reducedMotion = usePrefersReducedMotion();
   const reducedMotionRef = useRef(false);
@@ -77,21 +90,88 @@ export default function LabyrinthPage() {
     reducedMotionRef.current = reducedMotion;
   }, [reducedMotion]);
 
-  const buildPath = useCallback((w: number, h: number) => {
+  const buildPath = useCallback((w: number, h: number, shape: Shape) => {
     const cx = w / 2;
     const cy = h / 2;
     const maxR = Math.min(w, h) * 0.38;
     const pts: PathPoint[] = [];
-    for (let i = 0; i < POINTS; i++) {
-      const t = i / (POINTS - 1);
-      // Start at the outside and wind in; a little easing so the turns at
-      // the centre do not get impossibly tight.
-      const r = maxR * (1 - t) ** 0.85;
-      const a = t * TURNS * Math.PI * 2 - Math.PI / 2;
-      pts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+
+    if (shape === "spiral") {
+      // Outside in, eased so the turns near the middle stay traceable.
+      const turns = 3.1;
+      for (let i = 0; i < POINTS; i++) {
+        const t = i / (POINTS - 1);
+        const r = maxR * (1 - t) ** 0.85;
+        const a = t * turns * Math.PI * 2 - Math.PI / 2;
+        pts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+      }
+    } else if (shape === "switchback") {
+      // Concentric arcs joined by short radial hops, reversing direction each
+      // time. Not the Cretan labyrinth's exact topology, so it is named for
+      // what it is rather than borrowing that word.
+      const rings = 5;
+      const per = Math.floor(POINTS / rings);
+      for (let ring = 0; ring < rings; ring++) {
+        const r = maxR * (1 - ring / rings);
+        const dir = ring % 2 === 0 ? 1 : -1;
+        const sweep = Math.PI * 1.72;
+        const start = dir > 0 ? -Math.PI / 2 : -Math.PI / 2 + sweep;
+        for (let i = 0; i < per; i++) {
+          const t = i / (per - 1);
+          const a = start + dir * sweep * t;
+          // Ease into the next ring across the last stretch of this one.
+          const rr = r - (maxR / rings) * Math.max(0, (t - 0.86) / 0.14);
+          pts.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr });
+        }
+      }
+    } else if (shape === "eight") {
+      // Lemniscate: the hand keeps crossing the midline, which is the same
+      // left-right alternation Crossing and Butterfly Hug use.
+      for (let i = 0; i < POINTS; i++) {
+        const t = (i / POINTS) * Math.PI * 2;
+        pts.push({
+          x: cx + Math.sin(t) * maxR,
+          y: cy + Math.sin(t) * Math.cos(t) * maxR * 0.92,
+        });
+      }
+    } else {
+      // Rounded square: four equal sides, so it can be traced a side per
+      // count the way box breathing is paced.
+      const side = maxR * 1.5;
+      const rad = side * 0.18;
+      const half = side / 2;
+      const seg = Math.floor(POINTS / 4);
+      const corners: [number, number][] = [
+        [-half, -half], [half, -half], [half, half], [-half, half],
+      ];
+      for (let c = 0; c < 4; c++) {
+        const [x0, y0] = corners[c];
+        const [x1, y1] = corners[(c + 1) % 4];
+        for (let i = 0; i < seg; i++) {
+          const t = i / seg;
+          // Pull the ends of each side in, so corners read as curves.
+          const e = rad / side;
+          const tt = e + t * (1 - e * 2);
+          pts.push({ x: cx + x0 + (x1 - x0) * tt, y: cy + y0 + (y1 - y0) * tt });
+        }
+      }
     }
+
     pathRef.current = pts;
   }, []);
+
+  // Switching shape lays down a new path and starts it from the beginning.
+  useEffect(() => {
+    shapeRef.current = shape;
+    const { w, h } = sizeRef.current;
+    if (w && h) {
+      buildPath(w, h, shape);
+      progressRef.current = 0;
+      markRef.current = 0;
+      setAtCenter(false);
+      setStarted(false);
+    }
+  }, [shape, buildPath]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -109,7 +189,7 @@ export default function LabyrinthPage() {
       canvas!.style.width = `${w}px`;
       canvas!.style.height = `${h}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      buildPath(w, h);
+      buildPath(w, h, shapeRef.current);
     }
     resize();
     window.addEventListener("resize", resize);
@@ -194,13 +274,19 @@ export default function LabyrinthPage() {
 
     // Only look at nearby stretches of path, so a finger near the centre
     // cannot teleport you there from the outer ring.
+    const n = path.length;
+    const closed = SHAPES.find((sh) => sh.id === shapeRef.current)!.closed;
     const cur = Math.floor(progressRef.current);
-    const from = Math.max(0, cur - 40);
-    const to = Math.min(path.length - 1, cur + 40);
 
+    // Look only at nearby path, so a finger near the middle cannot teleport
+    // you there from the outer edge. Closed shapes wrap, so tracing a loop
+    // continues round instead of stopping at the join.
     let bestI = cur;
     let bestD = Infinity;
-    for (let i = from; i <= to; i++) {
+    for (let off = -40; off <= 40; off++) {
+      let i = cur + off;
+      if (closed) i = ((i % n) + n) % n;
+      else if (i < 0 || i >= n) continue;
       const dx = path[i].x - x;
       const dy = path[i].y - y;
       const d = dx * dx + dy * dy;
@@ -222,7 +308,7 @@ export default function LabyrinthPage() {
       haptics.subtle();
     }
 
-    const reached = bestI >= path.length - 4;
+    const reached = !closed && bestI >= n - 4;
     setAtCenter((was) => {
       if (reached && !was) haptics.complete();
       return reached;
@@ -250,10 +336,12 @@ export default function LabyrinthPage() {
       aria-label="Finger labyrinth - trace the spiral inward with your finger"
     >
       <p className="sr-only">
-        A spiral path drawn on the screen. Put a finger on it and slide slowly
-        inward, following the line. You cannot leave the path and there is no
-        wrong way to do it. Lift your finger and it waits. When you reach the
-        middle you can trace back out again.
+        A path drawn on the screen, which you can switch between a spiral, a
+        switchback, a figure eight and a box. Put a finger on it and slide
+        along it slowly. You cannot leave the path and there is no wrong way
+        to do it. Lift your finger and it waits. The spiral and switchback
+        wind in to a middle; the figure eight and box loop round for as long
+        as you want.
       </p>
 
       <canvas
@@ -276,6 +364,23 @@ export default function LabyrinthPage() {
           </svg>
           Games
         </Link>
+
+        <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-1.5">
+          {SHAPES.map((sh) => (
+            <button
+              key={sh.id}
+              onClick={() => setShape(sh.id)}
+              aria-pressed={shape === sh.id}
+              className={`rounded-full px-2.5 py-1.5 text-[11px] backdrop-blur-sm transition-all ${
+                shape === sh.id
+                  ? "bg-teal/15 text-teal-soft/80"
+                  : "bg-deep/60 text-cream-dim/40"
+              }`}
+            >
+              {sh.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
@@ -283,7 +388,9 @@ export default function LabyrinthPage() {
           ? "You're in the middle. Stay as long as you like, or trace back out."
           : started
             ? "Keep going. As slow as you want."
-            : "Put a finger on the line and follow it inward."}
+            : shapeMeta.closed
+              ? `${shapeMeta.hint} Put a finger on the line and keep going.`
+              : `${shapeMeta.hint} Put a finger on the line and follow it.`}
       </p>
     </div>
   );

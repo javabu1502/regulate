@@ -19,7 +19,7 @@ const games = [
     states: ["panicking", "anxious"] as BodyState[],
     forWhat: "One line, one direction, nothing to decide",
     title: "Labyrinth",
-    description: "Trace the spiral inward with a finger.",
+    description: "Trace a path with a finger. Four shapes.",
     color: "teal",
     icon: (
       <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
