@@ -4,7 +4,7 @@
 // Stamped by scripts/generate-audio-manifest.mjs on each build. A changed
 // byte here is what makes browsers reinstall the SW and re-precache the
 // app shell — without it, offline copies of unvisited pages go stale.
-const BUILD_ID = "1795412911177";
+const BUILD_ID = "1795413413903";
 
 // Versioned by build so a deploy's stale chunks and pages are evicted by the
 // activate-time cleanup below instead of accumulating forever.
@@ -36,11 +36,14 @@ const APP_SHELL = [
   // All of them: only bubbles and burn were listed, so the other six fell
   // back to the offline page with no signal.
   "/games/bubbles",
+  "/games/chimes",
   "/games/burn",
   "/games/color-wash",
   "/games/crossing",
   "/games/garden",
+  "/games/labyrinth",
   "/games/looking-around",
+  "/games/mandala",
   "/games/nothing",
   "/games/ripples",
   "/games/sand",

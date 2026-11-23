@@ -15,6 +15,48 @@ export type BodyState = "panicking" | "anxious" | "shutdown";
 
 const games = [
   {
+    href: "/games/labyrinth",
+    states: ["panicking", "anxious"] as BodyState[],
+    forWhat: "One line, one direction, nothing to decide",
+    title: "Labyrinth",
+    description: "Trace the spiral inward with a finger.",
+    color: "teal",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
+        <path d="M12 12a2 2 0 1 1 2-2 4 4 0 1 1-4 4 6 6 0 1 1 6-6 8 8 0 1 1-8 8" />
+      </svg>
+    ),
+  },
+  {
+    href: "/games/mandala",
+    states: ["anxious"] as BodyState[],
+    forWhat: "Aimless movement comes back ordered",
+    title: "Mandala",
+    description: "Draw, and it mirrors itself.",
+    color: "lavender",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
+        <circle cx="12" cy="12" r="2.5" />
+        <path d="M12 2v5M12 17v5M2 12h5M17 12h5" />
+        <path d="M5.6 5.6l3.2 3.2M15.2 15.2l3.2 3.2M18.4 5.6l-3.2 3.2M8.8 15.2l-3.2 3.2" opacity="0.55" />
+      </svg>
+    ),
+  },
+  {
+    href: "/games/chimes",
+    states: ["anxious", "shutdown"] as BodyState[],
+    forWhat: "Sound-led, works with your eyes closed",
+    title: "Chimes",
+    description: "Ring them. They layer and hang in the air.",
+    color: "candle",
+    icon: (
+      <svg className="h-6 w-6 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <path d="M6 4v16M10.5 6v12M15 4v16M19.5 7v10" />
+      </svg>
+    ),
+  },
+
+  {
     href: "/games/looking-around",
     states: ["shutdown", "anxious"] as BodyState[],
     forWhat: "Wakes you up a little when you're numb",

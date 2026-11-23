@@ -120,13 +120,13 @@ export default function BreathingGardenPage() {
 
   const timeRef = useRef(0);
 
-  const [phase, setPhase] = useState<"idle" | "inhale" | "exhale" | "rest">("idle");
+  const [phase, setPhase] = useState<"idle" | "inhale" | "hold" | "exhale" | "rest">("idle");
   const [countdown, setCountdown] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
   const [patternIdx, setPatternIdx] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
 
-  const phaseRef = useRef<"idle" | "inhale" | "exhale" | "rest">("idle");
+  const phaseRef = useRef<"idle" | "inhale" | "hold" | "exhale" | "rest">("idle");
   const progressRef = useRef(0);
   const patternRef = useRef(BREATH_PATTERNS[0]);
   const phaseStartRef = useRef(0);
@@ -352,7 +352,7 @@ export default function BreathingGardenPage() {
       // ── Planting marker (shows where the flower will grow) ───
       const tap = tapPosRef.current;
       const currentPhase = phaseRef.current;
-      if (tap && (currentPhase === "inhale" || currentPhase === "exhale")) {
+      if (tap && currentPhase !== "idle" && currentPhase !== "rest") {
         const markerX = Math.max(w * 0.05, Math.min(w * 0.95, tap.x));
         const markerY = getGroundY(markerX);
         const pulse = 0.4 + 0.3 * Math.sin(timeRef.current * 0.06);
@@ -414,11 +414,17 @@ export default function BreathingGardenPage() {
 
       let radius = 35;
       if (p === "inhale") radius = 35 + prog * 35; // 35→70
+      else if (p === "hold") radius = 70;          // stays open while held
       else if (p === "exhale") radius = 70 - prog * 35; // 70→35
 
       // Soft glow behind
       const glowR = radius * 2.5;
-      const glowColor = p === "exhale" ? "rgba(196, 181, 253, 0.08)" : "rgba(94, 234, 212, 0.08)";
+      const glowColor =
+        p === "exhale"
+          ? "rgba(196, 181, 253, 0.08)"
+          : p === "hold"
+            ? "rgba(226, 203, 140, 0.09)"
+            : "rgba(94, 234, 212, 0.08)";
       const glow = ctx!.createRadialGradient(circleX, circleY, 0, circleX, circleY, glowR);
       glow.addColorStop(0, glowColor);
       glow.addColorStop(1, "transparent");
@@ -431,9 +437,11 @@ export default function BreathingGardenPage() {
       const borderColor =
         p === "inhale"
           ? `rgba(94, 234, 212, ${0.25 + prog * 0.25})`
-          : p === "exhale"
-            ? `rgba(196, 181, 253, ${0.5 - prog * 0.25})`
-            : "rgba(94, 234, 212, 0.12)";
+          : p === "hold"
+            ? "rgba(226, 203, 140, 0.45)"
+            : p === "exhale"
+              ? `rgba(196, 181, 253, ${0.5 - prog * 0.25})`
+              : "rgba(94, 234, 212, 0.12)";
       ctx!.strokeStyle = borderColor;
       ctx!.lineWidth = 2;
       ctx!.stroke();
@@ -442,9 +450,11 @@ export default function BreathingGardenPage() {
       const fillColor =
         p === "inhale"
           ? `rgba(94, 234, 212, ${0.03 + prog * 0.04})`
-          : p === "exhale"
-            ? `rgba(196, 181, 253, ${0.07 - prog * 0.04})`
-            : "rgba(94, 234, 212, 0.02)";
+          : p === "hold"
+            ? "rgba(226, 203, 140, 0.05)"
+            : p === "exhale"
+              ? `rgba(196, 181, 253, ${0.07 - prog * 0.04})`
+              : "rgba(94, 234, 212, 0.02)";
       ctx!.fillStyle = fillColor;
       ctx!.fill();
 
@@ -469,16 +479,28 @@ export default function BreathingGardenPage() {
     }
 
     if (phase === "rest") {
-      // Between breaths — wait for user to tap where they want the next flower
+      // A short beat between breaths, then the next one starts on its own.
+      // Requiring a tap between every breath meant you had to open your eyes
+      // and aim before each one, which is the opposite of settling into a
+      // rhythm. Tapping still chooses where a flower grows; it is no longer
+      // the only way to take another breath.
       phaseRef.current = "idle";
       progressRef.current = 0;
       setCountdown(0);
-      return;
+      const t = setTimeout(() => {
+        // The spot is used up; let the next one land somewhere new unless
+        // the person picks a place.
+        tapPosRef.current = null;
+        phaseStartRef.current = Date.now();
+        setPhase("inhale");
+      }, 1500);
+      return () => clearTimeout(t);
     }
 
     phaseRef.current = phase;
     const pattern = patternRef.current;
-    const duration = phase === "inhale" ? pattern.inhale : pattern.exhale;
+    const duration =
+      phase === "inhale" ? pattern.inhale : phase === "hold" ? pattern.hold : pattern.exhale;
 
     function tick() {
       const elapsed = Date.now() - phaseStartRef.current;
@@ -491,18 +513,30 @@ export default function BreathingGardenPage() {
       if (progress < 1) {
         breathAnimRef.current = requestAnimationFrame(tick);
       } else if (phase === "inhale") {
-        // → exhale
+        // Patterns with a hold actually hold now. 4:7:8 declared one and
+        // never ran it, so the label was describing a breath the game
+        // did not take.
         phaseStartRef.current = Date.now();
-        setPhase("exhale");
         progressRef.current = 0;
+        if (pattern.hold > 0) {
+          setPhase("hold");
+          haptics.holdGuide();
+        } else {
+          setPhase("exhale");
+          haptics.tap();
+        }
+      } else if (phase === "hold") {
+        phaseStartRef.current = Date.now();
+        progressRef.current = 0;
+        setPhase("exhale");
         haptics.tap();
       } else if (phase === "exhale") {
         // Breath complete — grow a flower!
         spawnFlower();
         setCycleCount((c) => c + 1);
-        setPhase("rest");
         progressRef.current = 0;
         setCountdown(0);
+        setPhase("rest");
       }
     }
 
@@ -596,7 +630,7 @@ export default function BreathingGardenPage() {
     guideText = "Breathe out";
     subText = countdown > 0 ? `${countdown}` : "";
   } else if (phase === "rest") {
-    guideText = "Tap to plant another";
+    guideText = "Another breath coming. Tap anywhere to choose where it grows.";
     subText = "";
   }
 
