@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { HomeIcon, SafetyPlanIcon, SettingsIcon, PracticeIcon } from "@/components/Icons";
+import { HomeIcon, SafetyPlanIcon, HeadphonesIcon, PracticeIcon } from "@/components/Icons";
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -17,8 +17,9 @@ export default function BottomNav() {
         {/* Home */}
         <NavTab href="/" label="Home" icon={HomeIcon} active={pathname === "/"} />
 
-        {/* Practice */}
-        <NavTab href="/practice" label="Practice" icon={PracticeIcon} active={pathname === "/practice"} />
+        {/* Listen — fifteen recorded guided meditations, which were the best
+            thing in here and were reachable only from halfway down Practice. */}
+        <NavTab href="/meditations" label="Listen" icon={HeadphonesIcon} active={pathname.startsWith("/meditations")} />
 
         {/* SOS Button - center */}
         <div className="flex flex-1 items-center justify-center py-1.5">
@@ -38,8 +39,9 @@ export default function BottomNav() {
             least usable thing mid-distress; Learn is linked from Practice. */}
         <NavTab href="/toolkit" label="My kit" icon={SafetyPlanIcon} active={pathname === "/toolkit"} />
 
-        {/* Settings */}
-        <NavTab href="/settings" label="Settings" icon={SettingsIcon} active={pathname.startsWith("/settings")} />
+        {/* Practice. Settings moved to the gear in the Home header: it is a
+            once-a-month destination and was holding a permanent slot. */}
+        <NavTab href="/practice" label="Practice" icon={PracticeIcon} active={pathname === "/practice"} />
       </div>
     </nav>
   );

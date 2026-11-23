@@ -6,6 +6,8 @@ import Link from "next/link";
 import MyPersonSection from "@/components/MyPerson";
 import {
   BreathingIcon,
+  HeadphonesIcon,
+  SettingsIcon,
   WaveIcon,
 } from "@/components/Icons";
 import { getInstallPrompt, clearInstallPrompt } from "@/components/RegisterSW";
@@ -271,8 +273,16 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center px-5 pb-24 pt-10">
       <main className="w-full max-w-md">
-        {/* Header */}
-        <header className="mb-6 text-center">
+        {/* Header. Settings lives here now rather than in the bottom nav,
+            where it was taking a permanent slot to do nothing most days. */}
+        <header className="relative mb-6 text-center">
+          <Link
+            href="/settings"
+            aria-label="Settings"
+            className="absolute -right-1 top-0 rounded-lg p-2 text-cream-dim/25 transition-colors hover:text-cream-dim/60"
+          >
+            <SettingsIcon className="h-5 w-5" />
+          </Link>
           <WaveIcon className="mx-auto mb-3 h-7 w-7 text-teal-soft/60" />
           <h1 className="text-xl font-light tracking-tight text-cream">
             Regulate
@@ -368,28 +378,43 @@ export default function Home() {
           </Link>
         )}
 
-        {/* ── Main hub cards ── */}
-        <p className="mb-1 text-[10px] uppercase tracking-widest text-cream-dim/30">
-          What do you need?
-        </p>
-        <div className="flex flex-col gap-2">
+        {/* ── The three places to go ──
+            There were five cards here, all the same size, all with an icon,
+            a sentence and a duration. Everything looked equally important,
+            which is the same as nothing looking important. Emergency Toolkit
+            and Crisis Resources are both one tap away in the bottom bar and
+            the footer, so they come off the shelf; what is left is the three
+            things you would actually open. */}
+        <div className="flex flex-col gap-2.5">
           <Link
             href="/exercises"
-            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+            className="flex items-center gap-4 rounded-2xl border border-teal/10 bg-deep/40 px-5 py-4 transition-all hover:border-teal/25"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/50">
               <BreathingIcon className="h-5 w-5 text-teal-soft" />
             </div>
             <div>
-              <span className="block text-sm font-medium text-cream">Exercises</span>
-              <span className="block text-xs text-cream-dim/50">Things your body already knows how to do <span className="text-cream-dim/30">· 3-10 min</span></span>
+              <span className="block text-[15px] font-medium text-cream">Exercises</span>
+              <span className="block text-xs text-cream-dim/50">Things your body already knows how to do</span>
+            </div>
+          </Link>
+          <Link
+            href="/meditations"
+            className="flex items-center gap-4 rounded-2xl border border-teal/10 bg-deep/40 px-5 py-4 transition-all hover:border-teal/25"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/50">
+              <HeadphonesIcon className="h-5 w-5 text-teal-soft" />
+            </div>
+            <div>
+              <span className="block text-[15px] font-medium text-cream">Guided Meditations</span>
+              <span className="block text-xs text-cream-dim/50">Put headphones on and let someone else talk</span>
             </div>
           </Link>
           <Link
             href="/games"
-            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
+            className="flex items-center gap-4 rounded-2xl border border-teal/10 bg-deep/40 px-5 py-4 transition-all hover:border-teal/25"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-blue/50">
               <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none">
                 <circle cx="8" cy="10" r="4" stroke="currentColor" strokeWidth="1.3" />
                 <circle cx="16" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" />
@@ -397,56 +422,20 @@ export default function Home() {
               </svg>
             </div>
             <div>
-              <span className="block text-sm font-medium text-cream">Mindful Games</span>
-              <span className="block text-xs text-cream-dim/50">Gentle distractions for restless hands <span className="text-cream-dim/30">· no time limit</span></span>
+              <span className="block text-[15px] font-medium text-cream">Mindful Games</span>
+              <span className="block text-xs text-cream-dim/50">Gentle distractions for restless hands</span>
             </div>
           </Link>
-          <Link
-            href="/toolkit"
-            className="flex items-center gap-3 rounded-2xl border border-candle/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-candle/25"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
-              <svg className="h-5 w-5 text-candle/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" />
-                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-                <path d="M12 12v3" />
-              </svg>
-            </div>
-            <div>
-              <span className="block text-sm font-medium text-cream">Emergency Toolkit</span>
-              <span className="block text-xs text-cream-dim/50">Your panic kit, safety plan &amp; contacts <span className="text-cream-dim/30">· set up in 2 min</span></span>
-            </div>
+        </div>
+
+        {/* The two that matter on particular days, kept quiet */}
+        <div className="mt-5 flex items-center justify-center gap-5 text-xs text-cream-dim/35">
+          <Link href="/caregiver" className="transition-colors hover:text-cream-dim/70">
+            Helping someone else
           </Link>
-          <Link
-            href="/caregiver"
-            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
-              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </div>
-            <div>
-              <span className="block text-sm font-medium text-cream">Helping Someone</span>
-              <span className="block text-xs text-cream-dim/50">Walk someone through a tough moment</span>
-            </div>
-          </Link>
-          <Link
-            href="/crisis"
-            className="flex items-center gap-3 rounded-2xl border border-teal/10 bg-deep/40 px-4 py-3.5 transition-all hover:border-teal/25"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-blue/50">
-              <svg className="h-5 w-5 text-teal-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z" />
-              </svg>
-            </div>
-            <div>
-              <span className="block text-sm font-medium text-cream">Crisis Resources</span>
-              <span className="block text-xs text-cream-dim/50">Talk to someone right now</span>
-            </div>
+          <span aria-hidden="true" className="text-cream-dim/15">·</span>
+          <Link href="/crisis" className="transition-colors hover:text-cream-dim/70">
+            Crisis resources
           </Link>
         </div>
 

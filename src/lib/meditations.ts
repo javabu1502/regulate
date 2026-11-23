@@ -15,8 +15,8 @@ export const meditations: Meditation[] = [
     title: "Safe Place",
     description: "Build a mental space that feels safe",
     category: "Grounding & Safety",
-    duration: "3 min",
-    durationSec: 193,
+    duration: "4 min",
+    durationSec: 235,
   },
   {
     id: "body-as-home",
