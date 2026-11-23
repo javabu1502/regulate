@@ -29,12 +29,16 @@ import { canvasHeight } from "@/lib/canvas-area";
 // live in the same motion, so there is nothing to choose before you start
 // and nothing on screen to aim at.
 
-const BOWL = { freq: 146.83, scale: 1 };
+// What it rings at when you tap it. Fixed, and low, the way a heavy bowl
+// is. It used to ring at whatever note the tap position mapped to, which
+// meant tapping the middle of the bowl, the obvious way to strike one,
+// produced the thinnest note in the set.
+const BOWL = { freq: 98.0, scale: 1 };
 
-// The old row of bowls, now the notes the radius of the circling picks out.
-// Quantised rather than continuous, so a wandering hand still lands in tune.
-// Widest first.
-const NOTES = [130.81, 146.83, 174.61, 196.0, 261.63];
+// The notes the width of the circling picks out, widest first. The whole
+// set came down a fourth: the old one topped out at 261Hz and the speed
+// bend took that to 392, which is a glass rather than a bowl.
+const NOTES = [98.0, 110.0, 130.81, 146.83, 196.0];
 
 interface Bowl {
   x: number;
@@ -43,6 +47,7 @@ interface Bowl {
   freq: number;
   ring: number;   // struck energy, decays on its own
   sing: number;   // rubbed energy, only held up by circling
+  note: number;   // what it sings at, picked by how wide you circle
   rate: number;   // how fast the rim is being circled, radians a second
   dot: number;    // where the bright point has got to on the rim
   reach: number;  // the width the note was picked at, set when you touch down
@@ -201,6 +206,30 @@ function stopSingVoice() {
   }, 900);
 }
 
+// The rim is an ellipse drawn half a radius above the bowl's centre and
+// squashed to a third of its height. Angles used to be measured from the
+// centre, so a finger tracing the rim never got round the origin: it swung
+// back and forth through the top half instead of going round, and the
+// circling barely registered. Measure from the rim's own middle and undo
+// the squash, and the path you can see is the path the maths sees.
+const RIM_SQUASH = 0.3;
+
+function rimCentre(b: Bowl) {
+  return { x: b.x, y: b.y - b.r * 0.5 };
+}
+
+/** Angle about the rim, with the ellipse stretched back into a circle. */
+function rimAngle(b: Bowl, x: number, y: number): number {
+  const c = rimCentre(b);
+  return Math.atan2((y - c.y) / RIM_SQUASH, x - c.x);
+}
+
+/** How far out the finger is, in the same un-squashed terms. */
+function rimReach(b: Bowl, x: number, y: number): number {
+  const c = rimCentre(b);
+  return Math.hypot(x - c.x, (y - c.y) / RIM_SQUASH);
+}
+
 /**
  * The note the width of the circling is asking for.
  *
@@ -256,8 +285,11 @@ export default function BowlsPage() {
       bowlsRef.current = [{
         x: w / 2,
         y: h * 0.5,
-        r: Math.min(w * 0.3, h * 0.22) * BOWL.scale,
+        // One bowl got drawn as big as the space allowed, which made going
+        // round it a whole-arm sweep on a phone.
+        r: Math.min(w * 0.2, h * 0.14) * BOWL.scale,
         freq: BOWL.freq,
+        note: BOWL.freq,
         ring: 0,
         sing: 0,
         rate: 0,
@@ -329,7 +361,7 @@ export default function BowlsPage() {
       // finger is this instant.
       if (b.sing > 0.02 && b.reach > 4) {
         ctx!.beginPath();
-        ctx!.ellipse(b.x, rimY, b.reach, b.reach * 0.3, 0, 0, Math.PI * 2);
+        ctx!.ellipse(b.x, rimY, b.reach, b.reach * RIM_SQUASH, 0, 0, Math.PI * 2);
         ctx!.strokeStyle = `rgba(214, 189, 146, ${0.1 + b.sing * 0.14})`;
         ctx!.lineWidth = 1;
         ctx!.stroke();
@@ -340,7 +372,7 @@ export default function BowlsPage() {
         const a = reducedMotionRef.current ? -Math.PI / 2 : b.dot;
         ctx!.beginPath();
         const pr = b.reach > 4 ? b.reach : rimRx;
-        ctx!.arc(b.x + Math.cos(a) * pr, rimY + Math.sin(a) * pr * 0.3, 3.5, 0, Math.PI * 2);
+        ctx!.arc(b.x + Math.cos(a) * pr, rimY + Math.sin(a) * pr * RIM_SQUASH, 3.5, 0, Math.PI * 2);
         ctx!.fillStyle = `rgba(255, 246, 220, ${0.5 + b.sing * 0.5})`;
         ctx!.fill();
       }
@@ -370,7 +402,7 @@ export default function BowlsPage() {
         const b = bowlsRef.current[active];
         if (b) {
           setSingLevel(Math.min(0.26, b.sing * 0.26));
-          setSingPitch(b.freq, 1 + Math.min(1, b.rate / BEND_AT) * BEND);
+          setSingPitch(b.note, 1 + Math.min(1, b.rate / BEND_AT) * BEND);
         }
       }
 
@@ -395,9 +427,9 @@ export default function BowlsPage() {
     activeRef.current = bowlsRef.current.length ? 0 : -1;
     const b = bowlsRef.current[0];
     if (!b) return;
-    b.reach = Math.hypot(e.clientX - b.x, e.clientY - b.y);
-    b.freq = noteFor(b);
-    lastAngleRef.current = Math.atan2(e.clientY - b.y, e.clientX - b.x);
+    b.reach = rimReach(b, e.clientX, e.clientY);
+    b.note = noteFor(b);
+    lastAngleRef.current = rimAngle(b, e.clientX, e.clientY);
     lastMoveRef.current = performance.now();
     b.dot = lastAngleRef.current;
     if (!touched) setTouched(true);
@@ -408,7 +440,7 @@ export default function BowlsPage() {
     const i = activeRef.current;
     if (i < 0) return;
     const b = bowlsRef.current[i];
-    const angle = Math.atan2(e.clientY - b.y, e.clientX - b.x);
+    const angle = rimAngle(b, e.clientX, e.clientY);
     const last = lastAngleRef.current;
     lastAngleRef.current = angle;
     if (last === null) return;
@@ -436,7 +468,7 @@ export default function BowlsPage() {
     }
 
     // Going round the rim is what makes it sing; a straight swipe does not.
-    ensureSingVoice(b.freq);
+    ensureSingVoice(b.note);
     b.sing = Math.min(1, b.sing + Math.abs(d) * 0.55);
     if (b.sing > 0.25 && !singing) setSinging(true);
     if (Math.abs(d) > 0.3) haptics.subtle();
@@ -468,13 +500,14 @@ export default function BowlsPage() {
     >
       <p className="sr-only">
         One singing bowl in the middle of the screen. Tap anywhere and it
-        rings. Or slowly circle a finger around it and it begins to sing,
-        growing while you keep circling and falling away when you stop. Where
-        you first put your finger down picks the note: out near the rim for
-        the low ones, in near the middle for the high ones, through five
-        notes that are tuned so nothing you play sounds wrong. Once you are
-        going round, circling faster bends that note upward and slowing down
-        lets it back. Lift your finger and start again to pick another.
+        rings, always on its own low note. Or slowly circle a finger around
+        it and it begins to sing, growing while you keep circling and falling
+        away when you stop. Where you first put your finger down picks what
+        it sings: out near the rim for the low notes, in near the middle for
+        the higher ones, through five that are tuned so nothing you play
+        sounds wrong. Once you are going round, circling faster bends that
+        note upward and slowing down lets it back. Lift your finger and
+        start again to pick another.
         This one works with your eyes closed.
       </p>
 
