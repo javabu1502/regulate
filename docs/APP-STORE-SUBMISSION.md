@@ -77,6 +77,13 @@ build fixes.
 
 ### Apple
 
+**Opening Xcode.app once fixes two things at the same time.** This Mac has
+never completed Xcode's setup: there are 0 code-signing identities and 0
+provisioning profiles, and the simulator does not work at all because
+`CoreSimulator.framework` is missing its binary. `xcodebuild -runFirstLaunch`
+installs some components but does not restore it. Open the app, let it
+finish, and download a simulator runtime under Settings → Components.
+
 - Use the **individual** developer account, not My Democracy LLC.
 - App Store Connect: create the app record, bundle ID as above.
 - Signing: a Distribution certificate and provisioning profile, then
