@@ -584,6 +584,26 @@ export default function SettingsPage() {
             <p className="mt-1 text-xs text-cream-dim/60">What this app is and how it works</p>
           </Link>
 
+          {/* Support, privacy and terms. Both app stores require a reachable
+              privacy policy, and Apple also requires a support page. */}
+          <Link
+            href="/support"
+            className="w-full rounded-2xl border border-teal/12 bg-deep/50 p-5 text-left transition-colors hover:border-teal/30 block"
+          >
+            <h3 className="text-sm font-medium text-cream">Support</h3>
+            <p className="mt-1 text-xs text-cream-dim/60">Get help, or tell us what would make this better</p>
+          </Link>
+
+          <div className="flex items-center justify-center gap-5 py-1 text-xs text-cream-dim/35">
+            <Link href="/privacy" className="transition-colors hover:text-cream-dim/70">
+              Privacy
+            </Link>
+            <span aria-hidden="true" className="text-cream-dim/15">·</span>
+            <Link href="/terms" className="transition-colors hover:text-cream-dim/70">
+              Terms
+            </Link>
+          </div>
+
           {/* Review preferences */}
           <Link
             href="/settings/preferences"
