@@ -6,33 +6,62 @@
       <stop offset="100%" stop-color="#060b17"/>
     </radialGradient>
     <radialGradient id="halo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#6ec4c7" stop-opacity="0.30"/>
-      <stop offset="42%" stop-color="#4f9ea8" stop-opacity="0.12"/>
+      <stop offset="0%" stop-color="#6ec4c7" stop-opacity="0.28"/>
+      <stop offset="45%" stop-color="#4f9ea8" stop-opacity="0.10"/>
       <stop offset="100%" stop-color="#4f9ea8" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="nerve" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#b6ecec"/>
-      <stop offset="55%" stop-color="#7fd0d2"/>
-      <stop offset="100%" stop-color="#4e9ba4"/>
+      <stop offset="0%" stop-color="#cdf2f0"/>
+      <stop offset="38%" stop-color="#8fd6d6"/>
+      <stop offset="100%" stop-color="#47909b"/>
     </linearGradient>
   </defs>
 
   <rect width="512" height="512" rx="112" fill="url(#bg)"/><g id="art">
-    <!-- the glow it sits in -->
-    <circle cx="256" cy="248" r="236" fill="url(#halo)"/>
+    <circle cx="256" cy="252" r="238" fill="url(#halo)"/>
 
-    <!-- The vagus nerve: brainstem, the two trunks running down, and the
-         branches out to heart, lungs and gut. Same mark as WaveIcon in
-         src/components/Icons.tsx, drawn heavy enough to survive 192px. -->
-    <g transform="translate(256 256) scale(13.4) translate(-12 -11.65)"
-       fill="none" stroke="url(#nerve)" stroke-linecap="round" stroke-linejoin="round">
-      <ellipse cx="12" cy="2.5" rx="2" ry="1.2" stroke-width="1.05"/>
-      <path d="M10.5 3.5C9.5 5.5 10.5 7.5 10 10C9.5 12.5 10.5 15 10 17.5C9.7 19 10 21 10 22" stroke-width="1.3"/>
-      <path d="M13.5 3.5C14.5 5.5 13.5 7.5 14 10C14.5 12.5 13.5 15 14 17.5C14.3 19 14 21 14 22" stroke-width="1.3"/>
-      <path d="M10.2 8.5C8.5 9 7 10 6 11" opacity="0.6" stroke-width="1"/>
-      <path d="M13.8 8.5C15.5 9 17 10 18 11" opacity="0.6" stroke-width="1"/>
-      <path d="M10.2 15C8.5 15.5 7.5 16.5 7 17.5" opacity="0.42" stroke-width="0.95"/>
-      <path d="M13.8 15C15.5 15.5 16.5 16.5 17 17.5" opacity="0.42" stroke-width="0.95"/>
+    <!-- The whole central nervous system: brain, cord, and the nerves out
+         to the hands and feet. Stroke weight falls away from the middle,
+         so the trunk still carries at small sizes while the fine ends read
+         as detail rather than noise. -->
+    <g fill="none" stroke="url(#nerve)" stroke-linecap="round" stroke-linejoin="round"
+       transform="translate(256 262) scale(0.9) translate(-256 -262)">
+
+      <!-- Brain. A smooth dome with the folds drawn inside it. The first
+           attempt had a scalloped outline, which at 192 pixels stopped
+           being a brain and became a cloud. -->
+      <path d="M256 70c-34 0-61 25-61 55 0 17 9 32 23 41h76c14-9 23-24 23-41 0-30-27-55-61-55Z" stroke-width="11"/>
+      <!-- Folds. Two paired marks and a paired mouth turned the dome into a
+           face at any size. A fold has to run the whole width of the brain,
+           edge to edge, or the eye finds a pair of eyes in it. -->
+      <path d="M256 74v92" stroke-width="5" opacity="0.4"/>
+      <path d="M205 104c16 9 31 9 46 1 16-9 31-9 47 1" stroke-width="5" opacity="0.5"/>
+      <path d="M201 132c17 8 32 7 48-1 16-9 31-9 47 2" stroke-width="5" opacity="0.4"/>
+
+      <!-- brainstem and spinal cord -->
+      <path d="M256 175c-6 18 4 34 1 52-3 20 4 34 1 52-3 18 2 30 0 44" stroke-width="13"/>
+
+      <!-- nerves to the arms -->
+      <path d="M252 206c-22 6-42 20-55 42-12 20-17 42-19 62" stroke-width="9"/>
+      <path d="M260 206c22 6 42 20 55 42 12 20 17 42 19 62" stroke-width="9"/>
+      <g stroke-width="6" opacity="0.75">
+        <path d="M178 310c-4 14-5 26-4 36M178 310c-10 12-15 24-17 34M178 310c3 14 9 24 16 31"/>
+        <path d="M334 310c4 14 5 26 4 36M334 310c10 12 15 24 17 34M334 310c-3 14-9 24-16 31"/>
+      </g>
+
+      <!-- intercostal branches, the ribs of it -->
+      <g stroke-width="5.5" opacity="0.4">
+        <path d="M250 232c-22 2-40 12-52 27M262 232c22 2 40 12 52 27"/>
+        <path d="M250 266c-20 3-35 13-46 27M262 266c20 3 35 13 46 27"/>
+      </g>
+
+      <!-- nerves down the legs -->
+      <path d="M250 323c-10 22-16 46-18 72-2 24-1 44 0 58" stroke-width="10"/>
+      <path d="M262 323c10 22 16 46 18 72 2 24 1 44 0 58" stroke-width="10"/>
+      <g stroke-width="6" opacity="0.75">
+        <path d="M232 453c-5 10-8 18-8 26M232 453c-13 6-20 13-24 20M232 453c4 11 10 18 17 23"/>
+        <path d="M280 453c5 10 8 18 8 26M280 453c13 6 20 13 24 20M280 453c-4 11-10 18-17 23"/>
+      </g>
     </g>
   </g>
 </svg>

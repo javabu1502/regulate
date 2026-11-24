@@ -129,24 +129,22 @@ export function SOSIcon({ className = "h-6 w-6" }: { className?: string }) {
 
 export function WaveIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
-    <svg className={`${base} ${className}`} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-      {/* Brainstem - small oval at top */}
-      <ellipse cx="12" cy="2.5" rx="2" ry="1.2" strokeWidth="1" />
-      {/* Left vagus trunk - wandering S-curve */}
-      <path d="M10.5 3.5C9.5 5.5 10.5 7.5 10 10C9.5 12.5 10.5 15 10 17.5C9.7 19 10 21 10 22" strokeWidth="1.3" />
-      {/* Right vagus trunk */}
-      <path d="M13.5 3.5C14.5 5.5 13.5 7.5 14 10C14.5 12.5 13.5 15 14 17.5C14.3 19 14 21 14 22" strokeWidth="1.3" />
-      {/* Branch to heart (left) */}
-      <path d="M10.2 8.5C8.5 9 7 10 6 11" opacity="0.45" strokeWidth="1" />
-      {/* Branch to lungs (right) */}
-      <path d="M13.8 8.5C15.5 9 17 10 18 11" opacity="0.45" strokeWidth="1" />
-      {/* Branch to gut (left) */}
-      <path d="M10.2 15C8.5 15.5 7.5 16.5 7 17.5" opacity="0.3" strokeWidth="1" />
-      {/* Branch to gut (right) */}
-      <path d="M13.8 15C15.5 15.5 16.5 16.5 17 17.5" opacity="0.3" strokeWidth="1" />
+    <svg className={`${base} ${className}`} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      {/* The same whole-body nervous system as the app icon, with the brain
+          folds and the nerve endings left out. This renders as small as 20
+          pixels, where that detail is mud; the icon on the home screen never
+          goes below 48 and keeps them. */}
+      <path d="M12 2.2c-2.4 0-4.3 1.8-4.3 3.9 0 1.2.6 2.3 1.6 2.9h5.4c1-.6 1.6-1.7 1.6-2.9 0-2.1-1.9-3.9-4.3-3.9Z" />
+      <path d="M12 9v5.4" />
+      <path d="M11.5 10.1c-1.7.5-3.1 1.6-4 3.1-.8 1.4-1.2 2.9-1.3 4.3" />
+      <path d="M12.5 10.1c1.7.5 3.1 1.6 4 3.1.8 1.4 1.2 2.9 1.3 4.3" />
+      <path d="M11.5 14.8c-.7 1.5-1.1 3.2-1.2 5-.1 1.3-.1 2.3 0 3" />
+      <path d="M12.5 14.8c.7 1.5 1.1 3.2 1.2 5 .1 1.3.1 2.3 0 3" />
+      <path d="M10.3 12.3c-1.2.3-2.2.9-2.9 1.8M13.7 12.3c1.2.3 2.2.9 2.9 1.8" opacity="0.4" strokeWidth="1" />
     </svg>
   );
 }
+
 
 export function PracticeIcon({ className = "h-6 w-6" }: { className?: string }) {
   return (
