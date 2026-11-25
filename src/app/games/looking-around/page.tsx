@@ -15,15 +15,17 @@ import { canvasHeight } from "@/lib/canvas-area";
 // it, another appears elsewhere. That outward scanning is what tells a body
 // the room is safe.
 //
-// It now has an end, and it builds. Open-ended was the wrong shape for the
-// state this is for: someone shut down does not want a thing that could go
-// on forever, they want to know it finishes. So it is a round of twelve,
-// the count is on screen, and it quickens as it goes, one light becoming
-// two and then three. That ramp is the activation, done gradually rather
-// than all at once.
+// It builds, over the first dozen or so, and then holds there. One light
+// becomes two and then three, and the gap between them closes. That ramp
+// is the activation, done gradually rather than all at once, and it levels
+// off rather than climbing forever, because a game that keeps getting
+// faster turns into pressure.
 //
-// Still no timer, no miss and no score. Knowing how many are left is not
-// the same as being graded.
+// It was briefly capped at twelve with an ending. That was wrong: a fixed
+// number makes the thing a task to complete, and this should be something
+// you stop doing when you have had enough. The count on screen is a tally
+// of what you have done, not a target, and the clock is elapsed rather than
+// counting down. No miss, no score, nothing to finish.
 
 interface Spark {
   x: number; y: number; vx: number; vy: number; r: number; life: number;
@@ -71,22 +73,26 @@ const ZONES: { x: [number, number]; y: [number, number] }[] = [
   { x: [0.82, 0.95], y: [0.42, 0.58] },
 ];
 
-/** How many lights make a round. Long enough to be a practice, short
- *  enough that it is obviously going to end. */
-const TARGET = 12;
+/** How many lights the build takes to reach its full pace. Not a limit:
+ *  the game keeps going for as long as you want it to. */
+const RAMP = 12;
 
 /**
- * How the round builds.
+ * How it builds, and where it stops building.
  *
  * The gap is how long the screen stays empty after one is found, so a
  * shorter gap is a quicker game. The first few are unhurried on purpose:
  * this is for a body that has gone still, and being rushed at the start is
  * the thing most likely to make someone close it.
+ *
+ * It levels off rather than climbing forever. A game that keeps getting
+ * faster with no ceiling turns into pressure, which is the opposite of what
+ * this is for.
  */
 function pace(found: number) {
-  const t = Math.min(1, found / TARGET);
+  const t = Math.min(1, found / RAMP);
   return {
-    gap: 1100 - t * 800,
+    gap: 1100 - t * 650,
     concurrent: t < 0.35 ? 1 : t < 0.7 ? 2 : 3,
   };
 }
@@ -110,16 +116,18 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-/** A rising two-note chime: upward, because the point is mild activation. */
-function playFound(step = 0) {
+/** A rising two-note chime: upward, because the point is mild activation.
+ *
+ *  The two notes rise; the chime itself does not climb as you go. It did
+ *  for a while, so the quickening would be audible, and a pitch that keeps
+ *  creeping up is a sound that keeps asking for something. Wrong for a game
+ *  whose whole job is to settle a body down. Same two notes every time. */
+function playFound() {
   if (!isGameSoundEnabled()) return;
   try {
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
-    // Climbs a little through the round, so the quickening is audible as
-    // well as visible. Capped so it never gets shrill.
-    const lift = 1 + Math.min(0.25, step * 0.02);
-    [392 * lift, 523.25 * lift].forEach((freq, i) => {
+    [392, 523.25].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
@@ -138,31 +146,6 @@ function playFound(step = 0) {
   }
 }
 
-/** Four notes up, once, at the end of a round. */
-function playDone() {
-  if (!isGameSoundEnabled()) return;
-  try {
-    const ctx = getAudioContext();
-    if (ctx.state === "suspended") ctx.resume();
-    [392, 523.25, 587.33, 784].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const at = ctx.currentTime + i * 0.14;
-      gain.gain.setValueAtTime(0, at);
-      gain.gain.linearRampToValueAtTime(0.06, at + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.0001, at + 1.1);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(at);
-      osc.stop(at + 1.15);
-    });
-  } catch {
-    /* sound is optional */
-  }
-}
-
 export default function LookingAroundPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
@@ -173,7 +156,6 @@ export default function LookingAroundPage() {
   const foundRef = useRef(0);
 
   const [foundCount, setFoundCount] = useState(0);
-  const [done, setDone] = useState(false);
   // Elapsed, not a countdown. It says how long you have been at it; it does
   // not ask you to go faster, and nothing in the round depends on it.
   const [elapsed, setElapsed] = useState(0);
@@ -218,28 +200,13 @@ export default function LookingAroundPage() {
 
   // Ticks once a second while a round is running.
   useEffect(() => {
-    if (done) return;
     const id = setInterval(() => {
       if (startedRef.current) {
         setElapsed(Math.floor((performance.now() - startedRef.current) / 1000));
       }
     }, 1000);
     return () => clearInterval(id);
-  }, [done]);
-
-  const restart = useCallback(() => {
-    lightsRef.current = [];
-    lastZoneRef.current = -1;
-    foundRef.current = 0;
-    nextAtRef.current = 0;
-    nudgeShownRef.current = false;
-    startedRef.current = performance.now();
-    setFoundCount(0);
-    setElapsed(0);
-    setNeedsNudge(false);
-    setDone(false);
-    spawn();
-  }, [spawn]);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -343,15 +310,11 @@ export default function LookingAroundPage() {
 
       // Top the screen back up, once the gap for this point in the round
       // has passed. Nothing spawns after the last one is found.
-      if (foundRef.current < TARGET) {
-        const { gap, concurrent } = pace(foundRef.current);
-        const live = lightsRef.current.filter((l) => !l.found).length;
-        const outstanding = TARGET - foundRef.current;
-        const want = Math.min(concurrent, outstanding);
-        if (live < want && now >= nextAtRef.current) {
-          spawn();
-          nextAtRef.current = now + gap;
-        }
+      const { gap, concurrent } = pace(foundRef.current);
+      const live = lightsRef.current.filter((l) => !l.found).length;
+      if (live < concurrent && now >= nextAtRef.current) {
+        spawn();
+        nextAtRef.current = now + gap;
       }
 
       animRef.current = requestAnimationFrame(draw);
@@ -366,7 +329,6 @@ export default function LookingAroundPage() {
   }, [spawn]);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (done) return;
     // Nearest unfound light wins, so two close together cannot both take
     // the same tap.
     // Indexed rather than held as a local, because the compiler will not
@@ -393,20 +355,13 @@ export default function LookingAroundPage() {
     lightsRef.current[bestIdx].sparks = makeSparks(
       lightsRef.current[bestIdx].x, lightsRef.current[bestIdx].y);
     foundRef.current += 1;
-    playFound(foundRef.current);
+    playFound();
     haptics.tap();
     setFoundCount(foundRef.current);
-    if (foundRef.current >= TARGET) {
-      setElapsed(Math.floor((performance.now() - startedRef.current) / 1000));
-      setDone(true);
-      haptics.complete();
-      playDone();
-    } else {
-      // The next one waits out this point's gap rather than arriving
-      // on top of the bloom.
-      nextAtRef.current = performance.now() + pace(foundRef.current).gap;
-    }
-  }, [done]);
+    // The next one waits out this point's gap rather than arriving on top
+    // of the bloom.
+    nextAtRef.current = performance.now() + pace(foundRef.current).gap;
+  }, []);
 
   return (
     <div
@@ -416,12 +371,13 @@ export default function LookingAroundPage() {
     >
       <p className="sr-only">
         Soft lights appear one at a time toward the edges of the screen. Look
-        for each one, then touch it. A round is twelve lights. It starts
-        slowly with one at a time and gradually quickens, with two and then
-        three out at once toward the end. There is no timer and nothing to
-        miss. A clock shows how long you have been playing; nothing depends
-        on it. Looking around the room is how the body checks that it is
-        safe.
+        for each one, then touch it. It starts slowly with one light at a
+        time and gradually quickens over the first dozen, with two and then
+        three out at once, and then it stays at that pace. It does not end:
+        stop whenever you have had enough. A count of how many you have
+        touched and a clock of how long you have been playing are in the
+        corner, and nothing depends on either. Looking around the room is
+        how the body checks that it is safe.
       </p>
 
       <canvas
@@ -444,48 +400,21 @@ export default function LookingAroundPage() {
         {/* How many are left. Not a score: there is nothing to beat and no
             clock, it is only here so the end is in sight from the start. */}
         <span className="rounded-full bg-deep/60 px-3 py-1.5 text-[11px] tabular-nums text-cream-dim/45 backdrop-blur-sm">
-          {foundCount} of {TARGET}
+          {foundCount}
           <span className="mx-1.5 text-cream-dim/20">·</span>
           {clock(elapsed)}
         </span>
       </div>
 
-      {done && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-5 px-8">
-          <p className="text-center text-lg font-light text-cream">
-            That&apos;s twelve. You looked all the way around.
-          </p>
-          <p className="text-center text-sm tabular-nums text-cream-dim/40">
-            {clock(elapsed)}
-          </p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={restart}
-              className="rounded-xl bg-teal/20 px-5 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/30"
-            >
-              Go again
-            </button>
-            <Link
-              href="/games"
-              className="rounded-xl px-5 py-2.5 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
-            >
-              Done
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {!done && (
-        <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
-          {needsNudge
-            ? "Touch the light."
-            : foundCount === 0
-              ? "Find the light, then touch it. Turn your head if you need to."
-              : foundCount >= Math.round(TARGET * 0.7)
-                ? "More than one now. Take them in any order."
-                : "It picks up a little as you go."}
-        </p>
-      )}
+      <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
+        {needsNudge
+          ? "Touch the light."
+          : foundCount === 0
+            ? "Find the light, then touch it. Turn your head if you need to."
+            : foundCount >= Math.round(RAMP * 0.7)
+              ? "More than one now. Take them in any order."
+              : "It picks up a little as you go."}
+      </p>
     </div>
   );
 }
