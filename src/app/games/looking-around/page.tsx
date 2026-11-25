@@ -15,14 +15,47 @@ import { canvasHeight } from "@/lib/canvas-area";
 // it, another appears elsewhere. That outward scanning is what tells a body
 // the room is safe.
 //
-// No timer, no score, no miss. Lights wait as long as they need to.
+// It now has an end, and it builds. Open-ended was the wrong shape for the
+// state this is for: someone shut down does not want a thing that could go
+// on forever, they want to know it finishes. So it is a round of twelve,
+// the count is on screen, and it quickens as it goes, one light becoming
+// two and then three. That ramp is the activation, done gradually rather
+// than all at once.
+//
+// Still no timer, no miss and no score. Knowing how many are left is not
+// the same as being graded.
+
+interface Spark {
+  x: number; y: number; vx: number; vy: number; r: number; life: number;
+}
 
 interface Light {
   x: number;
   y: number;
+  zone: number;
   born: number;
   found: boolean;
   foundAt: number;
+  sparks: Spark[];
+}
+
+// The burst colour. Warmer and more orange than the light itself, so the
+// pop reads as a change rather than the same gold getting bigger.
+const POP = "230, 154, 92";
+
+/** Eight sparks thrown out from the point, the way a bubble goes. */
+function makeSparks(x: number, y: number): Spark[] {
+  return Array.from({ length: 8 }, (_, i) => {
+    const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.35;
+    const speed = 0.9 + Math.random() * 1.9;
+    return {
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: 1.8 + Math.random() * 2.4,
+      life: 0,
+    };
+  });
 }
 
 // Deliberately opposite corners and edges, so each one asks for a real head
@@ -38,6 +71,33 @@ const ZONES: { x: [number, number]; y: [number, number] }[] = [
   { x: [0.82, 0.95], y: [0.42, 0.58] },
 ];
 
+/** How many lights make a round. Long enough to be a practice, short
+ *  enough that it is obviously going to end. */
+const TARGET = 12;
+
+/**
+ * How the round builds.
+ *
+ * The gap is how long the screen stays empty after one is found, so a
+ * shorter gap is a quicker game. The first few are unhurried on purpose:
+ * this is for a body that has gone still, and being rushed at the start is
+ * the thing most likely to make someone close it.
+ */
+function pace(found: number) {
+  const t = Math.min(1, found / TARGET);
+  return {
+    gap: 1100 - t * 800,
+    concurrent: t < 0.35 ? 1 : t < 0.7 ? 2 : 3,
+  };
+}
+
+/** m:ss. */
+function clock(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const ss = String(seconds % 60).padStart(2, "0");
+  return `${m}:${ss}`;
+}
+
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext {
@@ -51,12 +111,15 @@ function getAudioContext(): AudioContext {
 }
 
 /** A rising two-note chime: upward, because the point is mild activation. */
-function playFound() {
+function playFound(step = 0) {
   if (!isGameSoundEnabled()) return;
   try {
     const ctx = getAudioContext();
     if (ctx.state === "suspended") ctx.resume();
-    [392, 523.25].forEach((freq, i) => {
+    // Climbs a little through the round, so the quickening is audible as
+    // well as visible. Capped so it never gets shrill.
+    const lift = 1 + Math.min(0.25, step * 0.02);
+    [392 * lift, 523.25 * lift].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
@@ -75,14 +138,46 @@ function playFound() {
   }
 }
 
+/** Four notes up, once, at the end of a round. */
+function playDone() {
+  if (!isGameSoundEnabled()) return;
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    [392, 523.25, 587.33, 784].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const at = ctx.currentTime + i * 0.14;
+      gain.gain.setValueAtTime(0, at);
+      gain.gain.linearRampToValueAtTime(0.06, at + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 1.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(at);
+      osc.stop(at + 1.15);
+    });
+  } catch {
+    /* sound is optional */
+  }
+}
+
 export default function LookingAroundPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
-  const lightRef = useRef<Light | null>(null);
+  const lightsRef = useRef<Light[]>([]);
   const lastZoneRef = useRef<number>(-1);
+  const nextAtRef = useRef<number>(0);
   const sizeRef = useRef({ w: 0, h: 0 });
+  const foundRef = useRef(0);
 
   const [foundCount, setFoundCount] = useState(0);
+  const [done, setDone] = useState(false);
+  // Elapsed, not a countdown. It says how long you have been at it; it does
+  // not ask you to go faster, and nothing in the round depends on it.
+  const [elapsed, setElapsed] = useState(0);
+  const startedRef = useRef(0);
   // The light is tappable and nothing said so. If one sits untouched for a
   // few seconds, say it plainly and ring it, which is the universal "this
   // responds to a finger" signal.
@@ -95,24 +190,56 @@ export default function LookingAroundPage() {
     reducedMotionRef.current = reducedMotion;
   }, [reducedMotion]);
 
+  /** Put one more light out, in a zone nothing is already using. */
   const spawn = useCallback(() => {
     const { w, h } = sizeRef.current;
     if (!w || !h) return;
-    // Never the same zone twice running: the turn is the exercise.
-    let zone = Math.floor(Math.random() * ZONES.length);
-    if (zone === lastZoneRef.current) zone = (zone + 1 + Math.floor(Math.random() * 3)) % ZONES.length;
+    const busy = new Set(lightsRef.current.filter((l) => !l.found).map((l) => l.zone));
+    // Never the same zone twice running, and never two at once in one
+    // place: the turn of the head is the exercise.
+    const free = ZONES.map((_, i) => i).filter((i) => !busy.has(i) && i !== lastZoneRef.current);
+    const pool = free.length ? free : ZONES.map((_, i) => i).filter((i) => !busy.has(i));
+    if (!pool.length) return;
+    const zone = pool[Math.floor(Math.random() * pool.length)];
     lastZoneRef.current = zone;
     const z = ZONES[zone];
-    lightRef.current = {
+    lightsRef.current.push({
       x: (z.x[0] + Math.random() * (z.x[1] - z.x[0])) * w,
       y: (z.y[0] + Math.random() * (z.y[1] - z.y[0])) * h,
+      zone,
       born: performance.now(),
       found: false,
       foundAt: 0,
-    };
+      sparks: [],
+    });
     nudgeShownRef.current = false;
     setNeedsNudge(false);
   }, []);
+
+  // Ticks once a second while a round is running.
+  useEffect(() => {
+    if (done) return;
+    const id = setInterval(() => {
+      if (startedRef.current) {
+        setElapsed(Math.floor((performance.now() - startedRef.current) / 1000));
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [done]);
+
+  const restart = useCallback(() => {
+    lightsRef.current = [];
+    lastZoneRef.current = -1;
+    foundRef.current = 0;
+    nextAtRef.current = 0;
+    nudgeShownRef.current = false;
+    startedRef.current = performance.now();
+    setFoundCount(0);
+    setElapsed(0);
+    setNeedsNudge(false);
+    setDone(false);
+    spawn();
+  }, [spawn]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -133,60 +260,97 @@ export default function LookingAroundPage() {
     }
     resize();
     window.addEventListener("resize", resize);
+    startedRef.current = performance.now();
     spawn();
 
     function draw(now: number) {
       const { w, h } = sizeRef.current;
       ctx!.clearRect(0, 0, w, h);
 
-      const light = lightRef.current;
-      if (light) {
+      const bloom = reducedMotionRef.current ? 240 : 650;
+      // Clear away the ones whose bloom has finished.
+      lightsRef.current = lightsRef.current.filter(
+        (l) => !l.found || now - l.foundAt < bloom,
+      );
+
+      for (const light of lightsRef.current) {
         if (light.found) {
-          // A short bloom, then the next one.
-          const since = now - light.foundAt;
-          const dur = reducedMotionRef.current ? 240 : 650;
-          const p = Math.min(since / dur, 1);
-          const r = 16 + p * 46;
+          const p = Math.min((now - light.foundAt) / bloom, 1);
+          // The ring the burst leaves behind.
           ctx!.beginPath();
-          ctx!.arc(light.x, light.y, r, 0, Math.PI * 2);
-          ctx!.strokeStyle = `rgba(167, 203, 197, ${0.35 * (1 - p)})`;
-          ctx!.lineWidth = 2 * (1 - p);
+          ctx!.arc(light.x, light.y, 14 + p * 50, 0, Math.PI * 2);
+          ctx!.strokeStyle = `rgba(${POP}, ${0.5 * (1 - p)})`;
+          ctx!.lineWidth = 2.5 * (1 - p);
           ctx!.stroke();
-          if (p >= 1) spawn();
-        } else {
-          // Breathes in slowly so it draws the eye without startling.
-          const age = (now - light.born) / 1000;
-          const pulse = reducedMotionRef.current
-            ? 0.72
-            : 0.55 + Math.sin(age * 1.5) * 0.18;
-          const appear = Math.min(age / 0.9, 1);
-
-          const glow = ctx!.createRadialGradient(light.x, light.y, 0, light.x, light.y, 62);
-          glow.addColorStop(0, `rgba(214, 189, 146, ${0.42 * pulse * appear})`);
-          glow.addColorStop(1, "rgba(214, 189, 146, 0)");
-          ctx!.beginPath();
-          ctx!.arc(light.x, light.y, 62, 0, Math.PI * 2);
-          ctx!.fillStyle = glow;
-          ctx!.fill();
-
-          // Waited a while: ring it so it reads as touchable.
-          if (age > 3.5) {
-            if (!nudgeShownRef.current) {
-              nudgeShownRef.current = true;
-              setNeedsNudge(true);
-            }
-            const ringT = reducedMotionRef.current ? 0.5 : ((age - 3.5) % 1.8) / 1.8;
+          // A flash at the point, gone almost at once.
+          if (p < 0.3) {
             ctx!.beginPath();
-            ctx!.arc(light.x, light.y, 24 + ringT * 40, 0, Math.PI * 2);
-            ctx!.strokeStyle = `rgba(214, 189, 146, ${0.3 * (1 - ringT)})`;
-            ctx!.lineWidth = 1.5;
-            ctx!.stroke();
+            ctx!.arc(light.x, light.y, 13 * (1 - p / 0.3), 0, Math.PI * 2);
+            ctx!.fillStyle = `rgba(252, 226, 190, ${0.85 * (1 - p / 0.3)})`;
+            ctx!.fill();
           }
+          // And the sparks, thrown outward and falling a little.
+          if (!reducedMotionRef.current) {
+            for (const sp of light.sparks) {
+              sp.life += 1;
+              if (sp.life > 34) continue;
+              sp.x += sp.vx; sp.y += sp.vy;
+              sp.vy += 0.03; sp.vx *= 0.98; sp.vy *= 0.98;
+              const k = 1 - sp.life / 34;
+              ctx!.beginPath();
+              ctx!.arc(sp.x, sp.y, sp.r * k, 0, Math.PI * 2);
+              ctx!.fillStyle = `rgba(${POP}, ${0.8 * k})`;
+              ctx!.fill();
+            }
+          }
+          continue;
+        }
 
+        // Breathes in slowly so it draws the eye without startling.
+        const age = (now - light.born) / 1000;
+        const pulse = reducedMotionRef.current
+          ? 0.72
+          : 0.55 + Math.sin(age * 1.5) * 0.18;
+        const appear = Math.min(age / 0.9, 1);
+
+        const glow = ctx!.createRadialGradient(light.x, light.y, 0, light.x, light.y, 62);
+        glow.addColorStop(0, `rgba(214, 189, 146, ${0.42 * pulse * appear})`);
+        glow.addColorStop(1, "rgba(214, 189, 146, 0)");
+        ctx!.beginPath();
+        ctx!.arc(light.x, light.y, 62, 0, Math.PI * 2);
+        ctx!.fillStyle = glow;
+        ctx!.fill();
+
+        // Waited a while: ring it so it reads as touchable.
+        if (age > 3.5) {
+          if (!nudgeShownRef.current) {
+            nudgeShownRef.current = true;
+            setNeedsNudge(true);
+          }
+          const ringT = reducedMotionRef.current ? 0.5 : ((age - 3.5) % 1.8) / 1.8;
           ctx!.beginPath();
-          ctx!.arc(light.x, light.y, 11 * appear, 0, Math.PI * 2);
-          ctx!.fillStyle = `rgba(245, 232, 198, ${0.9 * appear})`;
-          ctx!.fill();
+          ctx!.arc(light.x, light.y, 24 + ringT * 40, 0, Math.PI * 2);
+          ctx!.strokeStyle = `rgba(214, 189, 146, ${0.3 * (1 - ringT)})`;
+          ctx!.lineWidth = 1.5;
+          ctx!.stroke();
+        }
+
+        ctx!.beginPath();
+        ctx!.arc(light.x, light.y, 11 * appear, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(245, 232, 198, ${0.9 * appear})`;
+        ctx!.fill();
+      }
+
+      // Top the screen back up, once the gap for this point in the round
+      // has passed. Nothing spawns after the last one is found.
+      if (foundRef.current < TARGET) {
+        const { gap, concurrent } = pace(foundRef.current);
+        const live = lightsRef.current.filter((l) => !l.found).length;
+        const outstanding = TARGET - foundRef.current;
+        const want = Math.min(concurrent, outstanding);
+        if (live < want && now >= nextAtRef.current) {
+          spawn();
+          nextAtRef.current = now + gap;
         }
       }
 
@@ -202,24 +366,47 @@ export default function LookingAroundPage() {
   }, [spawn]);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    const light = lightRef.current;
-    if (!light || light.found) return;
-    const dx = e.clientX - light.x;
-    const dy = e.clientY - light.y;
+    if (done) return;
+    // Nearest unfound light wins, so two close together cannot both take
+    // the same tap.
+    // Indexed rather than held as a local, because the compiler will not
+    // allow a value it has seen passed to a hook to be mutated through an
+    // alias. Writing through the ref is the same thing and is allowed.
+    let bestIdx = -1;
+    let bestD = Infinity;
+    const lights = lightsRef.current;
+    for (let i = 0; i < lights.length; i++) {
+      if (lights[i].found) continue;
+      const d = Math.hypot(e.clientX - lights[i].x, e.clientY - lights[i].y);
+      if (d < bestD) { bestD = d; bestIdx = i; }
+    }
     // Generous target: this is not a test of aim. A miss means they are
     // trying to interact, so that is the moment to say what to aim at
     // rather than leave the tap unanswered.
-    if (Math.sqrt(dx * dx + dy * dy) > 90) {
+    if (bestIdx < 0 || bestD > 90) {
       nudgeShownRef.current = true;
       setNeedsNudge(true);
       return;
     }
-    light.found = true;
-    light.foundAt = performance.now();
-    playFound();
+    lightsRef.current[bestIdx].found = true;
+    lightsRef.current[bestIdx].foundAt = performance.now();
+    lightsRef.current[bestIdx].sparks = makeSparks(
+      lightsRef.current[bestIdx].x, lightsRef.current[bestIdx].y);
+    foundRef.current += 1;
+    playFound(foundRef.current);
     haptics.tap();
-    setFoundCount((c) => c + 1);
-  }, []);
+    setFoundCount(foundRef.current);
+    if (foundRef.current >= TARGET) {
+      setElapsed(Math.floor((performance.now() - startedRef.current) / 1000));
+      setDone(true);
+      haptics.complete();
+      playDone();
+    } else {
+      // The next one waits out this point's gap rather than arriving
+      // on top of the bloom.
+      nextAtRef.current = performance.now() + pace(foundRef.current).gap;
+    }
+  }, [done]);
 
   return (
     <div
@@ -228,10 +415,13 @@ export default function LookingAroundPage() {
       aria-label="Looking around - find and touch each light as it appears"
     >
       <p className="sr-only">
-        One soft light appears at a time, somewhere toward the edge of the
-        screen. Look for it, then touch it, and another appears somewhere
-        else. There is no timer and nothing to miss. Looking around the room
-        is how the body checks that it is safe.
+        Soft lights appear one at a time toward the edges of the screen. Look
+        for each one, then touch it. A round is twelve lights. It starts
+        slowly with one at a time and gradually quickens, with two and then
+        three out at once toward the end. There is no timer and nothing to
+        miss. A clock shows how long you have been playing; nothing depends
+        on it. Looking around the room is how the body checks that it is
+        safe.
       </p>
 
       <canvas
@@ -250,15 +440,52 @@ export default function LookingAroundPage() {
           </svg>
           Games
         </Link>
+
+        {/* How many are left. Not a score: there is nothing to beat and no
+            clock, it is only here so the end is in sight from the start. */}
+        <span className="rounded-full bg-deep/60 px-3 py-1.5 text-[11px] tabular-nums text-cream-dim/45 backdrop-blur-sm">
+          {foundCount} of {TARGET}
+          <span className="mx-1.5 text-cream-dim/20">·</span>
+          {clock(elapsed)}
+        </span>
       </div>
 
-      <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
-        {needsNudge
-          ? "Touch the light."
-          : foundCount === 0
-            ? "Find the light, then touch it. Turn your head if you need to."
-            : "Keep going for as long as it feels good."}
-      </p>
+      {done && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-5 px-8">
+          <p className="text-center text-lg font-light text-cream">
+            That&apos;s twelve. You looked all the way around.
+          </p>
+          <p className="text-center text-sm tabular-nums text-cream-dim/40">
+            {clock(elapsed)}
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={restart}
+              className="rounded-xl bg-teal/20 px-5 py-2.5 text-sm text-teal-soft transition-colors hover:bg-teal/30"
+            >
+              Go again
+            </button>
+            <Link
+              href="/games"
+              className="rounded-xl px-5 py-2.5 text-sm text-cream-dim/50 transition-colors hover:text-cream-dim"
+            >
+              Done
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {!done && (
+        <p className="pointer-events-none absolute inset-x-0 bottom-24 text-center text-[11px] text-cream-dim/25">
+          {needsNudge
+            ? "Touch the light."
+            : foundCount === 0
+              ? "Find the light, then touch it. Turn your head if you need to."
+              : foundCount >= Math.round(TARGET * 0.7)
+                ? "More than one now. Take them in any order."
+                : "It picks up a little as you go."}
+        </p>
+      )}
     </div>
   );
 }
