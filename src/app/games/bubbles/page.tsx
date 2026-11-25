@@ -71,50 +71,31 @@ function playPopSound() {
     if (ctx.state === "suspended") ctx.resume();
     const t = ctx.currentTime;
 
-    // Fidget toy popper sound — sharp membrane snap/thock
-    // 1) Initial click: very short noise burst (membrane snap)
-    const clickLen = Math.floor(ctx.sampleRate * 0.008);
-    const clickBuf = ctx.createBuffer(1, clickLen, ctx.sampleRate);
-    const clickData = clickBuf.getChannelData(0);
-    for (let i = 0; i < clickLen; i++) {
-      // Sharp impulse that decays instantly
-      clickData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / clickLen, 8);
-    }
-    const clickSrc = ctx.createBufferSource();
-    clickSrc.buffer = clickBuf;
-    const clickGain = ctx.createGain();
-    clickGain.gain.setValueAtTime(0.5, t);
-    clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
-    clickSrc.connect(clickGain);
-    clickGain.connect(ctx.destination);
-    clickSrc.start(t);
-
-    // 2) Low thock: resonant membrane pop
+    // A water drop. Chosen by ear over nine others, including the fidget
+    // popper this replaces, which was a membrane snap with a hard click on
+    // the front of it.
+    //
+    // The pitch RISES, which is the whole trick: a falling pitch reads as
+    // something breaking, a rising one reads as a drop landing in water.
+    // There is no noise burst and no click anywhere in it, so a long run of
+    // them does not get fatiguing the way a transient does.
+    const base = 300 + Math.random() * 80;
     const osc = ctx.createOscillator();
-    const oscGain = ctx.createGain();
     osc.type = "sine";
-    const baseFreq = 150 + Math.random() * 80;
-    osc.frequency.setValueAtTime(baseFreq, t);
-    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, t + 0.04);
-    oscGain.gain.setValueAtTime(0.35, t);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-    osc.connect(oscGain);
-    oscGain.connect(ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.06);
+    osc.frequency.setValueAtTime(base, t);
+    osc.frequency.exponentialRampToValueAtTime(base * 3.2, t + 0.12);
 
-    // 3) Subtle higher click for the "snap" feel
-    const snap = ctx.createOscillator();
-    const snapGain = ctx.createGain();
-    snap.type = "square";
-    snap.frequency.setValueAtTime(800 + Math.random() * 200, t);
-    snap.frequency.exponentialRampToValueAtTime(200, t + 0.015);
-    snapGain.gain.setValueAtTime(0.12, t);
-    snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-    snap.connect(snapGain);
-    snapGain.connect(ctx.destination);
-    snap.start(t);
-    snap.stop(t + 0.025);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    // A few milliseconds of attack rather than none, so it arrives instead
+    // of cracking.
+    g.gain.linearRampToValueAtTime(0.28, t + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.16);
   } catch {
     // Audio not available
   }
